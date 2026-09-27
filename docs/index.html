@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tim's Alchemy Lab</title>
+<meta name="description" content="One Eurorack module, nine instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --wall:   #e6ebe7;   /* a studio wall, faintly green      */
+  --wall-2: #dbe2dd;
+  --ink:    #121614;
+  --ink-2:  #3d4641;
+  --ink-3:  #66716b;
+  --rule:   #c4cdc7;
+  --panel:  #15171b;   /* the Lab's black anodized plate    */
+  --panel-ink: #d9dde2;
+  --heard:  #1d7a45;
+  --heard-bg: #d3eadb;
+  --soon:   #8a5a00;
+  --soon-bg: #f3e6c8;
+  --link:   #185c9a;
+  --focus:  #2a6bd6;
+  --accent-ink: var(--accent-light, #1f9d57);
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body:    "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --accent-ink: var(--accent-glow, #4cf28a);
+    --wall: #0f1311; --wall-2: #161b18; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+    --rule: #28302b; --heard: #5fd690; --heard-bg: #133222; --soon: #f0c260; --soon-bg: #2f2512;
+    --link: #8cc4ff; --focus: #8cb4ff;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --accent-ink: var(--accent-glow, #4cf28a);
+  --wall: #0f1311; --wall-2: #161b18; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+  --rule: #28302b; --heard: #5fd690; --heard-bg: #133222; --soon: #f0c260; --soon-bg: #2f2512;
+  --link: #8cc4ff; --focus: #8cb4ff;
+}
+* { box-sizing: border-box; }
+html { background: var(--wall); }
+body {
+  margin: 0; background: var(--wall); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px; padding-block: 0 72px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; }
+a { color: var(--link); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0; max-width: 64ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+.label { font: 500 12px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+/* ---- hero ---- */
+.hero {
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 48px;
+  align-items: center; padding-block: 56px 40px;
+}
+h1 { font-weight: 800; font-size: clamp(46px, 7.6vw, 96px); line-height: .92; letter-spacing: -.02em; }
+h1 em { font-style: normal; color: var(--accent-ink); transition: color .5s ease; }
+.hero .lede { margin-top: 22px; font-size: 20px; line-height: 1.5; color: var(--ink-2); max-width: 36ch; }
+.picker { margin-top: 28px; display: grid; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  appearance: none; font: 600 15px/1 var(--body); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 999px; padding: 10px 14px; cursor: pointer;
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.chip:hover { border-color: var(--ink-3); }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--wall); }
+.now { font-size: 15px; color: var(--ink-2); min-height: 1.6em; }
+.now b { color: var(--ink); }
+.stage { display: grid; justify-items: center; gap: 12px; }
+.module {
+  width: 100%; max-width: 300px; background: #0b0c0e; border-radius: 10px; padding: 12px;
+  box-shadow: 0 24px 48px -24px rgba(0,0,0,.55);
+}
+.module svg { display: block; width: 100%; height: auto; }
+.stage .cap { font-size: 13px; color: var(--ink-3); text-align: center; max-width: 34ch; }
+
+/* ---- sections ---- */
+section { padding-block: 48px; border-top: 1px solid var(--rule); display: grid; gap: 22px; }
+h2 { font-weight: 800; font-size: clamp(30px, 4.2vw, 46px); line-height: 1; letter-spacing: -.015em; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; counter-reset: s; }
+.steps li { list-style: none; display: grid; gap: 8px; }
+.steps { padding: 0; margin: 0; }
+.steps li::before {
+  counter-increment: s; content: counter(s);
+  font: 800 44px/1 var(--display); color: var(--ink-3);
+}
+.steps h3 { font-size: 22px; font-weight: 800; }
+.steps p { color: var(--ink-2); }
+
+/* ---- instruments ---- */
+.inst { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; }
+.inst article {
+  display: grid; grid-template-rows: auto auto 1fr auto; gap: 8px;
+  padding-block: 22px; border-top: 3px solid var(--c);
+}
+.inst h3 { font-size: 30px; font-weight: 800; letter-spacing: -.01em; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.inst h3 button {
+  appearance: none; border: 0; background: none; padding: 0; cursor: pointer;
+  font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3);
+}
+.inst h3 button:hover { color: var(--ink); }
+.inst .what { font-weight: 600; }
+.inst p { color: var(--ink-2); font-size: 16px; }
+.inst .foot { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; font-size: 14px; }
+.status { font: 500 12px/1 var(--mono); letter-spacing: .04em; padding: 6px 9px; border-radius: 999px; }
+.status.heard { color: var(--heard); background: var(--heard-bg); }
+.status.soon  { color: var(--soon);  background: var(--soon-bg); }
+.group-note { font-size: 15px; color: var(--ink-3); }
+
+/* ---- two-col prose ---- */
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 48px; }
+.cols p + p { margin-top: 12px; }
+.plain { margin: 0; padding-left: 20px; display: grid; gap: 8px; max-width: 64ch; }
+.links { display: flex; flex-wrap: wrap; gap: 10px; }
+.links a {
+  text-decoration: none; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 999px;
+  padding: 8px 14px; font-weight: 600; font-size: 15px;
+}
+.links a:hover { background: var(--ink); color: var(--wall); }
+footer { border-top: 1px solid var(--rule); padding-top: 28px; color: var(--ink-3); font-size: 14px; display: grid; gap: 8px; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 36px; }
+  .inst { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .steps, .cols, .inst { grid-template-columns: minmax(0, 1fr); }
+  .hero .lede { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { h1 em { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="label">Tim Cox · Hermetic Modular Alchemy Lab</div>
+    <h1>One box,<br><em id="accentWord">nine</em> instruments.</h1>
+    <p class="lede">The Alchemy Lab is a small synthesizer module whose personality is software. I write the
+    software. Each program turns the same six knobs and three buttons into a different instrument.</p>
+    <div class="picker">
+      <div class="label" id="pickLabel">Try it: pick an instrument</div>
+      <div class="chips" id="chips" role="group" aria-labelledby="pickLabel"></div>
+      <div class="now" id="now" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="module"><svg id="panel" viewBox="-3 -3 67 134.5" role="img" aria-label="The Alchemy Lab front panel"></svg></div>
+    <div class="cap">The real panel, drawn to scale. Each knob has a ring of 16 lights, and every instrument lights them in its own colours.</div>
+  </div>
+</header>
+
+<section id="what">
+  <h2>What is this?</h2>
+  <ol class="steps">
+    <li>
+      <h3>A modular synth</h3>
+      <p>Eurorack is a format for building a synthesizer out of separate boxes, called modules, that screw
+      into a case and connect with patch cables. Each module usually does one job.</p>
+    </li>
+    <li>
+      <h3>A module that can change</h3>
+      <p>The Alchemy Lab, made by Hermetic Modular in Seattle, is one of those boxes, but its job isn't fixed.
+      Inside is a small computer with audio in and out, knobs, lights and a memory-card slot.</p>
+    </li>
+    <li>
+      <h3>Programs that make it an instrument</h3>
+      <p>I write programs (firmware) that turn it into a looper, a voice tuner, a granular cloud machine and
+      more. All of them live on the memory card, and it switches between them in a few seconds, no computer
+      needed.</p>
+    </li>
+  </ol>
+</section>
+
+<section id="instruments">
+  <h2>The instruments</h2>
+  <p class="group-note">The first three are my own designs and have been played on the module. The other six
+  bring classic open-source instruments by Mutable Instruments to the Lab. They're built and tested on a
+  computer, and the first listen on the module is next.</p>
+  <div class="inst" id="inst"></div>
+</section>
+
+<section id="switch">
+  <h2>Switching instruments</h2>
+  <div class="cols">
+    <div>
+      <p>Hold two buttons for two seconds and the module opens its settings. One page is a list of every
+      instrument on the memory card. Turn a knob to choose one, sweep another to load it, and a few seconds
+      later the module wakes up as that instrument.</p>
+      <p>Each instrument remembers its own settings, so switching to Clouds and back to Mark finds Mark the way
+      you left it.</p>
+    </div>
+    <div>
+      <p>Some of the instruments also talk to other gear over the front USB port:</p>
+      <ul class="plain">
+        <li>Mark, Belt and Smack can be played from a Novation Launchpad or Launch Control XL plugged into the
+        module.</li>
+        <li>Mark can turn the module into a USB audio interface for a computer, tested with a Mac for five minutes
+        without a single dropout.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="thanks">
+  <h2>Where it comes from</h2>
+  <div class="cols">
+    <p><b>The module</b> and the software kit it's built on are by
+    <a href="https://hermeticmodular.com/modules/alchemy-lab">Hermetic Modular</a>, who made both open for people
+    like me to write their own instruments.</p>
+    <p><b>Clouds, Elements, Marbles, Plaits and Warps</b> are by Emilie Gillet of Mutable Instruments, who
+    published the code for her modules. <b>Warps and Meld</b> run Matthias Puech's
+    <a href="https://github.com/mqtthiqs/parasites">Parasites</a> version of Warps. Porting Clouds turned up a
+    bug in its public code, which I sent back as
+    <a href="https://github.com/pichenettes/eurorack/pull/72">a fix</a>.</p>
+  </div>
+</section>
+
+<section id="musicians">
+  <h2>For musicians</h2>
+  <p>Each instrument has a full manual: every knob, button and jack, how to install it, and what's still
+  untested.</p>
+  <div class="links" id="manuals"></div>
+  <p class="group-note">Source code: <a href="https://github.com/timncox/mark-alchemy">mark-alchemy</a>,
+  <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>,
+  <a href="https://github.com/timncox/smack-alchemy">smack-alchemy</a> and
+  <a href="https://github.com/timncox/mi-alchemy">mi-alchemy</a> (the six Mutable Instruments ports), all MIT licensed.</p>
+</section>
+
+<footer>
+  <div>Made by Tim Cox in Brooklyn. Alchemy Lab is a product of Hermetic Modular; Mutable Instruments' modules are
+  by Emilie Gillet. This site isn't affiliated with either.</div>
+</footer>
+
+</div>
+
+<script>
+/* == BEGIN GENERATED GEOMETRY -- mi-alchemy/tools/emit_panel_geometry.py == */
+const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
+/* == END GENERATED GEOMETRY == */
+
+/* The nine instruments. `knobs` are each firmware's real PLAY-page names
+   (from its source); `v` is a resting position per knob for the drawing;
+   `heard` is true only for what has actually made sound on a module
+   (docs/alchemy-lab-status.md, 2026-09-22). */
+const I = [
+  { id:"mark", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
+    what:"A five-track looper.",
+    say:"Play a phrase, press a button, and it repeats. Stack up to five layers, mute them, undo them, and build a whole piece live.",
+    knobs:["Track 1","Track 2","Track 3","Track 4","Track 5","Track Select"], v:[.8,.6,.7,.4,0,.1],
+    url:"https://timncox.github.io/mark-alchemy/" },
+  { id:"belt", name:"Belt", c:"#b5532a", ring:"#ff9020", heard:true,
+    what:"A voice tuner with harmonies.",
+    say:"Sing into it and it pulls your pitch into key, from gentle to full robot. It can add up to four harmony voices that follow the scale.",
+    knobs:["Key","Scale","Retune","Amount","Harmony","Formant"], v:[.1,.2,.35,.8,.6,.5],
+    url:"https://timncox.github.io/belt-alchemy/" },
+  { id:"smack", name:"Smack", c:"#c2185b", ring:"#ff4fa0", heard:true,
+    what:"A loop glitcher.",
+    say:"It grabs what you're playing, chops it into slices and plays them back reordered, stuttered and filtered.",
+    knobs:["FX","Order","Length","Slice","Blend","DJ Filter"], v:[.5,.3,.6,.4,.7,.5],
+    url:"https://timncox.github.io/smack-alchemy/" },
+  { id:"clouds", name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
+    what:"Turns sound into clouds.",
+    say:"It records what you feed it and plays it back as thousands of tiny grains, so you can freeze a moment, smear it, stretch it or pitch it.",
+    knobs:["Position","Size","Pitch","Density","Texture","Blend"], v:[.3,.5,.5,.8,.5,.6],
+    url:"https://timncox.github.io/mi-alchemy/clouds/" },
+  { id:"elements", name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
+    what:"A virtual acoustic instrument.",
+    say:"A modelled string, bell or tube that you bow, blow or strike. You change what it's made of and how it's played rather than picking a sample.",
+    knobs:["Coarse","Fine","Geometry","Brightness","Damping","Position"], v:[.5,.5,.3,.6,.4,.3],
+    url:"https://timncox.github.io/mi-alchemy/elements/" },
+  { id:"marbles", name:"Marbles", c:"#b8336a", ring:"#ff5fa2", heard:false,
+    what:"A dice roller for music.",
+    say:"It invents rhythms and melodies at random for the rest of the synth to play, within limits you set. If you like what it rolled, it can loop it.",
+    knobs:["Rate","t Bias","t Jitter","Deja vu","X Spread","X Bias"], v:[.5,.5,.2,.7,.4,.5],
+    url:"https://timncox.github.io/mi-alchemy/marbles/" },
+  { id:"plaits", name:"Plaits", c:"#c2561a", ring:"#ff7000", heard:false,
+    what:"One voice, 24 sounds.",
+    say:"A sound source with 24 different engines: classic synth tones, chords, speech, plucked strings and a full drum kit.",
+    knobs:["Model","Frequency","Harmonics","Timbre","Morph","Decay"], v:[.35,.5,.45,.55,.4,.5],
+    url:"https://timncox.github.io/mi-alchemy/plaits/" },
+  { id:"warps", name:"Warps", c:"#2e7d5b", ring:"#3ddc97", heard:false,
+    what:"Smashes two sounds together.",
+    say:"Feed it two sounds and it combines them in strange ways: ring modulation, folding, a vocoder that makes one sound talk with the other, and more.",
+    knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.45,.5,.7,.7,.1,.2],
+    url:"https://timncox.github.io/mi-alchemy/warps/" },
+  { id:"meld", name:"Meld", c:"#6a4bb0", ring:"#a88bff", heard:false,
+    what:"Warps, with more to say.",
+    say:"Warps plus the original Mutable version as an extra mode. It also sends out pulses when its two sounds line up, and voltages that follow their loudness, to drive the rest of the synth.",
+    knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.6,.4,.7,.6,.95,.2],
+    url:"https://github.com/timncox/mi-alchemy/blob/release/src/meld/DESIGN.md", design:true },
+];
+
+const NS = "http://www.w3.org/2000/svg";
+function el(n, a, p) { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+function hourXY(cx, cy, r, h) { const a = h / 12 * Math.PI * 2; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; }
+
+const svg = document.getElementById("panel");
+const ringLeds = [], knobLines = [], knobLabels = [], halos = [];
+(function build() {
+  const P = PANEL, g = el("g", {}, svg);
+  el("rect", { x:0, y:0, width:P.plate.w, height:P.plate.h, rx:1.2, fill:"#15171b" }, g);
+  for (const m of P.mount) el("rect", { x:m.x - m.w / 2, y:m.y - m.h / 2, width:m.w, height:m.h, rx:m.r, fill:"#0b0c0e" }, g);
+  el("text", { x:P.plate.w / 2, y:8.2, "text-anchor":"middle", "font-family":"IBM Plex Mono, monospace", "font-size":2.2, fill:"#8b929b", "letter-spacing":.6 }, g).textContent = "ALCHEMY LAB";
+  P.pots.forEach((p, i) => {
+    const leds = [];
+    for (let k = 0; k < P.ring.leds; k++) {
+      const [x, y] = hourXY(p.x, p.y, P.ring.r, (P.ring.start_hour + P.ring.step_hours * k) % 12);
+      const glow = el("circle", { cx:x, cy:y, r:1.5, fill:"#000", opacity:0 }, g);
+      const dot = el("circle", { cx:x, cy:y, r:.7, fill:"#1d1f24" }, g);
+      leds.push({ glow, dot, arc: k < P.ring.arc_leds });
+    }
+    ringLeds.push(leds);
+    el("circle", { cx:p.x, cy:p.y, r:6.2, fill:"#0f1013", stroke:"rgba(255,255,255,.1)", "stroke-width":.25 }, g);
+    el("circle", { cx:p.x, cy:p.y, r:5.3, fill:"#23262d" }, g);
+    knobLines.push(el("line", { x1:p.x, y1:p.y, x2:p.x, y2:p.y - 4.6, stroke:"#eef0f4", "stroke-width":.75, "stroke-linecap":"round" }, g));
+    const t = el("text", { x:p.x, y:p.y + P.labels.knob_dy, "text-anchor":"middle", "font-family":"IBM Plex Mono, monospace", "font-size":2.05, fill:"#aeb4bd" }, g);
+    knobLabels.push(t);
+  });
+  for (const b of P.buttons) {
+    const halo = el("circle", { cx:b.x, cy:b.y, r:b.halo, fill:"#1b1d22" }, g);
+    halos.push(halo);
+    el("circle", { cx:b.x, cy:b.y, r:b.hole, fill:"#0c0d10", stroke:"rgba(255,255,255,.14)", "stroke-width":.25 }, g);
+    el("circle", { cx:b.x, cy:b.y, r:2.1, fill:"#262930" }, g);
+  }
+  const u = P.usb; el("rect", { x:u.x, y:u.y, width:u.w, height:u.h, rx:u.r, fill:"#07080a", stroke:"#3a3e46", "stroke-width":.3 }, g);
+  for (const j of P.jacks) {
+    el("circle", { cx:j.x, cy:j.y, r:3.8, fill:"#0f1013", stroke:"rgba(255,255,255,.12)", "stroke-width":.25 }, g);
+    el("circle", { cx:j.x, cy:j.y, r:j.hole, fill:"#262930" }, g);
+    el("circle", { cx:j.x, cy:j.y, r:1.5, fill:"#050506" }, g);
+  }
+})();
+
+function lightRing(i, colour, v, dim) {
+  const leds = ringLeds[i], n = PANEL.ring.arc_leds, lit = Math.round(v * n);
+  leds.forEach((L, k) => {
+    const on = L.arc && k < lit;
+    L.dot.setAttribute("fill", !L.arc ? "#111216" : on ? colour : dim);
+    L.glow.setAttribute("fill", colour);
+    L.glow.setAttribute("opacity", on ? .28 : 0);
+  });
+  const h = PANEL.ring.start_hour + v * PANEL.ring.step_hours * (n - 1);
+  const p = PANEL.pots[i], [x, y] = hourXY(p.x, p.y, 4.6, h), [x1, y1] = hourXY(p.x, p.y, 1.8, h);
+  knobLines[i].setAttribute("x1", x1); knobLines[i].setAttribute("y1", y1);
+  knobLines[i].setAttribute("x2", x); knobLines[i].setAttribute("y2", y);
+}
+
+/* The SD picker's "loading" look: a teal chase round every ring, then the
+   instrument's own colours. */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let timer = null;
+function select(id, animate) {
+  const inst = I.find(x => x.id === id) || I[0];
+  document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.id === inst.id));
+  const word = document.getElementById("accentWord");
+  document.documentElement.style.setProperty("--accent-light", inst.c);
+  document.documentElement.style.setProperty("--accent-glow", inst.ring);
+  document.getElementById("now").innerHTML =
+    `<b>${inst.name}</b>: ${inst.what} ${inst.heard ? "Played on the module." : "Built, first listen coming."}`;
+  const settle = () => {
+    inst.knobs.forEach((k, i) => { knobLabels[i].textContent = k.toUpperCase(); lightRing(i, inst.ring, inst.v[i], "#23262b"); });
+    halos[0].setAttribute("fill", inst.ring); halos[0].setAttribute("opacity", .55);
+    halos[1].setAttribute("fill", "#1b1d22"); halos[2].setAttribute("fill", "#1b1d22");
+  };
+  clearInterval(timer);
+  if (!animate || reduce) { settle(); return; }
+  let step = 0;
+  knobLabels.forEach(t => t.textContent = "");
+  halos.forEach(h => { h.setAttribute("fill", "#00c0b0"); h.setAttribute("opacity", .45); });
+  timer = setInterval(() => {
+    ringLeds.forEach(leds => leds.forEach((L, k) => {
+      const on = L.arc && ((k - step) % PANEL.ring.arc_leds + PANEL.ring.arc_leds) % PANEL.ring.arc_leds < 3;
+      L.dot.setAttribute("fill", on ? "#00d8c4" : L.arc ? "#1d1f24" : "#111216");
+      L.glow.setAttribute("fill", "#00d8c4"); L.glow.setAttribute("opacity", on ? .25 : 0);
+    }));
+    if (++step > 16) { clearInterval(timer); settle(); }
+  }, 45);
+}
+
+const chips = document.getElementById("chips");
+I.forEach(inst => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button"; b.dataset.id = inst.id; b.style.setProperty("--c", inst.ring);
+  b.innerHTML = `<i aria-hidden="true"></i>${inst.name}`;
+  b.addEventListener("click", () => select(inst.id, true));
+  chips.appendChild(b);
+});
+
+const grid = document.getElementById("inst");
+I.forEach(inst => {
+  const a = document.createElement("article");
+  a.style.setProperty("--c", inst.c);
+  a.innerHTML = `
+    <h3>${inst.name}<button type="button" data-id="${inst.id}" aria-label="Show ${inst.name} on the panel">on the panel ↑</button></h3>
+    <div class="what">${inst.what}</div>
+    <p>${inst.say}</p>
+    <div class="foot">
+      <span class="status ${inst.heard ? "heard" : "soon"}">${inst.heard ? "Played on the module" : "Built · first listen next"}</span>
+      <a href="${inst.url}">${inst.design ? "Design notes" : "Manual"}</a>
+    </div>`;
+  a.querySelector("button").addEventListener("click", () => {
+    select(inst.id, true);
+    document.querySelector(".hero").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  });
+  grid.appendChild(a);
+});
+
+const man = document.getElementById("manuals");
+I.forEach(inst => {
+  const a = document.createElement("a"); a.href = inst.url; a.textContent = inst.name + (inst.design ? " (notes)" : "");
+  man.appendChild(a);
+});
+
+let pick = "mark";
+try { const h = location.hash.replace("#", ""); if (I.some(x => x.id === h)) pick = h; } catch (e) {}
+select(pick, false);
+</script>
+</body>
+</html>
