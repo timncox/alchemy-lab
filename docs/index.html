@@ -130,12 +130,28 @@ h2 { font-weight: 800; font-size: clamp(30px, 4.2vw, 46px); line-height: 1; lett
 .links a:hover { background: var(--ink); color: var(--wall); }
 footer { border-top: 1px solid var(--rule); padding-top: 28px; color: var(--ink-3); font-size: 14px; display: grid; gap: 8px; }
 
+/* ---- install guide ---- */
+.guide { margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; counter-reset: g; }
+.guide li { list-style: none; display: grid; gap: 10px; align-content: start; }
+.guide h3 { font-size: 23px; font-weight: 800; display: flex; gap: 12px; align-items: baseline; }
+.guide h3::before { counter-increment: g; content: counter(g); font: 800 30px/1 var(--display); color: var(--ink-3); }
+.guide p { color: var(--ink-2); }
+.guide b { color: var(--ink); }
+code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35em; border-radius: 3px; }
+.guide p.fine { font-size: 15px; color: var(--ink-3); }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; }
+.dl a { text-decoration: none; font-weight: 600; font-size: 15px; color: var(--wall); background: var(--ink);
+  border-radius: 999px; padding: 9px 14px; display: inline-flex; gap: 8px; align-items: center; }
+.dl a i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.dl a:hover { opacity: .85; }
+.warn { font-size: 15px; color: var(--soon); background: var(--soon-bg); padding: 12px 16px; border-radius: 8px; max-width: 80ch; }
+
 @media (max-width: 900px) {
   .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 36px; }
   .inst { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .steps, .cols, .inst { grid-template-columns: minmax(0, 1fr); }
+  .steps, .cols, .inst, .guide { grid-template-columns: minmax(0, 1fr); }
   .hero .lede { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { h1 em { transition: none; } }
@@ -192,26 +208,56 @@ footer { border-top: 1px solid var(--rule); padding-top: 28px; color: var(--ink-
   <div class="inst" id="inst"></div>
 </section>
 
-<section id="switch">
-  <h2>Switching instruments</h2>
-  <div class="cols">
-    <div>
-      <p>Hold two buttons for two seconds and the module opens its settings. One page is a list of every
-      instrument on the memory card. Turn a knob to choose one, sweep another to load it, and a few seconds
-      later the module wakes up as that instrument.</p>
-      <p>Each instrument remembers its own settings, so switching to Clouds and back to Mark finds Mark the way
-      you left it.</p>
-    </div>
-    <div>
-      <p>Some of the instruments also talk to other gear over the front USB port:</p>
-      <ul class="plain">
-        <li>Mark, Belt and Smack can be played from a Novation Launchpad or Launch Control XL plugged into the
-        module.</li>
-        <li>Mark can turn the module into a USB audio interface for a computer, tested with a Mac for five minutes
-        without a single dropout.</li>
-      </ul>
-    </div>
-  </div>
+<section id="install">
+  <h2>Get it on your module</h2>
+  <p>You need an Alchemy Lab (the V2 panel), a USB-C cable, a computer with a Chromium browser (Chrome, Edge or Brave, which the web programmer requires), and a
+  microSD card.
+  Everything below comes from the manuals, which have the full detail.</p>
+
+  <ol class="guide">
+    <li>
+      <h3>Put the first one on</h3>
+      <p>Download an instrument, then put the module into update mode: <b>hold B3</b> (the bottom button) while you
+      power it on. The rings breathe slowly and the B3 lights stay on. Connect the front USB-C to the computer and
+      flash the file with Hermetic's <a href="https://hermeticmodular.com/program">web programmer</a>. The module
+      stays in the rack the whole time.</p>
+      <div class="dl" id="downloads"></div>
+      <p class="fine">The six Mutable Instruments ports have no download yet, because they haven't had their first
+      listen on a module. Musicians can build them from <a href="https://github.com/timncox/mi-alchemy">the
+      source</a> today.</p>
+    </li>
+    <li>
+      <h3>Carry them all on the card</h3>
+      <p>Format a microSD card of <b>32 GB or less</b> as FAT32, make a folder called <code>alchemy</code> at the
+      top, and copy every instrument's <code>.bin</code> file into it. Elements also needs its sound file at
+      <code>/mi/elements.smp</code>. On a Mac, run <code>dot_clean</code> on the card before ejecting it.</p>
+      <p>To switch, hold <b>B2 and B3</b> for two seconds to open Settings, and tap <b>B1</b> to reach the Firmware
+      page. Turn the top-left knob to choose an instrument, then turn the top-right knob down a little and all the
+      way up to load it. It checks the file, writes it and restarts as that instrument. If it's the one already
+      running, the ring turns solid green and nothing is rewritten.</p>
+      <p class="fine">Every instrument here has this picker and remembers its own settings, so you can go from
+      Clouds to Mark and back without losing either.</p>
+    </li>
+    <li>
+      <h3>Play it from a Launchpad</h3>
+      <p>Mark, Belt and Smack can be played from a <b>Novation Launchpad Mini MK3</b> and a <b>Launch Control
+      XL</b>, both at once. The Lab's USB-C port gives no power, so connect them through a <b>powered USB-C dongle
+      with a hub inside</b>, never straight into the module.</p>
+      <p>In Settings, set <b>USB PORT</b> (the bottom-right knob on the first page) to <b>Launchpad</b>. It takes
+      effect from the next power-up, and it's saved on the card, so every instrument uses the same setting. Hold
+      <b>B1</b> while powering on to get back to computer mode for one boot.</p>
+    </li>
+    <li>
+      <h3>Use it as an audio interface</h3>
+      <p>Set <b>USB PORT</b> to <b>Audio</b> and power it up again. The Lab becomes a class-compliant USB audio
+      interface, 2 in (J1, J2) and 2 out (J9, J10) at 48 kHz and 24-bit, with no driver needed on a Mac. The
+      instrument itself is bypassed while it's in this mode.</p>
+      <p class="fine">Mark, Belt and Smack all offer it. The five-minute test with no dropouts was on Mark, with
+      an M1 Mac.</p>
+    </li>
+  </ol>
+  <p class="warn">This is custom firmware. Hermetic Modular didn't write or test it and can't support it, so
+  please don't contact them about it. To go back to Hermetic's own firmware, flash it the same way as step 1.</p>
 </section>
 
 <section id="thanks">
@@ -421,6 +467,16 @@ const man = document.getElementById("manuals");
 I.forEach(inst => {
   const a = document.createElement("a"); a.href = inst.url; a.textContent = inst.name + (inst.design ? " (notes)" : "");
   man.appendChild(a);
+});
+
+/* Downloads: only what has a published release (Mark, Belt, Smack v0.2.0). */
+const dl = document.getElementById("downloads");
+I.filter(x => x.heard).forEach(inst => {
+  const a = document.createElement("a");
+  a.href = `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
+  a.style.setProperty("--c", inst.ring);
+  a.innerHTML = `<i aria-hidden="true"></i>Download ${inst.name}`;
+  dl.appendChild(a);
 });
 
 let pick = "mark";
