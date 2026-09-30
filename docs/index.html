@@ -222,9 +222,12 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       flash the file with Hermetic's <a href="https://hermeticmodular.com/program">web programmer</a>. The module
       stays in the rack the whole time.</p>
       <div class="dl" id="downloads"></div>
-      <p class="fine">The six Mutable Instruments ports have no download yet, because they haven't had their first
-      listen on a module. Musicians can build them from <a href="https://github.com/timncox/mi-alchemy">the
-      source</a> today.</p>
+      <p class="fine" style="margin-top:14px">The six Mutable Instruments ports, not yet played on a module:</p>
+      <div class="dl" id="downloads-mi"></div>
+      <p class="fine">These six are an early release: they're built and tested on a computer, but haven't had their
+      first listen on a module yet. The <b>SD card zip</b> holds all six plus the samples Elements needs, already in
+      the right folders for step 2. <a href="https://github.com/timncox/mi-alchemy/releases/tag/v0.1.0">Release
+      notes</a>.</p>
     </li>
     <li>
       <h3>Carry them all on the card</h3>
@@ -469,7 +472,7 @@ I.forEach(inst => {
   man.appendChild(a);
 });
 
-/* Downloads: only what has a published release (Mark, Belt, Smack v0.2.0). */
+/* Downloads: Mark, Belt, Smack (v0.2.0, heard) here; the MI ports below. */
 const dl = document.getElementById("downloads");
 I.filter(x => x.heard).forEach(inst => {
   const a = document.createElement("a");
@@ -478,6 +481,23 @@ I.filter(x => x.heard).forEach(inst => {
   a.innerHTML = `<i aria-hidden="true"></i>Download ${inst.name}`;
   dl.appendChild(a);
 });
+/* The Mutable Instruments ports: mi-alchemy v0.1.0, a pre-release (so a fixed tag, not /latest). */
+const dlMi = document.getElementById("downloads-mi");
+const MI_REL = "https://github.com/timncox/mi-alchemy/releases/download/v0.1.0/";
+I.filter(x => !x.heard).forEach(inst => {
+  const a = document.createElement("a");
+  a.href = MI_REL + `${inst.id}_alchemy.bin`;
+  a.style.setProperty("--c", inst.ring);
+  a.innerHTML = `<i aria-hidden="true"></i>${inst.name}`;
+  dlMi.appendChild(a);
+});
+{
+  const a = document.createElement("a");
+  a.href = MI_REL + "mi-alchemy-sd-card-v0.1.0.zip";
+  a.style.setProperty("--c", "var(--wall)");
+  a.innerHTML = `<i aria-hidden="true"></i>SD card zip · all six`;
+  dlMi.appendChild(a);
+}
 
 let pick = "mark";
 try { const h = location.hash.replace("#", ""); if (I.some(x => x.id === h)) pick = h; } catch (e) {}
