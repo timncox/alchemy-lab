@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Operation manual for Seq, a generative sequencer for the Hermetic Modular Alchemy Lab: two generated voices that follow a chord progression, four drum triggers, played from the panel, a Launchpad, a Launch Control XL or a Haute42.">
+<title>Seq for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+  seq for Alchemy Lab — operation manual.
+
+  The same dark world as the Mark, Smack and Belt manuals: the rack with the
+  room lights off. Every ring and pad colour here is the firmware's own
+  constant (alchemy/src/seq_alchemy.cpp, launchpad.h). The accent pair is
+  the two voices: bass orange (kColBass) and lead cyan (kColLead).
+  Deliberately single-theme, like the rest of the family.
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0e0c0b; --panel:#16130f; --panel2:#1d1914; --panel3:#262019;
+  --ink:#efe9e2; --dim:#9a9088; --soft:#cfc6bc;
+  --line:rgba(239,233,226,.12); --line2:rgba(239,233,226,.06);
+  --acc:#ff8a2a; --acc-soft:rgba(255,138,42,.14); --lead:#35c8ff; --lead-soft:rgba(53,200,255,.14);
+  --warn:#ff4a4a; --ok:#3ce07a;
+
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;position:relative}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid rgba(255,138,42,.35)}
+a:hover{border-bottom-color:var(--acc)}
+a:focus-visible,button:focus-visible,input:focus-visible,.pad:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(14,12,11,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{color:var(--acc);font-style:normal}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:44px;align-items:center}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.hero .heroplate{max-width:280px;margin:0 auto}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(64px,12vw,148px);line-height:.86;letter-spacing:-.03em;margin:0;text-wrap:balance}
+h1.title em{font-style:normal;display:block;font-size:.3em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.5em}
+.tagline{font-family:var(--disp);font-weight:500;font-size:clamp(18px,2.5vw,24px);color:var(--soft);margin-top:22px;text-wrap:balance;max-width:34ch}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--soft);background:var(--panel)}
+.chip.ok{border-color:rgba(60,224,122,.4);color:var(--ok)}
+.chip.no{border-color:rgba(255,138,42,.45);color:var(--acc)}
+.heroplate svg{width:100%;height:auto;display:block;overflow:visible;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-align:center;margin-top:12px}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(32px,5vw,50px);letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 22px}
+.lede{font-size:18px;color:var(--soft);max-width:66ch}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px}
+.card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.card h4{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;line-height:1.15}
+.card p{color:var(--soft);font-size:15px}
+
+/* panel drawing */
+.toggles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.tg{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;padding:7px 12px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--soft);cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--ink)}
+.tg.lead[aria-pressed="true"]{background:var(--lead-soft);border-color:var(--lead)}
+.tgcap{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.drawing{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:36px;align-items:start}
+@media(max-width:760px){.drawing{grid-template-columns:1fr}.drawing .plate{max-width:300px;margin:0 auto}}
+.plate svg{width:100%;height:auto;display:block;overflow:visible}
+.hole{cursor:pointer}
+.hole .hit{fill:transparent;stroke:transparent;stroke-width:1.2;transition:stroke .15s}
+.hole:hover .hit,.hole.sel .hit{stroke:var(--acc)}
+.plabel{font-family:var(--mono);font-size:2.05px;fill:var(--dim);letter-spacing:.04em;text-anchor:middle;pointer-events:none}
+.plabel.lit{fill:var(--ink)}
+.jlabel{font-family:var(--mono);font-size:1.75px;fill:var(--dim);letter-spacing:.03em;text-anchor:middle;pointer-events:none}
+.legend{font-family:var(--mono);font-size:2.2px;fill:var(--soft);letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px;position:sticky;top:70px}
+.readout .rk{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.readout h3{font-family:var(--disp);font-weight:800;font-size:28px;margin:6px 0 2px;line-height:1.1}
+.readout .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+.readout .rd{color:var(--soft)}
+.readout .rm{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.readout .rm b{color:var(--ink);font-weight:500}
+
+/* jack table */
+.tbl{overflow-x:auto;margin-top:28px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500}
+td:first-child{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+td .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+
+/* generator */
+.gen{display:grid;grid-template-columns:260px 1fr;gap:28px;margin-top:28px;align-items:start}
+@media(max-width:760px){.gen{grid-template-columns:1fr}}
+.knobs{display:grid;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.vsel{display:flex;gap:6px}
+.knob label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.knob label span{color:var(--dim);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc)}
+body.leadv input[type=range]{accent-color:var(--lead)}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.lanewrap{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+.lane{display:block;width:100%;min-width:520px;height:auto}
+.lanecap{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px}
+
+/* drum editor */
+.dgrid{display:grid;grid-template-columns:52px repeat(16,minmax(0,1fr));gap:4px;min-width:520px;align-items:center}
+.dgrid .dn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.dgrid .st{aspect-ratio:1/1;border:none;border-radius:3px;background:#262019;cursor:pointer;padding:0}
+.dgrid .st.q{box-shadow:inset 3px 0 0 rgba(239,233,226,.12)}
+.dgrid .hd{font-family:var(--mono);font-size:9.5px;color:var(--dim);text-align:center}
+.filebox{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.filehead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--dim)}
+.filehead select{font-family:var(--mono);font-size:11px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:3px}
+#dText{margin:0;padding:12px 14px;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink);overflow-x:auto;white-space:pre}
+
+/* launchpad */
+.lpbox{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:36px;align-items:start;margin-top:10px}
+@media(max-width:820px){.lpbox{grid-template-columns:1fr}}
+.lp{background:#141414;border-radius:14px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.06);display:grid;grid-template-columns:repeat(9,1fr);gap:5px;aspect-ratio:1/1;max-width:100%}
+.pad{border:none;padding:0;border-radius:4px;background:#232323;cursor:pointer;position:relative;aspect-ratio:1/1;transition:background .08s}
+.pad.round{border-radius:50%;transform:scale(.72)}
+.pad.logo{border-radius:3px;transform:scale(.55)}
+.pad.lit{box-shadow:0 0 10px var(--g,transparent)}
+.pad:hover{outline:1px solid rgba(255,255,255,.5)}
+.lpinfo h3{font-family:var(--disp);font-weight:800;font-size:26px;margin:0 0 4px}
+.lpinfo .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+.lpinfo .rd{color:var(--soft);min-height:4.8em}
+.keylist{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:18px;font-size:14px;color:var(--soft)}
+.keylist i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-top:4px}
+
+/* XL + gamepad */
+.xl{background:#1a1a1c;border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px 6px;margin-top:10px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.xl .kn{aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3e,#1e1e20 70%);position:relative;max-width:46px;justify-self:center;width:100%}
+.xl .kn::after{content:"";position:absolute;left:50%;top:10%;width:2px;height:34%;background:#ddd;transform:translateX(-50%) rotate(var(--r,0deg));transform-origin:50% 118%}
+.xl .kn.b{box-shadow:0 0 0 2px var(--acc)}
+.xl .kn.l{box-shadow:0 0 0 2px var(--lead)}
+.xl .kn.off{opacity:.35}
+.xl .kn.d{box-shadow:0 0 0 2px #ff3050}
+.xl .fd{height:64px;width:10px;justify-self:center;border-radius:5px;background:#101012;position:relative;opacity:.4}
+.xl .fd::after{content:"";position:absolute;left:-7px;width:24px;height:10px;top:60%;border-radius:2px;background:#555}
+.xl .bt{height:22px;border-radius:3px;background:#2a2a2c;font-family:var(--mono);font-size:8.5px;letter-spacing:.02em;color:#111;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;padding:0 2px;overflow:hidden}
+.xl .rl{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+.klab{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);text-align:center;margin-top:8px;padding-inline:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.two h3{font-family:var(--disp);font-weight:800;font-size:26px;margin:0 0 6px}
+.two .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:14px}
+.pad42{background:#16161a;border-radius:14px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.45);overflow-x:auto}
+.pad42 svg{display:block;width:100%;min-width:400px;height:auto}
+.gb text{font-family:var(--mono);text-anchor:middle}
+
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:760px){.rules{grid-template-columns:1fr}}
+.rule{border-left:2px solid var(--acc);padding:4px 0 4px 16px}
+.rule h4{font-family:var(--disp);font-weight:800;font-size:19px;margin:0 0 4px}
+.rule p{color:var(--soft);font-size:15px}
+.steps{display:grid;gap:12px;margin-top:24px;max-width:72ch}
+.steps li{color:var(--soft)}
+ol.steps{padding-left:22px}
+.list{display:grid;gap:8px;margin-top:14px;color:var(--soft);padding-left:20px}
+footer{padding-block:40px;color:var(--dim);font-family:var(--mono);font-size:11px}
+</style>
+</head>
+<body>
+
+
+<nav><div class="wrap">
+  <a class="logo" href="#top">seq<em>.</em></a>
+  <a class="s" href="#idea">The idea</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#gen">Generator</a>
+  <a class="s" href="#drums">Drums</a>
+  <a class="s" href="#launchpad">Launchpad</a>
+  <a class="s" href="#xl">XL + Haute42</a>
+  <a class="s" href="#clock">Clock</a>
+  <a class="s" href="#setup">Setup</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="../" style="margin-left:auto;color:var(--acc)">All instruments ↗</a>
+</div></nav>
+
+<header id="top"><div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Hermetic Modular Alchemy Lab V2 · firmware 0.1.0</div>
+      <h1 class="title">seq<em>a generative sequencer for the Alchemy Lab</em></h1>
+      <p class="tagline">Two generated voices that follow your chords, four drum triggers, and a Launchpad to play it all.</p>
+      <div class="status">
+        
+        <span class="chip ok">tested on a computer</span>
+        <span class="chip no">not yet on a module</span>
+      </div>
+    </div>
+    <div class="heroplate">
+      <svg id="heroSvg" viewBox="-4 -4 69 137" role="img" aria-label="seq on the Alchemy Lab panel: the Bass page"></svg>
+      <div class="cap">12 HP · drawn at true scale · Bass page</div>
+    </div>
+  </div>
+</div></header>
+
+<section id="idea"><div class="wrap">
+  <h2 class="sh">The idea</h2>
+  <div class="sub">What it does</div>
+  <p class="lede">One Lab runs a bass line, a lead line and four drum triggers. The two lines are
+    generated, and they are made of chord tones, so when the progression moves they move with it.
+    You shape them with a handful of knobs and keep the ones you like.</p>
+  <div class="cols">
+    <div class="card"><div class="k">Knobs are thresholds</div><h4>Turn it back and the line comes back</h4>
+      <p>Every step owns a fixed random number. DENSITY is a threshold against it, so raising
+        DENSITY only adds notes, and lowering it brings back exactly the line you had. LENGTH works
+        the same way for note lengths.</p></div>
+    <div class="card"><div class="k">Chords</div><h4>Lines follow the progression</h4>
+      <p>A step stores "the 2nd chord tone", not "E". A locked line still re-voices on every chord
+        change. The default is A minor, i – VI – III – VII, a bar each.</p></div>
+    <div class="card"><div class="k">Drums</div><h4>Programmed, generated, or both</h4>
+      <p>Steps you enter (on the Launchpad, or in a text file on the SD card) plus a generator
+        on the pots: density thresholds or Euclidean rhythms, added on top. Works with no
+        controller plugged in.</p></div>
+    <div class="card"><div class="k">Keep, roll, undo</div><h4>Eight slots per voice</h4>
+      <p>ROLL makes a new line, MUTATE changes a quarter of it, UNDO swaps the last one back (again
+        for redo), LOCK freezes it. Each voice has 8 pattern slots and the drums 16, queued to the
+        next bar.</p></div>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <div class="sub">Four pages · click any control</div>
+  <p class="lede" style="margin-bottom:24px">B1 cycles the pots through the bass, the lead and the
+    drums. Hold B3 for Setup. The voice pots edit the pattern that is playing now; when another pattern takes
+    over, the pots have to catch its values before they move anything, so nothing jumps.</p>
+  <div class="toggles">
+    <button class="tg" id="tgBass" aria-pressed="true">Bass · B1</button>
+    <button class="tg lead" id="tgLead" aria-pressed="false">Lead · B1</button>
+    <button class="tg" id="tgDrums" aria-pressed="false">Drums · B1</button>
+    <button class="tg" id="tgSetup" aria-pressed="false">Setup · hold B3</button>
+  </div>
+  <div class="drawing">
+    <div class="plate"><svg id="panelSvg" viewBox="-4 -4 69 137" role="img" aria-label="Interactive Alchemy Lab panel diagram"></svg></div>
+    <div class="readout" id="ro">
+      <div class="rk" id="roK">Select a control</div>
+      <h3 id="roT">The panel</h3>
+      <div class="rs" id="roS">6 pots × 4 pages · 3 buttons · 10 jacks</div>
+      <div class="rd" id="roD">Hover or tap a pot, a button or a jack. B2 plays and stops. B2 and B3 held together for two seconds open Settings: brightness, presets, the USB port, and the SD-card firmware picker.</div>
+      <div class="rm" id="roM"></div>
+    </div>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Jack</th><th>Does</th><th>Signal</th><th>Driven by</th></tr></thead>
+    <tbody>
+      <tr><td>J1</td><td>Clock in</td><td>rising edge; 1, 2, 4 (16ths) or 24 ppqn</td><td>codec in, AC-coupled</td></tr>
+      <tr><td>J2</td><td>Reset in: the next clock edge is step one</td><td>rising edge</td><td>codec in, AC-coupled</td></tr>
+      <tr><td>J3</td><td><span class="sw" style="background:var(--acc)"></span>Bass pitch</td><td>1 V/oct, 0–5 V</td><td>MCP4728, calibrated</td></tr>
+      <tr><td>J4</td><td><span class="sw" style="background:var(--lead)"></span>Lead pitch</td><td>1 V/oct, 0–5 V</td><td>MCP4728, calibrated</td></tr>
+      <tr><td>J5</td><td><span class="sw" style="background:var(--acc)"></span>Bass gate</td><td>0 / 5 V</td><td>MCP4728, latched with J3</td></tr>
+      <tr><td>J6</td><td><span class="sw" style="background:var(--lead)"></span>Lead gate</td><td>0 / 5 V</td><td>MCP4728, latched with J4</td></tr>
+      <tr><td>J7</td><td><span class="sw" style="background:#ff3030"></span>Kick</td><td>5 ms trigger</td><td>STM32 DAC</td></tr>
+      <tr><td>J8</td><td><span class="sw" style="background:#ffd21f"></span>Snare</td><td>5 ms trigger</td><td>STM32 DAC</td></tr>
+      <tr><td>J9</td><td><span class="sw" style="background:#30e0ff"></span>Hat</td><td>5 ms trigger</td><td>codec, DC-coupled</td></tr>
+      <tr><td>J10</td><td><span class="sw" style="background:#ff40c0"></span>Perc</td><td>5 ms trigger</td><td>codec, DC-coupled</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="gen"><div class="wrap">
+  <h2 class="sh">The generator</h2>
+  <div class="sub">The core's own maths, running in this page · seed 2026, slot 1</div>
+  <p class="lede">This is the line the module starts with after a fresh flash, computed by the
+    same hash the firmware uses. Drag DENSITY down and up: notes leave and come back in the same
+    places. Downbeats come in first.</p>
+  <div class="gen">
+    <div class="knobs">
+      <div class="vsel">
+        <button class="tg" id="gvBass" aria-pressed="true">Bass</button>
+        <button class="tg lead" id="gvLead" aria-pressed="false">Lead</button>
+      </div>
+      <div class="knob"><label for="gDens">Density <span id="gDensV"></span></label><input type="range" id="gDens" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="gLen">Length <span id="gLenV"></span></label><input type="range" id="gLen" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="gSlide">Slide <span id="gSlideV"></span></label><input type="range" id="gSlide" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="gTones">Tones <span id="gTonesV"></span></label><input type="range" id="gTones" min="0" max="1" step="0.01"></div>
+      <div class="btnrow">
+        <button class="tg" id="gRoll">Roll</button>
+        <button class="tg" id="gMut">Mutate</button>
+        <button class="tg" id="gUndo">Undo</button>
+      </div>
+    </div>
+    <div>
+      <div class="lanewrap"><svg class="lane" id="lane" viewBox="0 0 640 220" role="img" aria-label="16 steps of the selected voice"></svg></div>
+      <div class="lanecap" id="laneCap"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="drums"><div class="wrap">
+  <h2 class="sh">Drums</h2>
+  <div class="sub">Three ways in · the same pattern here and in the Launchpad below</div>
+  <p class="lede">A drum pattern is the steps you programmed plus what the generator adds. Click
+    the steps below to program them, turn the amounts to add generated hits (the grey ones), and
+    copy the text into <code>/seq/drums.txt</code> on the card.</p>
+  <div class="gen">
+    <div class="knobs">
+      <div class="knob"><label for="dStyle">Style <span id="dStyleV"></span></label><input type="range" id="dStyle" min="0" max="7" step="1"></div>
+      <div class="knob"><label for="dA0">Kick <span id="dA0V"></span></label><input type="range" id="dA0" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="dA1">Snare <span id="dA1V"></span></label><input type="range" id="dA1" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="dA2">Hat <span id="dA2V"></span></label><input type="range" id="dA2" min="0" max="1" step="0.01"></div>
+      <div class="knob"><label for="dA3">Perc <span id="dA3V"></span></label><input type="range" id="dA3" min="0" max="1" step="0.01"></div>
+      <div class="btnrow"><button class="tg" id="dClear">Clear steps</button><button class="tg" id="dDefault">Default beat</button></div>
+    </div>
+    <div>
+      <div class="lanewrap"><div class="dgrid" id="dgrid" role="grid" aria-label="Drum steps"></div>
+        <div class="lanecap">Click: on / off · shift-click: 75 → 50 → 25 % · bright = programmed, dim = 25–50 %, grey = generated</div>
+      </div>
+      <div class="filebox">
+        <div class="filehead"><span>/seq/drums.txt · pattern <select id="dPat" aria-label="Pattern number"></select></span><button class="tg" id="dCopy">Copy</button></div>
+        <pre id="dText" tabindex="0"></pre>
+      </div>
+    </div>
+  </div>
+  <div class="rules">
+    <div class="rule"><h4>On the Launchpad</h4><p>DRUMS mode: four drums, two rows each, 16 steps. Tap for on or off; SHIFT and tap for 75, 50, 25 %. Grey pads are generated; tapping one programs it.</p></div>
+    <div class="rule"><h4>On the pots, no controller needed</h4><p>B1 to the DRUMS page. KICK, SNARE, HAT and PERC set how much the generator adds; STYLE picks Gen 1–4 or Euclid 1–4; PATTERN picks which of the 16 plays, at the next bar. Each pattern keeps its own.</p></div>
+    <div class="rule"><h4>From the Mac: /seq/drums.txt</h4><p>Write patterns as text (the box above does it for you), put the file on the card, power-cycle. The module reads it at power-up when it has changed, writes only the patterns it names, and switches their generator off so the file is what plays. B2 flashes green when it took it, red when a line made no sense (nothing changes then). The file stays on the card.</p></div>
+    
+    <div class="rule"><h4>Getting the file onto the card</h4><p>Take the microSD card out of the Lab, make a folder called <code>seq</code> at the top, and save the text as <code>drums.txt</code> inside it. Put the card back and power the Lab up.</p></div>
+    <div class="rule"><h4>Drum presets</h4><p>A preset already keeps the drums: Settings (B2+B3 for 2 s), pots 2 and 3, saves or loads slots 0–10, and so does the web programmer. A preset is the whole state, both voices included. To keep just drum ideas, use the 16 patterns, or keep several drums.txt files on the Mac.</p></div>
+    <div class="rule"><h4>Loop length per drum</h4><p>In the file, a line's length is that drum's loop, 1 to 64 steps: a 16-step kick with a 12-step hat gives polymeter. The Launchpad edits the first 16 steps.</p></div>
+  </div>
+</div></section>
+
+<section id="launchpad"><div class="wrap">
+  <h2 class="sh">Launchpad Mini MK3</h2>
+  <div class="sub">Playable here · shares the generator above · click the pads</div>
+  <p class="lede" style="margin-bottom:26px">The top row picks the mode; the right column is the
+    mutes in every mode. Press ▶ (top right) to run the playhead at 120 BPM.</p>
+  <div class="lpbox">
+    <div class="lp" id="lp" role="grid" aria-label="Launchpad Mini MK3"></div>
+    <div class="lpinfo">
+      <div class="rk" style="font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)" id="lpMode">Bass mode</div>
+      <h3 id="lpT">Point at a pad</h3>
+      <div class="rs" id="lpS">&nbsp;</div>
+      <div class="rd" id="lpD">Each pad says what it does here. The simulator runs the same rules as the firmware: tapping a step ends the loop there, pattern slots queue for the next bar, drum steps toggle on and off.</div>
+      <div class="keylist" id="lpKey"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="xl"><div class="wrap">
+  <h2 class="sh">Launch Control XL and Haute42</h2>
+  <div class="sub">Through the same powered hub · both optional</div>
+  <div class="two">
+    <div>
+      <h3>Launch Control XL</h3>
+      <div class="rs">factory template 1 · knob row per voice</div>
+      <div class="xl" id="xlBox"></div>
+      <div class="klab"><span>DENS</span><span>LEN</span><span>SLIDE</span><span>JUMP</span><span>TONES</span><span>OCT</span><span>RANGE</span><span>SWING</span></div>
+      <div class="klab"><span>KICK</span><span>SNARE</span><span>HAT</span><span>PERC</span><span>STYLE</span><span>PATT</span><span>–</span><span>–</span></div>
+      <p style="color:var(--soft);margin-top:16px;font-size:15px">Row 1 is the bass, row 2 the lead.
+        RANGE spreads the line over 1–3 octaves; SWING is how much of the global swing that voice
+        takes. Row 3 is the drums page: four amounts, STYLE and PATTERN. The faders do nothing
+        yet. A knob turned on the XL moves the
+        value on the Lab too, and the Lab's pot then has to catch it.</p>
+    </div>
+    <div>
+      <h3>Haute42</h3>
+      <div class="rs">XInput mode · only behind the hub</div>
+      <div class="pad42"><svg id="h42" viewBox="0 0 460 240" role="img" aria-label="Haute42 button map"></svg></div>
+      <p style="color:var(--soft);margin-top:16px;font-size:15px">For playing, not editing. The face
+        buttons and bumpers mute while held. The triggers push that voice to full density while
+        held, a fill, and let go returns it. The directions move the octaves, Start plays and
+        stops, the stick clicks mutate.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="clock"><div class="wrap">
+  <h2 class="sh">Clock and transport</h2>
+  <div class="sub">Internal tempo until something clocks J1</div>
+  <div class="rules">
+    <div class="rule"><h4>The first pulse takes over</h4><p>With nothing on J1 the Lab runs at TEMPO. The first rising edge on J1 switches to the external clock and plays step one on that edge. Between pulses the position is filled in from the measured period, and it never runs past where the next pulse will land.</p></div>
+    <div class="rule"><h4>Two seconds of silence stops it</h4><p>If J1 goes quiet for 2 s the transport stops and control goes back to TEMPO. The next pulse starts it again from step one.</p></div>
+    <div class="rule"><h4>Stop means stop</h4><p>B2, ▶ on the Launchpad, PLAY on the XL or Start on the Haute42 stops it even while J1 keeps clocking; the pulses keep being measured. Play again and it starts from step one on the next pulse, in time.</p></div>
+    <div class="rule"><h4>Reset is on the next pulse</h4><p>A rising edge on J2 makes the next J1 pulse step one, the Eurorack convention. With no clock, reset rewinds at once. J1 and J2 are AC-coupled, so only edges count, never a held level.</p></div>
+    <div class="rule"><h4>Patterns change on the bar</h4><p>A queued pattern, for a voice or the drums, takes over at the next bar line, so a change always lands on the one.</p></div>
+    <div class="rule"><h4>Resolution</h4><p>96 ticks per quarter note inside. Clock pulses are read every millisecond, so an external pulse lands within 1 ms of where it arrived.</p></div>
+  </div>
+</div></section>
+
+<section id="setup"><div class="wrap">
+  <h2 class="sh">Setup, saving and flashing</h2>
+  <div class="sub">What to know before the first power-up</div>
+  <div class="rules">
+    <div class="rule"><h4>It saves when you stop</h4><p>Your patterns, knobs, locks, drums, tempo and key save themselves to preset slot 5 three seconds after the last change, but only while stopped. A save pauses the timing for a moment, which would drop beats mid-song. While playing with unsaved changes, B2 flashes magenta every two seconds. Powering off mid-jam loses what changed since the last stop.</p></div>
+    <div class="rule"><h4>Launchpad mode is the default</h4><p>The front USB-C is either the host for the controllers (Launchpad) or the web programmer's port (Mac), one per boot. Hold B1 while powering up for Mac mode once. The choice lives in Settings (B2+B3 for 2 s), and every firmware on the card shares it.</p></div>
+    <div class="rule"><h4>Power for the controllers</h4><p>The Lab's front port gives no 5 V. Use a powered USB hub or OTG adapter in front of it; the host handles one hub level with up to three devices, which is exactly Launchpad + XL + Haute42.</p></div>
+    <div class="rule"><h4>Other firmware on the same card</h4><p>The SD picker in Settings swaps firmware. Each one keeps its own preset slot (seq 5, Meld 6, Warps 7, Clouds 8, Elements 9, Marbles 10, Plaits 11, Smack 12, Mark 13, Belt 14, Relay 15), so switching away and back loses nothing.</p></div>
+  </div>
+  
+  <h3 style="font-family:var(--disp);font-weight:800;font-size:24px;margin:40px 0 0">Getting it</h3>
+  <p style="color:var(--soft);max-width:66ch;margin-top:12px">Seq isn't released yet. It has been built and tested on a
+    computer, and its first run on a module is next. When it's out, it installs like every other instrument on
+    <a href="../#install">the Alchemy Lab page</a>: flash the first one with Hermetic's web programmer, then carry it
+    on the card and switch to it from the picker.</p>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <div class="sub">Firmware 0.1.0 · not yet released</div>
+  <div class="two" style="margin-top:0">
+    <div>
+      <h3 style="color:var(--ok)">Checked</h3>
+      
+      <ul class="list">
+        <li>The sequencer itself is checked by tens of thousands of automatic tests on a computer: the generator, chords, lock and undo, both clocks, the drums and their generator, Euclidean rhythms, the drums.txt reader, gates and glide, saving and loading.</li>
+        <li>The whole firmware runs, unchanged, in an Alchemy Lab emulator, where playing and stopping, following a clock on J1, the Launchpad, the Launch Control XL, the Haute42 and the drum file are all tested.</li>
+        <li>What it saves comes back exactly after a power cycle, and a damaged save is repaired rather than trusted.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--acc)">Not yet tried on hardware</h3>
+      <ul class="list">
+        <li>Clock and reset on J1/J2 through the AC-coupled inputs (1 V threshold).</li>
+        <li>The Launch Control XL's button colours.</li>
+        <li>All three controllers on the hub at once.</li>
+        <li>Reading /seq/drums.txt from a real card.</li>
+        <li>Not built yet: the CHORDS page (the progression is fixed for now) and autotune in TUNE mode.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Seq is firmware by Tim Cox for the Hermetic Modular Alchemy Lab, one of <a href="../">the instruments on Tim's Alchemy Lab page</a>. Hermetic Modular didn't write or test it and can't support it.</div></footer>
+
+<script>
+/* == BEGIN GENERATED GEOMETRY -- tools/emit_panel_geometry.py == */
+const PANEL = {
+ "source": "lib/alchemy-sdk/panel/front-panel-template.kicad_pcb",
+ "units": "mm, front view, origin top-left of the plate, y down",
+ "plate": {
+  "w": 60.96,
+  "h": 128.5,
+  "hp": 12.0
+ },
+ "mount": [
+  {
+   "x": 4.537,
+   "y": 1.297,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 51.312,
+   "y": 1.311,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 4.537,
+   "y": 123.8,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 51.323,
+   "y": 123.812,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  }
+ ],
+ "rails": [
+  7.23,
+  122.18
+ ],
+ "pots": [
+  {
+   "id": "P1",
+   "x": 12.758,
+   "y": 21.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P2",
+   "x": 47.758,
+   "y": 21.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P3",
+   "x": 12.758,
+   "y": 49.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P4",
+   "x": 47.758,
+   "y": 49.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P5",
+   "x": 12.758,
+   "y": 77.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P6",
+   "x": 47.758,
+   "y": 77.304,
+   "hole": 3.6
+  }
+ ],
+ "ring": {
+  "r": 10.09,
+  "leds": 16,
+  "start_hour": 7.5,
+  "step_hours": 0.75,
+  "arc_leds": 13
+ },
+ "buttons": [
+  {
+   "id": "B1",
+   "x": 30.257,
+   "y": 21.31,
+   "hole": 3.1,
+   "halo": 4.0
+  },
+  {
+   "id": "B2",
+   "x": 30.257,
+   "y": 49.312,
+   "hole": 3.1,
+   "halo": 4.0
+  },
+  {
+   "id": "B3",
+   "x": 30.257,
+   "y": 77.32,
+   "hole": 3.1,
+   "halo": 4.0
+  }
+ ],
+ "usb": {
+  "x": 25.317,
+  "y": 89.274,
+  "w": 10.034,
+  "h": 4.044,
+  "r": 2.022
+ },
+ "jacks": [
+  {
+   "id": "J1",
+   "x": 6.699,
+   "y": 100.093,
+   "hole": 3.2
+  },
+  {
+   "id": "J2",
+   "x": 6.699,
+   "y": 113.053,
+   "hole": 3.2
+  },
+  {
+   "id": "J3",
+   "x": 18.51,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J4",
+   "x": 30.286,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J5",
+   "x": 42.014,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J6",
+   "x": 18.51,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J7",
+   "x": 30.286,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J8",
+   "x": 42.014,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J9",
+   "x": 53.901,
+   "y": 100.126,
+   "hole": 3.2
+  },
+  {
+   "id": "J10",
+   "x": 53.889,
+   "y": 113.036,
+   "hole": 3.2
+  }
+ ],
+ "jack_order_assumed": "J3..J8 in reading order; the printed panel is the authority",
+ "labels": {
+  "knob_dy": 14.0,
+  "button_dy": 10.63,
+  "in": [
+   5.556,
+   120.642
+  ],
+  "out": [
+   51.53,
+   120.642
+  ]
+ }
+};
+/* == END GENERATED GEOMETRY == */
+
+/* ^ docs/panel_geometry.js is inlined here by: python3 docs/build.py (from mark-alchemy tools/emit_panel_geometry.py) */
+
+/* ---------- colours: the firmware's constants ---------- */
+const C = {
+  bass:"#ff7010", lead:"#20c0ff", setup:"#30104a", dim:"#181818",
+  tempo:"#ffffff", swing:"#ffc040", glide:"#40ffc0", key:"#c080ff", scale:"#ff60c0", clock:"#4080ff",
+  green:"#00ff00", idle:"#000030", blue:"#0050ff", white:"#ffffff",
+};
+const PAGES = [
+  { name:"BASS", color:"#ff7010", pots:[
+    { name:"DENSITY", ring:{style:"level", c:C.bass}, v:.6, sub:"0–100 % · chance a step plays", d:"A threshold against each step's fixed number. Raising it only adds notes; lowering then raising brings back the same ones. Downbeats cross first.", meta:["knob <b>density</b>","default <b>60 %</b>"] },
+    { name:"LENGTH", ring:{style:"level", c:C.bass}, v:.4, sub:"staccato … tied", d:"Bends every step's fixed length number through a curve, so notes only ever get longer as it rises. Past a whole step a note ties into the next.", meta:["knob <b>length</b>","default <b>40 %</b>"] },
+    { name:"SLIDE", ring:{style:"level", c:C.bass}, v:.2, sub:"chance of a glide", d:"The chance a note glides from the one before, with the gate held: the 303 slide. The glide time is GLIDE on the Setup page.", meta:["knob <b>slide</b>","default <b>20 %</b>"] },
+    { name:"JUMP", ring:{style:"level", c:C.bass}, v:.15, sub:"chance of an octave jump", d:"The chance a step jumps an octave. The bass always jumps up; the lead goes either way.", meta:["knob <b>jump</b>","default <b>15 %</b>"] },
+    { name:"TONES", ring:{style:"level", c:C.bass}, v:.1, sub:"chord tones … scale tones", d:"Left, every note is a tone of the current chord. Right, more of them come from the whole scale. The bass leans on the root either way.", meta:["knob <b>tone_bias</b>","default <b>10 %</b>"] },
+    { name:"OCTAVE", ring:{style:"sel", c:C.bass, n:7}, v:3.5/7, sub:"−3 … +3", d:"Transposes the whole line, a locked one too. The bass sits at 1 V (C1) at 0. Notes above 5 V fold down an octave.", meta:["knob <b>octave</b>","ring <b>7 dots</b>"] },
+  ]},
+  { name:"LEAD", color:"#20c0ff", pots:[
+    { name:"DENSITY", ring:{style:"level", c:C.lead}, v:.35, sub:"0–100 % · chance a step plays", d:"Same as the bass, for the lead. Each of the 8 lead slots keeps its own knobs.", meta:["knob <b>density</b>","default <b>35 %</b>"] },
+    { name:"LENGTH", ring:{style:"level", c:C.lead}, v:.6, sub:"staccato … tied", d:"Only ever lengthens as it rises.", meta:["knob <b>length</b>","default <b>60 %</b>"] },
+    { name:"SLIDE", ring:{style:"level", c:C.lead}, v:.1, sub:"chance of a glide", d:"The chance a lead note glides in from the one before.", meta:["knob <b>slide</b>","default <b>10 %</b>"] },
+    { name:"JUMP", ring:{style:"level", c:C.lead}, v:.1, sub:"chance of an octave jump", d:"Up or down, half and half.", meta:["knob <b>jump</b>","default <b>10 %</b>"] },
+    { name:"TONES", ring:{style:"level", c:C.lead}, v:.3, sub:"chord tones … scale tones", d:"How often the lead steps outside the chord into the scale.", meta:["knob <b>tone_bias</b>","default <b>30 %</b>"] },
+    { name:"OCTAVE", ring:{style:"sel", c:C.lead, n:7}, v:3.5/7, sub:"−3 … +3", d:"The lead sits at 2 V (C2) at 0 and spreads over two octaves by default.", meta:["knob <b>octave</b>","ring <b>7 dots</b>"] },
+  ]},
+  { name:"DRUMS", color:"#ff3050", pots:[
+    { name:"KICK", ring:{style:"level", c:"#ff3030"}, v:.25, sub:"generator amount", d:"How much of the kick the generator adds on top of the programmed steps. In a Gen style it is a threshold: beats first, then 8ths, then 16ths. In a Euclid style it is a hit count: 25 % of a 16-step loop is E(4,16).", meta:["pattern <b>gen[kick]</b>","0 <b>programmed only</b>"] },
+    { name:"SNARE", ring:{style:"level", c:"#ffd020"}, v:.125, sub:"generator amount", d:"Gen: 2 and 4 first. Euclid: E(2,16) lands on 2 and 4 in Euclid 1 and 2.", meta:["pattern <b>gen[snare]</b>"] },
+    { name:"HAT", ring:{style:"level", c:"#30e0ff"}, v:.25, sub:"generator amount", d:"Gen: the off-beats first, then 8ths, then 16ths.", meta:["pattern <b>gen[hat]</b>"] },
+    { name:"PERC", ring:{style:"level", c:"#ff40c0"}, v:0, sub:"generator amount", d:"Anywhere in the bar, no preference: the wild card.", meta:["pattern <b>gen[perc]</b>"] },
+    { name:"STYLE", ring:{style:"sel", c:"#c0ff40", n:8}, v:4.5/8, sub:"Gen 1–4 · Euclid 1–4", d:"Gen 1–4 are four fixed generated beats: turning the amounts only adds hits, and turning back returns the same beat. Euclid 1–4 spread each drum's hits as evenly as its loop allows, each with its own set of rotations.", meta:["pattern <b>style</b>","ring <b>8 dots</b>"] },
+    { name:"PATTERN", ring:{style:"sel", c:"#ffffff", n:16}, v:.5/16, sub:"1 … 16", d:"Which of the 16 drum patterns plays. It changes at the next bar line; stopped, it changes as you press play. Each pattern keeps its own steps, amounts and style.", meta:["queues <b>drum pattern</b>","at <b>the bar</b>"] },
+  ]},
+  { name:"SETUP", color:"#c060ff", pots:[
+    { name:"TEMPO", ring:{style:"level", c:C.tempo}, v:90/270, sub:"30–300 BPM", d:"The internal tempo. Ignored while J1 is clocking.", meta:["global <b>bpm</b>","default <b>120</b>"] },
+    { name:"SWING", ring:{style:"level", c:C.swing}, v:0, sub:"straight … hard shuffle", d:"Delays every second 16th, from straight to a heavy shuffle. Each voice can take less of it (SWING on the XL).", meta:["global <b>swing</b>","default <b>straight</b>"] },
+    { name:"GLIDE", ring:{style:"level", c:C.glide}, v:Math.log(60)/Math.log(1000), sub:"off … 1 s", d:"How long a slide takes. Below 2 ms it is off.", meta:["global <b>glide_ms</b>","default <b>60 ms</b>"] },
+    { name:"KEY", ring:{style:"sel", c:C.key, n:12}, v:9.5/12, sub:"C … B", d:"The key everything is in. Both voices re-voice at once.", meta:["global <b>root</b>","default <b>A</b>"] },
+    { name:"SCALE", ring:{style:"sel", c:C.scale, n:9}, v:1.5/9, sub:"major · minor · modes · pentatonics", d:"Major, minor, dorian, phrygian, lydian, mixolydian, harmonic minor, minor and major pentatonic. The chords are built from it.", meta:["global <b>scale</b>","default <b>minor</b>"] },
+    { name:"CLOCK IN", ring:{style:"sel", c:C.clock, n:4}, v:2.5/4, sub:"1 · 2 · 4 · 24 ppqn", d:"How many J1 pulses make a quarter note: 4 is one pulse per 16th, 24 is DIN-sync speed.", meta:["global <b>clock_ppqn</b>","default <b>16ths</b>"] },
+  ]},
+];
+const BUTTONS = [
+  { id:"B1", name:"PAGE", sub:"tap", d:"Cycles the pots: bass, lead, drums. Its light is the page: orange bass, cyan lead, red drums. Held through power-up it starts Mac mode once, for the web programmer.", meta:["light <b>the voice</b>","at power-up <b>Mac mode</b>"] },
+  { id:"B2", name:"PLAY / STOP", sub:"tap", d:"Plays from the top or stops. Green while playing, a blue flash on every J1 pulse, a magenta flash every 2 s while there is unsaved work (stop to save it). Stands down while B3 is held. At power-up it flashes green when it read a new drums.txt, red when the file made no sense.", meta:["light <b>transport</b>","with B3 2 s <b>Settings</b>"] },
+  { id:"B3", name:"SETUP", sub:"hold", d:"Shows the Setup page while held, with catch both ways so nothing jumps. Held at power-up it is the bootloader's DFU button.", meta:["page <b>SETUP</b>","at power-up <b>DFU</b>"] },
+];
+const JACKS = {
+  J1:{ name:"CLOCK IN", sub:"rising edge", d:"The first pulse takes over from the internal tempo and plays step one. Two seconds without one stops the transport.", meta:["rate <b>Setup P6</b>","input <b>AC-coupled</b>"] },
+  J2:{ name:"RESET IN", sub:"rising edge", d:"The next clock pulse becomes step one. With no clock it rewinds at once.", meta:["input <b>AC-coupled</b>"] },
+  J3:{ name:"BASS PITCH", sub:"1 V/oct · 0–5 V", d:"The bass line. Calibrated per jack from the Lab's own calibration record.", meta:["DAC <b>MCP4728</b>"] },
+  J4:{ name:"LEAD PITCH", sub:"1 V/oct · 0–5 V", d:"The lead line.", meta:["DAC <b>MCP4728</b>"] },
+  J5:{ name:"BASS GATE", sub:"0 / 5 V", d:"High for the note's length, held through a slide. Written in the same I²C transfer as J3, so the gate never rises before the pitch has moved.", meta:["DAC <b>MCP4728</b>"] },
+  J6:{ name:"LEAD GATE", sub:"0 / 5 V", d:"The lead's gate, latched with J4.", meta:["DAC <b>MCP4728</b>"] },
+  J7:{ name:"KICK", sub:"5 ms trigger", d:"Drum voice 1.", meta:["DAC <b>STM32</b>"] },
+  J8:{ name:"SNARE", sub:"5 ms trigger", d:"Drum voice 2.", meta:["DAC <b>STM32</b>"] },
+  J9:{ name:"HAT", sub:"5 ms trigger", d:"Drum voice 3.", meta:["out <b>codec DC</b>"] },
+  J10:{ name:"PERC", sub:"5 ms trigger", d:"Drum voice 4.", meta:["out <b>codec DC</b>"] },
+};
+const USB = { name:"USB-C", sub:"Launchpad host · or HostLink", d:"Launchpad mode (default): the Lab hosts a Launchpad Mini MK3, a Launch Control XL and a Haute42 through a powered hub. Mac mode: the web programmer's port. One per boot.", meta:["default <b>Launchpad</b>","5 V <b>from the hub</b>"] };
+const JACKLEGEND = { J1:"CLK", J2:"RST", J3:"B PIT", J4:"L PIT", J5:"B GATE", J6:"L GATE", J7:"KICK", J8:"SNARE", J9:"HAT", J10:"PERC" };
+
+/* ---------- drawing (from the Mark manual) ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(n, a, parent) { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; }
+function hourXY(cx, cy, r, hour) { const a = hour / 12 * Math.PI * 2; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; }
+function ringColours(ring, v) {
+  const g = PANEL.ring, N = g.arc_leds, out = new Array(g.leds).fill(null);
+  if (ring.style === "level") { const n = Math.round(v * N); for (let i = 0; i < N; i++) out[i] = i < n ? ring.c : C.dim; }
+  else { const z = Math.min(ring.n - 1, Math.floor(v * ring.n)); for (let q = 0; q < ring.n; q++) out[Math.round(q * (N - 1) / (ring.n - 1))] = (q === z) ? ring.c : C.dim; }
+  return out;
+}
+function drawRing(g, cx, cy, ring, v) {
+  const geo = PANEL.ring, cols = ringColours(ring, v);
+  for (let i = 0; i < geo.leds; i++) {
+    const [x, y] = hourXY(cx, cy, geo.r, (geo.start_hour + geo.step_hours * i) % 12);
+    const arc = i < geo.arc_leds, c = cols[i], lit = arc && c && c !== C.dim;
+    if (lit) el("circle", { cx:x, cy:y, r:1.55, fill:c, opacity:.22 }, g);
+    el("circle", { cx:x, cy:y, r:.72, fill: arc ? (c || "#0e0d13") : "#101014", opacity: arc ? 1 : .6 }, g);
+  }
+}
+function drawKnob(g, cx, cy, v) {
+  el("circle", { cx, cy, r:6.2, fill:"#0f0e14", stroke:"rgba(255,255,255,.10)", "stroke-width":.25 }, g);
+  el("circle", { cx, cy, r:5.4, fill:"#1a1822" }, g);
+  const hour = PANEL.ring.start_hour + v * (PANEL.ring.step_hours * (PANEL.ring.arc_leds - 1));
+  const [x1, y1] = hourXY(cx, cy, 2.2, hour), [x2, y2] = hourXY(cx, cy, 5.0, hour);
+  el("line", { x1, y1, x2, y2, stroke:"#e8e2f0", "stroke-width":.7, "stroke-linecap":"round" }, g);
+}
+function drawButton(g, b, halo) {
+  if (halo && halo !== C.idle) el("circle", { cx:b.x, cy:b.y, r:b.halo + 1.6, fill:halo, opacity:.22 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.halo, fill: halo || "#101018", opacity: halo ? .85 : 1 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.hole, fill:"#0d0c12", stroke:"rgba(255,255,255,.14)", "stroke-width":.25 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:2.2, fill:"#1c1a24" }, g);
+}
+function drawJack(g, j) {
+  el("circle", { cx:j.x, cy:j.y, r:3.9, fill:"#0f0e14", stroke:"rgba(255,255,255,.12)", "stroke-width":.25 }, g);
+  el("circle", { cx:j.x, cy:j.y, r:j.hole, fill:"#1b1923" }, g);
+  el("circle", { cx:j.x, cy:j.y, r:1.5, fill:"#050507" }, g);
+}
+function drawPanel(svg, st, onHover) {
+  svg.textContent = "";
+  const P = PANEL, page = PAGES[st.page];
+  const plate = el("g", {}, svg);
+  el("rect", { x:0, y:0, width:P.plate.w, height:P.plate.h, rx:1.2, fill:"#1b1814", stroke:"rgba(239,233,226,.18)", "stroke-width":.3 }, plate);
+  for (const m of P.mount) el("rect", { x:m.x, y:m.y, width:m.w, height:m.h, rx:m.r, fill:"#0e0c0b", stroke:"rgba(255,255,255,.12)", "stroke-width":.2 }, plate);
+  for (const y of P.rails) el("line", { x1:2, y1:y, x2:P.plate.w - 2, y2:y, stroke:"rgba(255,138,42,.25)", "stroke-width":.25 }, plate);
+  el("text", { x:P.plate.w / 2, y:P.rails[0] - 2.2, class:"legend" }, plate).textContent = "SEQ";
+  const mk = (key) => {
+    const g = el("g", { class:"hole" + (st.sel === key ? " sel" : ""), "data-key":key }, svg);
+    if (onHover) { g.addEventListener("mouseenter", () => onHover(key, false)); g.addEventListener("click", (e) => { e.stopPropagation(); onHover(key, true); }); }
+    return g;
+  };
+  P.pots.forEach((p, i) => {
+    const k = page.pots[i], g = mk("P" + (i + 1));
+    drawRing(g, p.x, p.y, k.ring, k.v); drawKnob(g, p.x, p.y, k.v);
+    el("text", { x:p.x, y:p.y + P.labels.knob_dy, class:"plabel lit" }, g).textContent = k.name;
+    el("circle", { cx:p.x, cy:p.y, r:P.ring.r + 2.2, class:"hit" }, g);
+  });
+  const halos = [st.page === 1 ? C.lead : st.page === 2 ? "#ff3050" : C.bass, C.green, st.page === 3 ? PAGES[3].color : C.setup];
+  P.buttons.forEach((b, i) => {
+    const g = mk("B" + (i + 1)); drawButton(g, b, halos[i]);
+    el("text", { x:b.x, y:b.y + P.labels.button_dy, class:"plabel" }, g).textContent = BUTTONS[i].name;
+    el("circle", { cx:b.x, cy:b.y, r:b.halo + 2.2, class:"hit" }, g);
+  });
+  { const u = P.usb, g = mk("USB");
+    el("rect", { x:u.x, y:u.y, width:u.w, height:u.h, rx:u.r, fill:"#08080b", stroke:"rgba(255,255,255,.16)", "stroke-width":.25 }, g);
+    el("rect", { x:u.x - 1, y:u.y - 1, width:u.w + 2, height:u.h + 2, rx:u.r + 1, class:"hit" }, g); }
+  const rows = [...new Set(P.jacks.map(j => Math.round(j.y)))].sort((a, b) => a - b);
+  P.jacks.forEach(j => {
+    const g = mk(j.id); drawJack(g, j);
+    const top = Math.round(j.y) === rows[0];
+    el("text", { x:j.x, y:j.y + (top ? 6.9 : 7.6), class:"jlabel" }, g).textContent = JACKLEGEND[j.id];
+    el("circle", { cx:j.x, cy:j.y, r:5.2, class:"hit" }, g);
+  });
+  el("text", { x:P.labels.in[0] + 1.2, y:P.labels.in[1] + 3.2, class:"legend" }, plate).textContent = "IN";
+  el("text", { x:P.labels.out[0] - 1.2, y:P.labels.out[1] + 3.2, class:"legend" }, plate).textContent = "OUT";
+}
+drawPanel(document.getElementById("heroSvg"), { page:0, sel:null });
+
+const iv = { page:0, sel:null };
+const psvg = document.getElementById("panelSvg");
+const ro = { k:roK, t:roT, s:roS, d:roD, m:roM };
+const roDefault = { k:roK.textContent, t:roT.textContent, s:roS.textContent, d:roD.textContent };
+let pinned = null;
+function describe(key) {
+  if (!key) return null;
+  if (key[0] === "P") { const i = +key[1] - 1, k = PAGES[iv.page].pots[i]; return { k:`${key} · ${PAGES[iv.page].name} page`, t:k.name, s:k.sub, d:k.d, m:k.meta }; }
+  if (key[0] === "B") { const b = BUTTONS[+key[1] - 1]; return { k:key, t:b.name, s:b.sub, d:b.d, m:b.meta }; }
+  if (key === "USB") return { k:"front panel", t:USB.name, s:USB.sub, d:USB.d, m:USB.meta };
+  const j = JACKS[key]; return { k:key, t:j.name, s:j.sub, d:j.d, m:j.meta };
+}
+function showReadout(key) {
+  const x = describe(key);
+  if (!x) { ro.k.textContent = roDefault.k; ro.t.textContent = roDefault.t; ro.s.textContent = roDefault.s; ro.d.textContent = roDefault.d; ro.m.innerHTML = ""; return; }
+  ro.k.textContent = x.k; ro.t.textContent = x.t; ro.s.textContent = x.s; ro.d.textContent = x.d;
+  ro.m.innerHTML = x.m.map(s => `<div>${s}</div>`).join("");
+}
+function onHover(key, click) { if (click) { pinned = pinned === key ? null : key; iv.sel = pinned; redraw(); } showReadout(pinned || key); }
+function redraw() { drawPanel(psvg, iv, onHover); }
+psvg.addEventListener("mouseleave", () => showReadout(pinned));
+redraw();
+function setPage(p) {
+  iv.page = p;
+  [tgBass, tgLead, tgDrums, tgSetup].forEach((b, i) => b.setAttribute("aria-pressed", i === p));
+  redraw(); showReadout(pinned);
+}
+tgBass.onclick = () => setPage(0); tgLead.onclick = () => setPage(1); tgDrums.onclick = () => setPage(2); tgSetup.onclick = () => setPage(3);
+
+/* ---------- the generator: core/seq.c, line for line ---------- */
+const mix32 = (x) => { x >>>= 0; x ^= x >>> 16; x = Math.imul(x, 0x7feb352d) >>> 0; x ^= x >>> 15; x = Math.imul(x, 0x846ca68b) >>> 0; x ^= x >>> 16; return x >>> 0; };
+const unit = (seed, field) => (mix32((seed ^ Math.imul(field, 0x9e3779b9)) >>> 0) >>> 8) * (1 / 16777216);
+const F_HIT = 1, F_LEN = 2, F_TONE = 3, F_IDX = 4, F_SLIDE = 5, F_JUMP = 6, F_JSIGN = 7;
+let rng = (mix32(2026) | 1) >>> 0;
+const rngNext = () => { let x = rng; x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; rng = x >>> 0; return rng; };
+/* seq_init: 8 bass slots of 64 seeds, then 8 lead slots */
+const SEEDS = [[], []];
+for (let v = 0; v < 2; v++) for (let sl = 0; sl < 8; sl++) { const a = []; for (let k = 0; k < 64; k++) a.push(rngNext()); SEEDS[v].push(a); }
+const MINOR = [0, 2, 3, 5, 7, 8, 10];
+const V = [
+  { seed:SEEDS[0][0].slice(), undo:null, kn:{ density:.6, length:.4, slide:.2, jump:.15, tone:.1, range:1 }, steps:16, base:1, slot:0, queued:0, mute:false },
+  { seed:SEEDS[1][0].slice(), undo:null, kn:{ density:.35, length:.6, slide:.1, jump:.1, tone:.3, range:2 }, steps:16, base:2, slot:0, queued:0, mute:false },
+];
+const beatWeight = (k) => k % 4 === 0 ? .55 : k % 2 === 0 ? .8 : 1;
+function realize(v, k) {
+  const kn = V[v].kn, sd = V[v].seed[k];
+  const on = unit(sd, F_HIT) * beatWeight(k) < kn.density;
+  const g = Math.pow(2, (.5 - kn.length) * 4), d = Math.pow(unit(sd, F_LEN), g);
+  const len = Math.min(32, Math.floor(2 + d * 30 + .5));
+  const scale = unit(sd, F_TONE) < kn.tone;
+  const n = (scale ? 7 : 3) * kn.range;
+  let u = unit(sd, F_IDX); if (v === 0) u = u * u;
+  const index = Math.min(n - 1, Math.floor(u * n));
+  const slide = unit(sd, F_SLIDE) < kn.slide;
+  let jump = 0; if (unit(sd, F_JUMP) < kn.jump) jump = (v === 0 || unit(sd, F_JSIGN) < .5) ? 1 : -1;
+  return { on, len, scale, index, slide, jump };
+}
+/* note_for() for the first chord (degree 0 of A minor), octave knob at 0 */
+function degSemis(deg) { const n = 7, oct = deg >= 0 ? Math.floor(deg / n) : -Math.floor((-deg + n - 1) / n); return oct * 12 + MINOR[deg - oct * n]; }
+function noteOf(v, st) {
+  const deg = st.scale ? st.index : 2 * (st.index % 3) + 7 * Math.floor(st.index / 3);
+  let semis = 9 + degSemis(deg) + 12 * (V[v].base + st.jump);
+  while (semis > 60) semis -= 12; while (semis < 0) semis += 12;
+  return semis;
+}
+const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+let GV = 0;
+const lane = document.getElementById("lane");
+const knobIds = [["gDens","density"],["gLen","length"],["gSlide","slide"],["gTones","tone"]];
+function syncKnobs() {
+  for (const [id, f] of knobIds) { document.getElementById(id).value = V[GV].kn[f]; document.getElementById(id + "V").textContent = Math.round(V[GV].kn[f] * 100) + " %"; }
+  document.body.classList.toggle("leadv", GV === 1);
+  gvBass.setAttribute("aria-pressed", GV === 0); gvLead.setAttribute("aria-pressed", GV === 1);
+}
+function drawLane() {
+  lane.textContent = "";
+  const col = GV === 0 ? "#ff8a2a" : "#35c8ff", W = 640, H = 220, pad = 22, cw = (W - pad * 2) / 16;
+  const sts = Array.from({ length:16 }, (_, k) => realize(GV, k));
+  const notes = sts.map(s => noteOf(GV, s));
+  const lo = Math.min(...notes) - 1, hi = Math.max(...notes) + 1, span = Math.max(8, hi - lo);
+  const y = (n) => H - 34 - (n - lo) / span * (H - 70);
+  for (let k = 0; k <= 16; k++) el("line", { x1:pad + k * cw, y1:14, x2:pad + k * cw, y2:H - 26, stroke: k % 4 === 0 ? "rgba(239,233,226,.16)" : "rgba(239,233,226,.06)", "stroke-width":1 }, lane);
+  let count = 0;
+  sts.forEach((s, k) => {
+    const x = pad + k * cw;
+    el("text", { x:x + cw / 2, y:H - 8, fill:"#9a9088", "font-size":10, "font-family":"JetBrains Mono, monospace", "text-anchor":"middle" }, lane).textContent = k + 1;
+    if (!s.on) { el("circle", { cx:x + cw / 2, cy:H - 34, r:2, fill:"rgba(239,233,226,.18)" }, lane); return; }
+    count++;
+    const w = Math.max(6, Math.min(cw * s.len / 16, cw * 2) - 3), yy = y(notes[k]);
+    el("rect", { x:x + 2, y:yy - 6, width:w, height:12, rx:2, fill:col, opacity: s.len > 16 ? .75 : 1 }, lane);
+    if (s.slide) el("path", { d:`M${x - 4} ${yy + 9} q 5 -12 8 -9`, stroke:"#ffd21f", "stroke-width":2, fill:"none" }, lane);
+    el("text", { x:x + 4, y:yy - 10, fill:"#cfc6bc", "font-size":9.5, "font-family":"JetBrains Mono, monospace" }, lane).textContent = NAMES[notes[k] % 12] + Math.floor(notes[k] / 12);
+  });
+  laneCap.textContent = `${count} of 16 steps play · bars are note length (paler = tied) · yellow hook = slide · pitches over the first chord, A minor`;
+}
+function genChanged() { drawLane(); paintLP(); }
+for (const [id, f] of knobIds) document.getElementById(id).addEventListener("input", (e) => { V[GV].kn[f] = +e.target.value; document.getElementById(id + "V").textContent = Math.round(V[GV].kn[f] * 100) + " %"; genChanged(); });
+gvBass.onclick = () => { GV = 0; syncKnobs(); drawLane(); };
+gvLead.onclick = () => { GV = 1; syncKnobs(); drawLane(); };
+function roll(v) { V[v].undo = V[v].seed.slice(); V[v].seed = V[v].seed.map(() => rngNext()); genChanged(); }
+function mutate(v) { V[v].undo = V[v].seed.slice(); for (let k = 0; k < 64; k++) if ((rngNext() >>> 8) / 16777216 < .25) V[v].seed[k] = rngNext(); genChanged(); }
+function undo(v) { if (!V[v].undo) return; const t = V[v].seed; V[v].seed = V[v].undo; V[v].undo = t; genChanged(); }
+gRoll.onclick = () => roll(GV); gMut.onclick = () => mutate(GV); gUndo.onclick = () => undo(GV);
+
+/* ---------- Launchpad simulator ---------- */
+const LP = { off:"#232323", grey:"#4a4a4a", white:"#f4f4f4", red:"#ff2a2a", redDim:"#6a1414", orange:"#ff7a18", orangeDim:"#6a3208",
+  amber:"#ffd21f", amberDim:"#6a5808", green:"#2aff4a", greenDim:"#145a1e", cyan:"#30e0ff", cyanDim:"#105866", blue:"#3a5cff", magenta:"#ff40c0", magentaDim:"#661a4e" };
+const DRUMCOL = [LP.red, LP.amber, LP.cyan, LP.magenta], DRUMDIM = [LP.redDim, LP.amberDim, LP.cyanDim, LP.magentaDim];
+const DRUMS = ["Kick", "Snare", "Hat", "Perc"];
+const dmute = [false, false, false, false];
+const S = { mode:0, shift:false, running:false, step:-1, slotHeld:-1, drumSlot:0, drumQueued:0 };
+const lpEl = document.getElementById("lp");
+const pads = {};
+/* layout: row 0 = top buttons (x 0..7) + logo; rows 1..8 = grid y 0..7 + side column */
+for (let r = 0; r < 9; r++) for (let c = 0; c < 9; c++) {
+  const b = document.createElement("button");
+  b.className = "pad" + (r === 0 && c < 8 ? " round" : "") + (c === 8 && r > 0 ? " round" : "") + (r === 0 && c === 8 ? " logo" : "");
+  const key = r === 0 ? (c === 8 ? "logo" : "t" + c) : (c === 8 ? "s" + (r - 1) : "g" + c + "," + (r - 1));
+  b.dataset.key = key; b.setAttribute("aria-label", key);
+  b.addEventListener("mouseenter", () => lpInfo(key)); b.addEventListener("focus", () => lpInfo(key));
+  b.addEventListener("click", () => lpPress(key));
+  lpEl.appendChild(b); pads[key] = b;
+}
+function setPad(key, c) { const b = pads[key]; b.style.background = c; const lit = c !== LP.off && c !== LP.grey; b.classList.toggle("lit", lit); b.style.setProperty("--g", lit ? c + "88" : "transparent"); }
+function slotCol(playing, queued) { return queued ? LP.amber : playing ? LP.green : LP.grey; }
+const MODES = ["Bass", "Lead", "Drums", "Patterns"];
+function paintLP() {
+  for (let x = 0; x < 8; x++) {
+    let c = LP.off;
+    if (x < 4) c = x === S.mode ? LP.white : LP.grey;
+    if (x === 6) c = S.shift ? LP.white : LP.grey;
+    if (x === 7) c = S.running ? LP.green : LP.greenDim;
+    setPad("t" + x, c);
+  }
+  for (let d = 0; d < 4; d++) setPad("s" + d, dmute[d] ? LP.red : DRUMDIM[d]);
+  setPad("s4", V[0].mute ? LP.red : LP.orangeDim); setPad("s5", V[1].mute ? LP.red : LP.cyanDim);
+  setPad("s6", LP.off); setPad("s7", LP.off); setPad("logo", LP.green);
+  if (S.mode < 2) {
+    const v = S.mode, steps = V[v].steps, cur = S.running ? S.step % steps : -1;
+    for (let y = 0; y < 4; y++) for (let x = 0; x < 8; x++) {
+      const k = y * 8 + x; let c = LP.off;
+      if (k < steps) { const st = realize(v, k); c = !st.on ? LP.grey : st.slide ? LP.amber : LP.green; if (k === cur) c = LP.red; }
+      setPad(`g${x},${y}`, c);
+    }
+    for (let x = 0; x < 8; x++) {
+      setPad(`g${x},4`, LP.off); setPad(`g${x},5`, LP.off);
+      setPad(`g${x},6`, S.slotHeld === x ? LP.white : slotCol(V[v].slot === x, V[v].queued === x && V[v].queued !== V[v].slot));
+    }
+    const row = [LP.blue, LP.cyan, LP.magentaDim, LP.amberDim, LP.orangeDim, LP.orangeDim, LP.greenDim, V[v].mute ? LP.red : LP.redDim];
+    row.forEach((c, x) => setPad(`g${x},7`, c));
+  } else if (S.mode === 2) {
+    for (let d = 0; d < 4; d++) for (let k = 0; k < 16; k++) {
+      const [p, gen] = drumProb(d, k); let c = k >= DR.steps[d] ? LP.off : p === 0 ? LP.off : gen ? LP.grey : p >= 3 ? DRUMCOL[d] : DRUMDIM[d];
+      if (S.running && S.step % 16 === k) c = LP.white;
+      setPad(`g${k % 8},${d * 2 + (k >> 3)}`, c);
+    }
+  } else {
+    for (let x = 0; x < 8; x++) {
+      setPad(`g${x},0`, slotCol(V[0].slot === x, V[0].queued === x && V[0].queued !== V[0].slot));
+      setPad(`g${x},1`, slotCol(V[1].slot === x, V[1].queued === x && V[1].queued !== V[1].slot));
+      for (let r = 0; r < 2; r++) { const sl = r * 8 + x; setPad(`g${x},${2 + r}`, slotCol(S.drumSlot === sl, S.drumQueued === sl && S.drumQueued !== S.drumSlot)); }
+      for (let y = 4; y < 8; y++) setPad(`g${x},${y}`, LP.off);
+    }
+  }
+  lpMode.textContent = MODES[S.mode] + " mode";
+}
+const ACTIONS = [
+  ["ROLL", "A new line for this voice: every step gets a new seed. Undo brings the old one back."],
+  ["MUTATE", "Re-seeds about a quarter of the steps; the rest of the line stays."],
+  ["UNDO", "Swaps the last roll or mutate back. Again is redo."],
+  ["LOCK", "Freezes the line as it plays now, so the knobs stop changing it. It still follows the chords and OCTAVE. Lit when locked."],
+  ["OCT −", "Down an octave. Lit when below 0."],
+  ["OCT +", "Up an octave. Lit when above 0."],
+  ["RATE", "Step length: 16ths, 8ths, quarters, round again. Bright when slower than 16ths."],
+  ["MUTE", "Mutes this voice. Red when muted."],
+];
+function lpInfo(key) {
+  let t = "", s = "", d = "";
+  if (key === "logo") { t = "Logo"; s = "status"; d = "Green while the Launchpad is connected to the Lab."; }
+  else if (key[0] === "t") {
+    const x = +key.slice(1);
+    if (x < 4) { t = MODES[x].toUpperCase(); s = "top row · mode"; d = ["The bass line: steps, slots and actions.", "The lead line: steps, slots and actions.", "Four drum voices, 16 steps each.", "Every voice's pattern slots on one screen."][x]; }
+    else if (x === 6) { t = "SHIFT"; s = "top row · hold"; d = "Held: a drum step tap steps its chance down 100 → 75 → 50 → 25 %, instead of switching it off."; }
+    else if (x === 7) { t = "▶ PLAY"; s = "top row"; d = "Plays from the top or stops, like B2. Under an external clock, play starts on the next pulse."; }
+    else { t = "—"; s = "top row"; d = "Not used yet. The CHORDS page will go here."; }
+  } else if (key[0] === "s") {
+    const y = +key.slice(1);
+    if (y < 4) { t = DRUMS[y] + " mute"; s = "side column · every mode"; d = `Mutes ${DRUMS[y].toLowerCase()} (J${7 + y}). Red when muted.`; }
+    else if (y < 6) { t = (y === 4 ? "Bass" : "Lead") + " mute"; s = "side column · every mode"; d = "Mutes the voice's gate. Red when muted."; }
+    else { t = "—"; s = "side column"; d = "Not used."; }
+  } else {
+    const [x, y] = key.slice(1).split(",").map(Number);
+    if (S.mode < 2) {
+      const v = S.mode;
+      if (y < 4) { const k = y * 8 + x; t = `Step ${k + 1}`; s = "tap: the loop ends here"; d = k < V[v].steps ? (realize(v, k).on ? `Plays ${NAMES[noteOf(v, realize(v, k)) % 12]} over the first chord. Green = note, amber = slide, red = playhead.` : "A rest at the current DENSITY. Turn DENSITY up and it may start to play.") : "Beyond the loop. Tap to lengthen the loop to here."; }
+      else if (y === 6) { t = `Slot ${x + 1}`; s = "tap: queue · on the Launchpad, hold + tap another: copy"; d = "Green is playing, amber is queued for the next bar. On the real Launchpad, hold one slot and tap another to copy the held one into it."; }
+      else if (y === 7) { [t, d] = ACTIONS[x]; s = "action row"; }
+      else { t = "—"; s = ""; d = "Not used in this mode."; }
+    } else if (S.mode === 2) { const dr = y >> 1, k = (y % 2) * 8 + x; t = `${DRUMS[dr]} · step ${k + 1}`; s = "tap: on / off · shift+tap: less likely"; d = "Bright is 75–100 %, dim is 25–50 %, grey is a generated hit (tap to program it). The white pad is the playhead."; }
+    else { if (y < 2) { t = `${y === 0 ? "Bass" : "Lead"} slot ${x + 1}`; } else if (y < 4) { t = `Drum pattern ${(y - 2) * 8 + x + 1}`; } else t = "—"; s = y < 4 ? "tap: queue for the next bar" : ""; d = y < 4 ? "Green is playing, amber is waiting for the bar line." : "Not used in this mode."; }
+  }
+  lpT.textContent = t; lpS.textContent = s || " "; lpD.textContent = d;
+}
+function lpPress(key) {
+  if (key[0] === "t") {
+    const x = +key.slice(1);
+    if (x < 4) { S.mode = x; S.slotHeld = -1; }
+    else if (x === 6) S.shift = !S.shift;
+    else if (x === 7) togglePlay();
+  } else if (key[0] === "s") {
+    const y = +key.slice(1);
+    if (y < 4) dmute[y] = !dmute[y]; else if (y < 6) V[y - 4].mute = !V[y - 4].mute;
+  } else if (key[0] === "g") {
+    const [x, y] = key.slice(1).split(",").map(Number);
+    if (S.mode < 2) {
+      const v = S.mode;
+      if (y < 4) V[v].steps = y * 8 + x + 1;
+      else if (y === 6) {
+        queueSlot(v, x);
+      } else if (y === 7) {
+        if (x === 0) roll(v); else if (x === 1) mutate(v); else if (x === 2) undo(v);
+        else if (x === 7) V[v].mute = !V[v].mute;
+      }
+    } else if (S.mode === 2) {
+      const d = y >> 1, k = (y % 2) * 8 + x, p = DR.prob[d][k];
+      DR.prob[d][k] = S.shift ? (p <= 1 ? 4 : p - 1) : (p ? 0 : 4);
+      drawDrums();
+    } else {
+      if (y === 0) queueSlot(0, x); else if (y === 1) queueSlot(1, x);
+      else if (y < 4) { S.drumQueued = (y - 2) * 8 + x; if (!S.running) S.drumSlot = S.drumQueued; }
+    }
+  }
+  paintLP(); lpInfo(key);
+}
+function queueSlot(v, x) {
+  V[v].queued = x;
+  if (!S.running) takeSlot(v);
+}
+function takeSlot(v) {
+  if (V[v].queued === V[v].slot) return;
+  SEEDS[v][V[v].slot] = V[v].seed.slice();   /* the slot keeps its line */
+  V[v].slot = V[v].queued; V[v].seed = SEEDS[v][V[v].slot].slice(); V[v].undo = null;
+  if (GV === v) drawLane();
+}
+let timer = null;
+function togglePlay() {
+  S.running = !S.running; S.step = -1;
+  if (timer) { clearInterval(timer); timer = null; }
+  if (S.running) timer = setInterval(() => {
+    S.step++;
+    if (S.step % 16 === 0) { takeSlot(0); takeSlot(1); S.drumSlot = S.drumQueued; }
+    paintLP();
+  }, 125);
+  paintLP();
+}
+const KEYLIST = [[LP.green, "a note, a playing slot"], [LP.amber, "a slide; a slot queued for the next bar"], [LP.grey, "a rest, an empty slot"], [LP.red, "the playhead; a mute"]];
+lpKey.innerHTML = KEYLIST.map(([c, t]) => `<i style="background:${c}"></i><span>${t}</span>`).join("");
+
+/* ---------- drums: core/seq.c's drum generator, line for line ---------- */
+function seqEuclid(hits, n, rot, k) {
+  if (n < 1 || hits < 1) return false;
+  if (hits >= n) return true;
+  const i = ((k - rot) % n + n) % n;
+  return (i * hits) % n < hits;
+}
+const EUCLID_ROT = [[0, 4, 2, 3], [0, 4, 0, 6], [0, 2, 1, 5], [0, 6, 3, 1]];
+const BAND = [
+  [[0, .30], [.25, .40], [.45, .55]],
+  [[0, .25], [.30, .50], [.45, .55]],
+  [[0, .30], [.20, .40], [.40, .60]],
+  [[0, 1], [0, 1], [0, 1]],
+];
+const f32 = Math.fround;
+function drumGenerated(dr, d, k) {
+  const amt = Math.min(1, Math.max(0, dr.gen[d]));
+  if (amt <= 0) return false;
+  const style = dr.style % 8, n = dr.steps[d] || 16;
+  if (style >= 4) { const hits = Math.floor(f32(f32(amt * n) + .5)); return seqEuclid(hits, n, EUCLID_ROT[style - 4][d], k); }
+  const seed = mix32((0xD5A10000 + style * 0x10000 + d * 0x100 + k) >>> 0);
+  const kk = k % 16;
+  const cls = d === 0 ? (kk % 4 === 0 ? 0 : kk % 2 === 0 ? 1 : 2) : d === 1 ? (kk % 8 === 4 ? 0 : kk % 2 === 0 ? 1 : 2) : d === 2 ? (kk % 4 === 2 ? 0 : kk % 2 === 0 ? 1 : 2) : 0;
+  const [lo, span] = BAND[d][cls];
+  return f32(f32(lo) + f32(f32(unit(seed, F_HIT)) * f32(span))) < f32(amt);
+}
+const DR = { prob:[[], [], [], []], steps:[16, 16, 16, 16], gen:[0, 0, 0, 0], style:4, pat:1 };
+function defaultBeat() { for (let k = 0; k < 64; k++) { DR.prob[0][k] = k < 16 && k % 4 === 0 ? 4 : 0; DR.prob[1][k] = (k === 4 || k === 12) ? 4 : 0; DR.prob[2][k] = k < 16 && k % 4 === 2 ? 4 : 0; DR.prob[3][k] = 0; } DR.steps = [16, 16, 16, 16]; }
+defaultBeat();
+DR.gen = [0, 0, 0, .19]; /* a little perc on top, Euclid 1 */
+function drumProb(d, k) {
+  const p = DR.prob[d][k] || 0;
+  if (p < 4 && drumGenerated(DR, d, k)) return [4, p === 0];
+  return [p, false];
+}
+const STYLE_NAMES = ["Gen 1", "Gen 2", "Gen 3", "Gen 4", "Euclid 1", "Euclid 2", "Euclid 3", "Euclid 4"];
+const DCOL = ["#ff3030", "#ffd21f", "#30e0ff", "#ff40c0"], DDIM = ["#6a1818", "#6a5808", "#105866", "#661a4e"];
+const dgrid = document.getElementById("dgrid");
+const dcells = [];
+(function buildDrumGrid() {
+  dgrid.appendChild(document.createElement("span"));
+  for (let k = 0; k < 16; k++) { const h = document.createElement("span"); h.className = "hd"; h.textContent = k % 4 === 0 ? (k / 4 + 1) : "·"; dgrid.appendChild(h); }
+  for (let d = 0; d < 4; d++) {
+    const n = document.createElement("span"); n.className = "dn"; n.textContent = DRUMS[d]; dgrid.appendChild(n);
+    dcells[d] = [];
+    for (let k = 0; k < 16; k++) {
+      const b = document.createElement("button"); b.className = "st" + (k % 4 === 0 ? " q" : "");
+      b.setAttribute("aria-label", `${DRUMS[d]} step ${k + 1}`);
+      b.addEventListener("click", (e) => {
+        const p = DR.prob[d][k];
+        DR.prob[d][k] = e.shiftKey ? (p <= 1 ? 4 : p - 1) : (p ? 0 : 4);
+        drawDrums(); paintLP();
+      });
+      dgrid.appendChild(b); dcells[d][k] = b;
+    }
+  }
+  const sel = document.getElementById("dPat");
+  for (let i = 1; i <= 16; i++) { const o = document.createElement("option"); o.value = i; o.textContent = i; sel.appendChild(o); }
+  sel.addEventListener("change", () => { DR.pat = +sel.value; drawDrums(); });
+})();
+const PCHAR = [".", "1", "2", "3", "x"];
+function drumText() {
+  const lines = [`pattern ${DR.pat}`];
+  for (let d = 0; d < 4; d++) {
+    let t = "";
+    for (let k = 0; k < DR.steps[d]; k++) { t += PCHAR[DR.prob[d][k] || 0]; if (k % 4 === 3 && k < DR.steps[d] - 1) t += " "; }
+    lines.push(DRUMS[d].toLowerCase().padEnd(6) + t);
+  }
+  return lines.join("\n") + "\n";
+}
+function drawDrums() {
+  for (let d = 0; d < 4; d++) for (let k = 0; k < 16; k++) {
+    const [p, gen] = drumProb(d, k), b = dcells[d][k];
+    b.style.background = p === 0 ? "#262019" : gen ? "#6b645c" : p >= 3 ? DCOL[d] : DDIM[d];
+  }
+  dStyleV.textContent = STYLE_NAMES[DR.style];
+  for (let d = 0; d < 4; d++) document.getElementById(`dA${d}V`).textContent = DR.style >= 4 ? `E(${Math.floor(Math.fround(Math.fround(DR.gen[d] * DR.steps[d]) + .5))},${DR.steps[d]})` : Math.round(DR.gen[d] * 100) + " %";
+  dText.textContent = drumText();
+}
+dStyle.value = DR.style;
+for (let d = 0; d < 4; d++) { const el2 = document.getElementById(`dA${d}`); el2.value = DR.gen[d]; el2.addEventListener("input", (e) => { DR.gen[d] = +e.target.value; drawDrums(); paintLP(); }); }
+dStyle.addEventListener("input", (e) => { DR.style = +e.target.value; drawDrums(); paintLP(); });
+dClear.onclick = () => { for (let d = 0; d < 4; d++) DR.prob[d].fill(0); drawDrums(); paintLP(); };
+dDefault.onclick = () => { defaultBeat(); drawDrums(); paintLP(); };
+dCopy.onclick = () => {
+  const t = drumText();
+  const done = () => { dCopy.textContent = "Copied"; setTimeout(() => dCopy.textContent = "Copy", 1400); };
+  const pick = () => { const r = document.createRange(); r.selectNodeContents(dText); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); dCopy.textContent = "Selected: ⌘C"; };
+  try { navigator.clipboard.writeText(t).then(done, pick); } catch (e) { pick(); }
+};
+
+/* ---------- Launch Control XL ---------- */
+(function () {
+  const box = document.getElementById("xlBox"); let h = "";
+  const row = (cls, vals) => vals.map(v => `<div class="kn ${cls}" style="--r:${-135 + v * 270}deg"></div>`).join("");
+  h += `<div class="rl">Knobs 1 · bass</div>` + row("b", [.6,.4,.2,.15,.1,.5,0,1]);
+  h += `<div class="rl">Knobs 2 · lead</div>` + row("l", [.35,.6,.1,.1,.3,.5,.5,1]);
+  h += `<div class="rl">Knobs 3 · drums: kick, snare, hat, perc, style, pattern</div>` + row("d", [.25,.12,.25,0,.6,0]) + row("off", [.5,.5]);
+  h += `<div class="rl">Faders · not used</div>` + Array(8).fill(`<div class="fd"></div>`).join("");
+  const up = [["ROLL","#3a9a3a"],["MUT","#3a9a3a"],["UNDO","#a08a20"],["LOCK","#ffd21f"],["ROLL","#3a9a3a"],["MUT","#3a9a3a"],["UNDO","#a08a20"],["LOCK","#a08a20"]];
+  const lo = [["BASS","#2aff4a"],["LEAD","#2aff4a"],["KICK","#2aff4a"],["SNARE","#2aff4a"],["HAT","#2aff4a"],["PERC","#ff2a2a"],["",""],["PLAY","#2aff4a"]];
+  h += `<div class="rl">Buttons · bass ×4, lead ×4</div>` + up.map(([t, c]) => `<div class="bt" style="background:${c || "#2a2a2c"}">${t}</div>`).join("");
+  h += `<div class="rl">Buttons · mutes, play</div>` + lo.map(([t, c]) => `<div class="bt" style="background:${c || "#2a2a2c"}">${t}</div>`).join("");
+  box.innerHTML = h;
+})();
+
+/* ---------- Haute42 ---------- */
+(function () {
+  const s = document.getElementById("h42");
+  const bt = (x, y, r, label, sub, col) => {
+    const g = el("g", { class:"gb" }, s);
+    el("circle", { cx:x, cy:y, r, fill:"#26262c", stroke:col, "stroke-width":2 }, g);
+    el("text", { x, y:y + 1, fill:"#efe9e2", "font-size":10, "font-weight":600 }, g).textContent = label;
+    el("text", { x, y:y + r + 12, fill:"#9a9088", "font-size":7.5 }, g).textContent = sub;
+  };
+  el("rect", { x:2, y:2, width:456, height:236, rx:14, fill:"#1d1d22" }, s);
+  /* left hand: left, down, right; thumb: up */
+  bt(38, 74, 17, "◀", "bass oct −", "#ff8a2a"); bt(92, 58, 17, "▼", "lead oct −", "#35c8ff"); bt(146, 74, 17, "▶", "bass oct +", "#ff8a2a");
+  bt(160, 170, 19, "▲", "lead oct +", "#35c8ff");
+  /* right hand: X Y RB LB / A B RT LT */
+  const top = [["X","mute hat","#30e0ff"],["Y","mute perc","#ff40c0"],["RB","mute lead","#35c8ff"],["LB","mute bass","#ff8a2a"]];
+  const bot = [["A","mute kick","#ff3030"],["B","mute snare","#ffd21f"],["RT","lead fill","#35c8ff"],["LT","bass fill","#ff8a2a"]];
+  top.forEach(([l, t, c], i) => bt(222 + i * 60, 52 + (i === 1 ? -8 : i === 0 ? 4 : 0), 17, l, t, c));
+  bot.forEach(([l, t, c], i) => bt(222 + i * 60, 112 + (i === 1 ? -8 : i === 0 ? 4 : 0), 17, l, t, c));
+  bt(262, 190, 12, "ST", "play/stop", "#2aff4a");
+  bt(332, 190, 12, "L3", "mutate bass", "#ff8a2a"); bt(402, 190, 12, "R3", "mutate lead", "#35c8ff");
+  el("text", { x:230, y:233, fill:"#9a9088", "font-size":9, "font-family":"JetBrains Mono, monospace", "text-anchor":"middle" }, s).textContent = "held = while pressed · tapped = once";
+})();
+
+syncKnobs(); drawLane(); drawDrums(); paintLP();
+</script>
+
+</body>
+</html>
