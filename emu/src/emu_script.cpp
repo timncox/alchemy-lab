@@ -8,8 +8,8 @@
  *   pot <1-6> <0..1>                 P1..P6, front view
  *   press <b1|b2|b3> / release <b>   hold <b> <ms>   tap <b>
  *   cv <3-8> <volts>                 J3..J8
- *   sing <hz>                        a sung buzz at hz on J1/J2 ("sing 0" =
- *   silence                          silence; default when there is no --in)
+ *   sing <hz>                        a sung buzz at hz into J1/J2 (sing 0 = silence)
+ *   silence                          silence in (the default when there is no --in)
  *   clock <1|2> <ms>                 a 5 ms pulse every <ms> on J1 / J2 (0 = off)
  *   pulse <1|2>                      one 5 ms pulse on J1 / J2
  *   mark                             start a new output-level window (and edge count)
@@ -41,6 +41,8 @@
  *   expect xl button|knob <row> <col> <colour>
  *   print leds                       the three button pairs, raw
  *   print tones                      A3..C5 amplitudes in the output
+ *   print tone <hz> [hz hz hz]       the amplitude at up to four hz (to pick thresholds)
+ *   (rms, tone and print measure the L/R average; pan compares L with R)
  *   print screen                     the OLED's two lines
  *   snapshot <file.bmp>              the panel, drawn as the window draws it
  */
@@ -467,6 +469,12 @@ int emu_script_run(const char* path)
             const bool ok = !std::strcmp(c, ">") ? v > want : v < want;
             std::printf("%s line %d: tone %.1f Hz at %.4f %s %.4f\n", ok ? "PASS" : "FAIL", line_no, hz, v, c, want);
             if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "tone"))
+        {
+            const char* hz[] = {b, c, d, e};
+            for (int i = 0; i < 4 && *hz[i]; i++)
+                std::printf("  tone %.1f Hz: %.4f\n", std::atof(hz[i]), emu::ToneLevel((float)std::atof(hz[i])));
         }
         else if (C == "print" && !std::strcmp(a, "tones"))
         {

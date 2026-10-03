@@ -9,18 +9,24 @@
 # surface and the USB-host / picker modules are replaced (include/, src/).
 
 FWS := belt mark smack seq clouds elements marbles meld plaits warps
+ifneq ($(filter test-custom,$(MAKECMDGOALS)),)
+FW := custom
+endif
 FW  ?= belt
-ifeq ($(filter $(FW),$(FWS)),)
-$(error FW must be one of: $(FWS))
+ifeq ($(filter $(FW),$(FWS) custom),)
+$(error FW must be one of: $(FWS), or custom FW_DIR=<your firmware repo>)
 endif
 
+#   make FW=custom FW_DIR=~/my-module
+#                           YOUR firmware (any Daisy-Makefile project on the
+#                           Alchemy SDK, e.g. hermetic-modular/alchemy-template)
+#                           -> build/custom/<TARGET>/emu; see AGENTS.md
 #   make WEB=1 FW=plaits    build/web/plaits/emu.{mjs,wasm} for the browser
 #                           (Emscripten; see src/emu_web notes in emu_main.cpp)
 
 TIMOS       ?= $(HOME)/tim-os
 ALCHEMY_DIR ?= $(TIMOS)/belt-alchemy/lib/alchemy-sdk
 LIBDAISY_DIR ?= $(TIMOS)/belt-alchemy/lib/libDaisy
-FATFS       := $(LIBDAISY_DIR)/Middlewares/Third_Party/FatFs/src
 ifeq ($(WEB),1)
 BUILD       := build/web/$(FW)
 else
@@ -31,6 +37,17 @@ ifneq ($(filter $(FW),clouds elements marbles meld plaits warps),)
 include fw/mi.mk
 else
 include fw/$(FW).mk
+endif
+# after the firmware's .mk: a custom firmware brings its own libDaisy
+FATFS       := $(LIBDAISY_DIR)/Middlewares/Third_Party/FatFs/src
+# the SD card's RAM disk: the SDK's own host-test one, or (SDKs before v0.10
+# have none) the same file, MIT, copied into src/sdk_fallback/
+ifneq ($(wildcard $(ALCHEMY_DIR)/tests/host/ram_diskio.cpp),)
+SDK_RAMDISK := tests/host/ram_diskio.cpp
+RAMDISK_INC := -I$(ALCHEMY_DIR)/tests/host
+else
+EMU_RAMDISK := src/sdk_fallback/ram_diskio.cpp
+RAMDISK_INC := -Isrc/sdk_fallback
 endif
 
 ifeq ($(WEB),1)
@@ -61,34 +78,29 @@ DEFS := -DALCHEMY_BOARD_V2 -DALCHEMY_HOSTLINK_MAX_BODY=2048 \
 INCS := -Iinclude -Isrc $(FW_INCS) \
         -I$(ALCHEMY_DIR)/framework/include -I$(ALCHEMY_DIR)/hardware/include \
         -I$(ALCHEMY_DIR)/hardware/alchemy-lab/v2/include \
-        -I$(ALCHEMY_DIR)/tests/host -Iinclude/fatfs_conf -I$(FATFS) -I$(ALCHEMY_DIR)
+        $(RAMDISK_INC) -Iinclude/fatfs_conf -I$(FATFS) -I$(ALCHEMY_DIR)
 
 # SAN=thread / SAN=address: a sanitizer build in build/<fw>-<san>/
 SANFLAGS := $(if $(SAN),-fsanitize=$(SAN) -fno-omit-frame-pointer)
 CXXFLAGS := -std=gnu++17 -O2 -g -w $(DEFS) $(INCS) $(SDL_CFLAGS) $(SANFLAGS)
 CFLAGS   := -std=gnu11 -O2 -g -w $(DEFS) $(INCS) $(FW_CFLAGS) $(SANFLAGS)
 
-SDK_SRC := \
-  framework/src/surface/control_loop.cpp framework/src/surface/cv_matrix.cpp \
-  framework/src/surface/led_render.cpp framework/src/surface/pager.cpp \
-  framework/src/surface/preset_gesture_ui.cpp framework/src/surface/settings.cpp \
-  framework/src/surface/virtual_knob.cpp framework/src/surface/button_bank.cpp \
-  framework/src/led/panel.cpp framework/src/led/ring_frame.cpp framework/src/led/perf_renderer.cpp \
-  framework/src/control/param_lock_manager.cpp framework/src/control/musical_clock.cpp \
-  framework/src/control/cv_router.cpp framework/src/control/cv_edge.cpp \
-  framework/src/control/clock_follower.cpp framework/src/control/clock_pll.cpp \
-  framework/src/host_link/host_link.cpp framework/src/host_link/descriptor.cpp \
-  framework/src/host_link/describe.cpp framework/src/host_link/json_check.cpp \
-  framework/src/host_link/host.cpp \
-  framework/src/storage/sd_card.cpp framework/src/storage/fs_extension.cpp \
-  hardware/alchemy-lab/v2/src/alchemy_lab_v2_layout.cpp \
-  hardware/alchemy-lab/v2/src/v2_calibration.cpp \
-  hardware/alchemy-lab/v2/src/trigger_jack.cpp \
-  tests/host/ram_diskio.cpp
+# The SDK's framework, every file except the ones the emulator replaces: the
+# USB-CDC HostLink transport (no USB here) and Presets (src/presets_emu.cpp
+# compiles it with the flash rebased). The v2 board's own chip drivers are
+# replaced by include/alchemy/hw/alchemy_lab_v2.h + src/emu_board.cpp; its
+# layout, calibration and trigger-jack code compile as-is.
+SDK_REPLACED := framework/src/host_link/cdc_transport.cpp framework/src/host_link/diagnostics.cpp \
+                framework/src/surface/presets.cpp
+SDK_FRAMEWORK := $(patsubst $(ALCHEMY_DIR)/%,%,$(filter-out $(ALCHEMY_DIR)/framework/src/led/anims/%,\
+                   $(sort $(shell find $(ALCHEMY_DIR)/framework/src -name '*.cpp'))))
+SDK_V2 := $(filter $(addprefix hardware/alchemy-lab/v2/src/,alchemy_lab_v2_layout.cpp v2_calibration.cpp trigger_jack.cpp),\
+            $(patsubst $(ALCHEMY_DIR)/%,%,$(wildcard $(ALCHEMY_DIR)/hardware/alchemy-lab/v2/src/*.cpp)))
+SDK_SRC := $(filter-out $(SDK_REPLACED),$(SDK_FRAMEWORK)) $(SDK_V2) $(SDK_RAMDISK)
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
 EMU_CXX := src/emu_board.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
-           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp $(FW_STUBS)
+           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp $(EMU_RAMDISK) $(FW_STUBS)
 
 ALL_CXX := $(addprefix $(ALCHEMY_DIR)/,$(SDK_SRC)) $(SDK_ANIMS) $(EMU_CXX) $(FW_CXX)
 ALL_C   := $(FW_C) $(FATFS)/ff.c $(FATFS)/option/ccsbcs.c
@@ -96,7 +108,7 @@ ALL_CC  := $(FW_CC)
 
 objname = $(BUILD)/obj/$(subst /,_,$(subst ..,up,$(1))).o
 OBJS := $(foreach f,$(ALL_CXX) $(ALL_C) $(ALL_CC),$(call objname,$(f))) $(BUILD)/obj/firmware.o
-HDRS := $(wildcard include/*.h include/*/*.h include/*/*/*.h src/*.h)
+HDRS := $(wildcard include/*.h include/*/*.h include/*/*/*.h src/*.h) $(FW_DEPS)
 
 .DEFAULT_GOAL := all
 all: $(EXE)
@@ -145,3 +157,12 @@ clean:
 print-root:
 	@echo $(FW_ROOT)
 .PHONY: print-root
+
+# Your firmware's tests: the generic smoke test, then every script in
+# <FW_DIR>/emu-tests/*.emu (a "#!args ..." line in a script = its CLI options;
+# <FW_DIR>/emu-card/ is copied onto the emulated SD card if it exists).
+#   make test-custom FW_DIR=~/my-module
+test-custom: all
+	@echo "testing $(BUILD)/emu"
+	@./run-custom-tests.sh "$(BUILD)/emu" "$(FW_DIR)"
+.PHONY: test-custom

@@ -7,14 +7,17 @@
 #include <string>
 #include <cstdio>
 
-#include "picker.h"
 #include "emu.h"
 
-/* ---- SD picker: no firmware switching in the emulator ---- */
+/* ---- SD picker (Tim's firmwares share one): no switching in the emulator.
+ * Other firmware has no picker.h, and needs no stub. ---- */
+#if __has_include("picker.h")
+#include "picker.h"
 namespace picker {
 void Install(alchemy::Settings&, uint8_t, alchemy::SdCard&, alchemy::AlchemyLab&) {}
 bool Busy() { return false; }
 } // namespace picker
+#endif
 
 /* ---- HostLink's USB-CDC transport: no USB in the emulator ---- */
 #include "alchemy/host_link/cdc_transport.h"

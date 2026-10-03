@@ -222,22 +222,27 @@ void draw(Ui& u)
     }
 
     /* jacks */
-    emu_text(r, 40, 660, 1, "CV IN  (DRAG = VOLTS, GATE = 0 / +5 V)", kDim);
+    emu_text(r, 40, 660, 1, "CV  (DRAG = VOLTS IN, GATE = 0 / +5 V, CYAN = AN OUTPUT)", kDim);
     for (int i = 0; i < 6; i++)
     {
         SDL_Rect t = jack_track(i), g = jack_gate(i);
         SDL_SetRenderDrawColor(r, 0x14, 0x13, 0x12, 255);
         SDL_RenderFillRect(r, &t);
-        const float v = P.cv_volts[i].load();
+        /* a jack the firmware drives shows its output, in cyan */
+        const bool  out = P.cv_is_out[i].load();
+        float       v   = out ? P.cv_out[i].load() : P.cv_volts[i].load();
+        v = v < -5.f ? -5.f : (v > 5.f ? 5.f : v);
         const int   y = t.y + (int)((5.0f - v) / 10.0f * t.h);
         SDL_SetRenderDrawColor(r, 0x60, 0x58, 0x50, 255);
         SDL_RenderDrawLine(r, t.x - 6, t.y + t.h / 2, t.x + t.w + 6, t.y + t.h / 2);
-        SDL_SetRenderDrawColor(r, v != 0.f ? 0xFF : 0xB0, v != 0.f ? 0x80 : 0xA8, v != 0.f ? 0x30 : 0xA0, 255);
+        if (out) SDL_SetRenderDrawColor(r, 0x30, 0xD0, 0xE0, 255);
+        else     SDL_SetRenderDrawColor(r, v != 0.f ? 0xFF : 0xB0, v != 0.f ? 0x80 : 0xA8, v != 0.f ? 0x30 : 0xA0, 255);
         SDL_Rect cap = {t.x - 8, y - 4, t.w + 16, 8};
         SDL_RenderFillRect(r, &cap);
-        SDL_SetRenderDrawColor(r, std::fabs(v - 5.f) < 0.01f ? 0xFF : 0x40, std::fabs(v - 5.f) < 0.01f ? 0x80 : 0x3C, std::fabs(v - 5.f) < 0.01f ? 0x30 : 0x38, 255);
+        if (out) SDL_SetRenderDrawColor(r, 0x14, 0x40, 0x48, 255);
+        else SDL_SetRenderDrawColor(r, std::fabs(v - 5.f) < 0.01f ? 0xFF : 0x40, std::fabs(v - 5.f) < 0.01f ? 0x80 : 0x3C, std::fabs(v - 5.f) < 0.01f ? 0x30 : 0x38, 255);
         SDL_RenderFillRect(r, &g);
-        emu_text(r, g.x + 8, g.y + 6, 1, "GATE", kInk);
+        emu_text(r, g.x + (out ? 11 : 8), g.y + 6, 1, out ? "OUT" : "GATE", kInk);
         emu_text(r, t.x - 22, t.y - 16, 1, kJack[i], kDim);
         char vs[12];
         std::snprintf(vs, sizeof vs, "%+.1fV", v);

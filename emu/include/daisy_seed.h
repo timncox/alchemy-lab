@@ -162,9 +162,19 @@ struct System {
     static MemoryRegion GetProgramMemoryRegion() { return MemoryRegion::SRAM_D1; }
 };
 
+/* The STM32's own DAC: on the V2 it drives J7 (ONE) and J8 (TWO). Codes are
+ * 12-bit, as libDaisy's; emu_board.cpp turns them into jack volts. */
+struct DacHandle {
+    enum class Result  { OK, ERR };
+    enum class Channel { ONE, TWO, BOTH };
+    Result WriteValue(Channel ch, uint16_t code);
+};
+
 struct DaisySeed {
     AdcHandle  adc;
     QSPIHandle qspi;
+
+    void SetLed(bool on);   /* the Seed's user LED: the emulator only remembers it */
 
     void Configure() {}
     void Init(bool = false) {}

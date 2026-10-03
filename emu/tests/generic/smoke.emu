@@ -1,0 +1,120 @@
+# Smoke test, generic: boots, survives every control end to end (knobs,
+# buttons, Settings, CV), keeps refreshing its LEDs and keeps its output
+# finite. A crash or hang fails the run. Run by `make test-custom`.
+wait 3500
+expect booted
+expect alive
+expect leds > 4
+sing 220
+wait 500
+pot 1 0
+pot 2 0
+pot 3 0
+pot 4 0
+pot 5 0
+pot 6 0
+wait 300
+pot 1 0.25
+pot 2 0.25
+pot 3 0.25
+pot 4 0.25
+pot 5 0.25
+pot 6 0.25
+wait 300
+pot 1 0.5
+pot 2 0.5
+pot 3 0.5
+pot 4 0.5
+pot 5 0.5
+pot 6 0.5
+wait 300
+pot 1 0.75
+pot 2 0.75
+pot 3 0.75
+pot 4 0.75
+pot 5 0.75
+pot 6 0.75
+wait 300
+pot 1 1
+pot 2 1
+pot 3 1
+pot 4 1
+pot 5 1
+pot 6 1
+wait 500
+expect finite
+tap b1
+wait 300
+tap b2
+wait 300
+tap b1
+wait 300
+tap b2
+wait 300
+hold b1 1000
+hold b2 1000
+press b3                 # the alternate page while held
+wait 300
+pot 1 0.3
+pot 6 0.7
+wait 300
+release b3
+wait 300
+expect alive
+# Settings: B2 + B3 held 2 s, B1 through the pages, out with B3
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 400
+tap b1
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 0.4
+wait 300
+tap b3
+wait 600
+expect alive
+# CV: every input jack low -> high -> low, then a ramp on J4
+cv 3 5
+cv 4 5
+cv 5 5
+cv 6 5
+cv 7 5
+cv 8 5
+wait 400
+cv 3 0
+cv 4 0
+cv 5 0
+cv 6 0
+cv 7 0
+cv 8 0
+wait 400
+cv 4 -5
+wait 200
+cv 4 2.5
+wait 200
+cv 4 0
+wait 300
+silence
+wait 500
+expect finite
+expect alive
+pot 1 0.5
+pot 2 0.5
+pot 3 0.5
+pot 4 0.5
+pot 5 0.5
+pot 6 0.5
+sing 220
+wait 1000
+mark
+wait 500
+print rms
+print cv
+print screen

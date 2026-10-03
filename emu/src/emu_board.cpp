@@ -257,8 +257,27 @@ bool  EmuCvJack::EnableCvOutput()    { g_panel.cv_is_out[idx_] = true; return tr
 bool  EmuCvJack::DisableCvOutput()   { g_panel.cv_is_out[idx_] = false; return true; }
 bool  EmuCvJack::IsOutput() const    { return g_panel.cv_is_out[idx_].load(); }
 
+/* Direct DAC writes (firmware that bypasses CvJack): code -> jack volts by
+ * the board's calibration, the inverse of what the firmware computed; the
+ * jack becomes an output, as routing the DAC to it does on the module. */
+void dac_drive(uint8_t jack, uint16_t code)
+{
+    if (!g_board || jack >= 6) return;
+    const V2JackCal& c = g_board->Calibration().jack[jack];
+    g_panel.cv_is_out[jack] = true;
+    g_board->cv_jacks[jack].SetVolts(c.dac_offset_v + c.dac_gain_v_per_code * (float)code);
+}
+
+bool Mcp4728::PulseLdac(Pca9557&, uint8_t)
+{
+    for (uint8_t ch = 0; ch < 4; ch++) dac_drive(ch, staged_[ch]);
+    return true;
+}
+
 void AlchemyLabV2::Init(daisy::SaiHandle::Config::SampleRate, uint32_t block_size)
 {
+    g_board     = this;              /* before the firmware's first DAC write */
+    V2CalDesignFallback(cal_);       /* an uncalibrated module's numbers */
     block_size_ = block_size;
     g_block     = block_size;
     for (uint8_t i = 0; i < kNumButtons; i++) emu_buttons[i].Bind(i);
@@ -314,3 +333,16 @@ void emu::WriteCardFile(const char* dir, const char* path, const char* text)
     else std::fprintf(stderr, "[emu] card: cannot write %s (%d)\n", path, (int)fr);
     f_mount(nullptr, "0:", 0);
 }
+
+/* The Seed's user LED (nothing draws it) and its DAC (J7, J8). */
+static bool g_seed_led = false;
+namespace alchemy { void dac_drive(uint8_t jack, uint16_t code); }
+namespace daisy {
+void DaisySeed::SetLed(bool on) { g_seed_led = on; }
+DacHandle::Result DacHandle::WriteValue(Channel ch, uint16_t code)
+{
+    if (ch == Channel::ONE || ch == Channel::BOTH) alchemy::dac_drive(4, code);
+    if (ch == Channel::TWO || ch == Channel::BOTH) alchemy::dac_drive(5, code);
+    return Result::OK;
+}
+} // namespace daisy

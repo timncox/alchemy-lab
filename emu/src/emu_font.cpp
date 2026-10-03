@@ -26,9 +26,10 @@ void emu_text(SDL_Renderer* r, int x, int y, int s, const char* t, SDL_Color c)
     SDL_SetRenderDrawColor(r, c.r, c.g, c.b, 255);
     for (; *t; t++, x += 6 * s)
     {
+        static const unsigned char kUnderscore[5] = {0x40, 0x40, 0x40, 0x40, 0x40};
         int ch = std::toupper((unsigned char)*t);
-        if (ch < 0x20 || ch > 0x5A) ch = '?';
-        const unsigned char* g = kFont[ch - 0x20];
+        if (ch != '_' && (ch < 0x20 || ch > 0x5A)) ch = '?';
+        const unsigned char* g = ch == '_' ? kUnderscore : kFont[ch - 0x20];
         for (int col = 0; col < 5; col++)
             for (int row = 0; row < 7; row++)
                 if (g[col] >> row & 1)

@@ -1,5 +1,14 @@
 # alchemy-emu — every Alchemy Lab firmware, unchanged, on the Mac
 
+> **Your own firmware?** `make FW=custom FW_DIR=~/my-module` builds any Alchemy Lab
+> firmware on its own copy of the SDK, and `make test-custom FW_DIR=...` tests it.
+> **[AGENTS.md](AGENTS.md)** is the full guide, written so an AI coding agent
+> (Claude Code, Codex, Cursor, ...) can do it for you. Paste this in your firmware's folder:
+>
+> *Clone https://github.com/timncox/alchemy-lab (branch `emu-custom`), read `emu/AGENTS.md`,
+> and get this firmware running in the Alchemy Lab emulator. Then write emulator tests for its
+> main controls and run them.*
+
 Each firmware's own `*_alchemy.cpp`, its engine and the Alchemy SDK framework
 (pages, Settings, presets, control loop, CV matrix, LED renderer, HostLink
 core) are compiled **as they are**; only the board is replaced:
@@ -9,7 +18,7 @@ core) are compiled **as they are**; only the board is replaced:
 | `AlchemyLabV2` (the board) | `include/alchemy/hw/alchemy_lab_v2.h` — pots, B1–B3, J3–J10 (CV in **and out**), the 102-LED chain are the emulator panel; J1/J2 are the SDK's own `TriggerJack`, fed the input blocks before the firmware's callback as the Lab's audio shim does |
 | libDaisy (`daisy_seed.h`, `per/rng.h`, `hid/usb.h`, `util/CpuLoadMeter.h`, HAL) | `include/` — real time, ADC from the panel, QSPI = a flash image, the host's RNG |
 | QSPI flash at 0x90760000 | `~/.alchemy-emu/<Firmware>-flash.bin` (presets survive restarts; `--flash none` = RAM) |
-| SD card | a formatted 8 MB RAM disk under the real FatFS; `--card dir` copies a folder onto it |
+| SD card | a formatted 64 MB FAT32 RAM disk under the real FatFS; `--card dir` copies a folder onto it |
 | Smack's 1U OLED | drawn on the panel; scripts read it (`expect screen`) |
 | Launchpad Mini MK3, Launch Control XL, Haute42 | `src/emu_ctl.cpp` — emulated devices behind the firmware's own `lp::` / `xl::` / `pad::` API (`--usb launchpad`), drawn beside the panel (`src/emu_ui_ctl.cpp`) |
 | SD picker, USB audio, HostLink's USB | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |

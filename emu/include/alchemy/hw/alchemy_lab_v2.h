@@ -89,7 +89,47 @@ class EmuCvJack
   private:
     uint8_t idx_ = 0;
 };
-using EmuCv = EmuCvJack;
+using EmuCv  = EmuCvJack;
+using CvJack = EmuCvJack;   /* the SDK's name for it, which firmware uses too */
+
+/* The V2's I2C chips, for firmware that drives them directly -- the SDK makes
+ * them public members, as Daisy boards do. The expander keeps its output
+ * byte (B3 itself is read through emu_buttons); the MCP4728 stages four codes
+ * and LDAC puts them on J3..J6 through the board's calibration, as the SDK's
+ * cv_jack.cpp would. Same names and calls as alchemy/hw/{pca9557,mcp4728}.h,
+ * minus Init (the board inits them). */
+class Pca9557
+{
+  public:
+    bool    SetOutputBit(uint8_t bit, bool level)
+    {
+        shadow_ = level ? (uint8_t)(shadow_ | (1u << bit)) : (uint8_t)(shadow_ & ~(1u << bit));
+        return true;
+    }
+    bool    ToggleOutputBit(uint8_t bit) { shadow_ ^= (uint8_t)(1u << bit); return true; }
+    bool    WriteOutputs(uint8_t value)  { shadow_ = value; return true; }
+    bool    ReadInputs(uint8_t& out)     { out = shadow_; return true; }
+    bool    ReadInputBit(uint8_t bit, bool& level) { level = (shadow_ >> bit) & 1u; return true; }
+    uint8_t OutputShadow() const { return shadow_; }
+    bool    Ready() const { return true; }
+  private:
+    uint8_t shadow_ = 0u;
+};
+
+class Mcp4728
+{
+  public:
+    bool WriteAll(uint16_t a, uint16_t b, uint16_t c, uint16_t d)
+    {
+        staged_[0] = a; staged_[1] = b; staged_[2] = c; staged_[3] = d;
+        return true;
+    }
+    bool    PulseLdac(Pca9557& expander, uint8_t ldac_io);   /* emu_board.cpp */
+    bool    Ready() const { return true; }
+    uint8_t Address() const { return 0x60u; }
+  private:
+    uint16_t staged_[4] = {2048u, 2048u, 2048u, 2048u};
+};
 
 class AlchemyLabV2
 {
@@ -108,6 +148,10 @@ class AlchemyLabV2
 
     EmuStrip strip;
     LedPanel leds;
+
+    Pca9557          expander;
+    Mcp4728          dac;       /* J3..J6 */
+    daisy::DacHandle stm_dac;   /* J7, J8 */
 
     /* J1, J2: the SDK's own TriggerJack, fed the input blocks before the
      * firmware's callback as the Lab's audio shim does (emu_board.cpp) */
