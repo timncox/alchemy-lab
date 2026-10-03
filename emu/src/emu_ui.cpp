@@ -262,7 +262,11 @@ void draw(Ui& u)
     char st[96];
     std::snprintf(st, sizeof st, "IN %3d%%   OUT %3d%%", (int)(emu::InLevel() * 100), (int)(emu::OutLevel() * 100));
     emu_text(r, kW - 40 - emu_text_width(st, 2), 40, 2, st, kInk);
+#ifdef __EMSCRIPTEN__
+    emu_text(r, 40, kH - 34, 1, "DRAG KNOBS (DOUBLE-CLICK = CENTRE)   CLICK/HOLD B1-B3 OR KEYS 1 2 3", kDim);
+#else
     emu_text(r, 40, kH - 34, 1, "DRAG KNOBS (DOUBLE-CLICK = CENTRE)   CLICK/HOLD B1-B3 OR KEYS 1 2 3   ESC = QUIT", kDim);
+#endif
 
     emu_ctl_draw(r, kW, kH);
     SDL_RenderPresent(r);
@@ -276,19 +280,41 @@ void apply_buttons(Ui& u)
 
 } // namespace
 
-int emu_ui_run(bool want_mic)
+/* The window, split into setup and one frame so the browser build can run a
+ * frame per animation frame instead of owning a loop (emu_web.cpp). */
+static Ui g_ui;
+
+bool emu_ui_init(bool want_mic)
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) { std::fprintf(stderr, "[emu] SDL: %s\n", SDL_GetError()); return 1; }
+#ifdef __EMSCRIPTEN__
+    /* SDL's canvas present otherwise calls emscripten_sleep(0) -- a second
+     * Asyncify sleep on top of the firmware's, which breaks its rewind */
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_ASYNCIFY, "0");
+    /* keys only while the panel has focus, so the page still scrolls */
+    SDL_SetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT, "#canvas");
+#endif
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) { std::fprintf(stderr, "[emu] SDL: %s\n", SDL_GetError()); return false; }
     if (!emu::StartSoundCard(want_mic)) std::fprintf(stderr, "[emu] running without sound\n");
-    Ui u;
+    Ui& u = g_ui;
     u.win = SDL_CreateWindow(EMU_FW_NAME " - Alchemy Lab emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                              kW + emu_ctl_width(), kH, SDL_WINDOW_ALLOW_HIGHDPI);
+#ifdef __EMSCRIPTEN__
+    /* a 2D canvas: no WebGL context to lose, and it can be screenshotted */
+    u.ren = SDL_CreateRenderer(u.win, -1, SDL_RENDERER_SOFTWARE);
+#else
     u.ren = SDL_CreateRenderer(u.win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!u.win || !u.ren) { std::fprintf(stderr, "[emu] window: %s\n", SDL_GetError()); return 1; }
+#endif
+    if (!u.win || !u.ren) { std::fprintf(stderr, "[emu] window: %s\n", SDL_GetError()); return false; }
     SDL_RenderSetLogicalSize(u.ren, kW + emu_ctl_width(), kH);
+    return true;
+}
 
+/* One frame: events, then draw. False once the window is closed. */
+bool emu_ui_frame()
+{
+    Ui& u = g_ui;
     auto& P = emu::Panel();
-    for (bool run = true; run;)
+    bool run = true;
     {
         SDL_Event e;
         while (SDL_PollEvent(&e))
@@ -301,7 +327,9 @@ int emu_ui_run(bool want_mic)
             {
                 const bool down = e.type == SDL_KEYDOWN;
                 const SDL_Keycode k = e.key.keysym.sym;
+#ifndef __EMSCRIPTEN__
                 if (down && (k == SDLK_ESCAPE || k == SDLK_q)) run = false;
+#endif
                 if (k == SDLK_1) u.key_btn[0] = down;
                 if (k == SDLK_2) u.key_btn[1] = down;
                 if (k == SDLK_3) u.key_btn[2] = down;
@@ -360,6 +388,13 @@ int emu_ui_run(bool want_mic)
         }
         draw(u);
     }
+    return run;
+}
+
+int emu_ui_run(bool want_mic)
+{
+    if (!emu_ui_init(want_mic)) return 1;
+    while (emu_ui_frame()) {}
     SDL_Quit();
     return 0;
 }

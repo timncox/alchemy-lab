@@ -14,11 +14,18 @@ ifeq ($(filter $(FW),$(FWS)),)
 $(error FW must be one of: $(FWS))
 endif
 
+#   make WEB=1 FW=plaits    build/web/plaits/emu.{mjs,wasm} for the browser
+#                           (Emscripten; see src/emu_web notes in emu_main.cpp)
+
 TIMOS       ?= $(HOME)/tim-os
 ALCHEMY_DIR ?= $(TIMOS)/belt-alchemy/lib/alchemy-sdk
 LIBDAISY_DIR ?= $(TIMOS)/belt-alchemy/lib/libDaisy
 FATFS       := $(LIBDAISY_DIR)/Middlewares/Third_Party/FatFs/src
+ifeq ($(WEB),1)
+BUILD       := build/web/$(FW)
+else
 BUILD       := build/$(FW)$(if $(SAN),-$(SAN))
+endif
 
 ifneq ($(filter $(FW),clouds elements marbles meld plaits warps),)
 include fw/mi.mk
@@ -26,8 +33,25 @@ else
 include fw/$(FW).mk
 endif
 
+ifeq ($(WEB),1)
+# One thread: the firmware's main() runs under Asyncify and yields at every
+# sleep; SDL2's Emscripten port draws to a canvas and plays through Web Audio.
+CXX        := em++
+CC         := emcc
+SDL_CFLAGS := -sUSE_SDL=2
+FW_LDFLAGS :=   # Elements' Mach-O aliases: wasm symbols need none
+WEB_CARD   := $(if $(filter elements,$(FW)),$(BUILD)/card/mi/elements.smp)
+SDL_LIBS   := -sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=262144 -sSTACK_SIZE=1048576 \
+              -sINITIAL_MEMORY=268435456 -sALLOW_MEMORY_GROWTH -sMAXIMUM_MEMORY=2GB \
+              -sMODULARIZE -sEXPORT_ES6 -sEXPORT_NAME=createEmu -sINVOKE_RUN=0 \
+              -sENVIRONMENT=web -sFORCE_FILESYSTEM -sEXPORTED_RUNTIME_METHODS=callMain,FS \
+              $(if $(WEB_CARD),--preload-file $(BUILD)/card@/card)
+EXE        := $(BUILD)/emu.mjs
+else
 SDL_CFLAGS := $(shell sdl2-config --cflags)
 SDL_LIBS   := $(shell sdl2-config --libs)
+EXE        := $(BUILD)/emu
+endif
 
 DEFS := -DALCHEMY_BOARD_V2 -DALCHEMY_HOSTLINK_MAX_BODY=2048 \
         -DLIBDAISY_FFCONF=\"$(abspath $(LIBDAISY_DIR))/src/sys/ffconf.h\" \
@@ -75,10 +99,10 @@ OBJS := $(foreach f,$(ALL_CXX) $(ALL_C) $(ALL_CC),$(call objname,$(f))) $(BUILD)
 HDRS := $(wildcard include/*.h include/*/*.h include/*/*/*.h src/*.h)
 
 .DEFAULT_GOAL := all
-all: $(BUILD)/emu
+all: $(EXE)
 
-$(BUILD)/emu: $(OBJS)
-	$(CXX) $(OBJS) $(SDL_LIBS) $(FW_LDFLAGS) $(SANFLAGS) -o $@
+$(EXE): $(OBJS) $(WEB_CARD)
+	$(CXX) $(OBJS) $(SDL_LIBS) $(FW_LDFLAGS) $(SANFLAGS) -O2 -o $@
 
 # The firmware's own TU: its main() becomes firmware_main(), ELF sections go.
 $(BUILD)/obj/firmware.o: $(FW_MAIN) $(HDRS)
@@ -116,3 +140,8 @@ clean:
 	rm -rf build
 
 .PHONY: all all-fw test clean
+
+# the firmware's source tree, for web/publish.sh's manifest
+print-root:
+	@echo $(FW_ROOT)
+.PHONY: print-root

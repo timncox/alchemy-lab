@@ -25,3 +25,11 @@ static inline int   emu_mark_mkdir(const char* p, mode_t m) { (void)p; (void)m; 
 #define dlopen         emu_mark_dlopen
 #define opendir        emu_mark_opendir
 #define mkdir          emu_mark_mkdir
+/* Emscripten's libc has no pthread_setschedparam; the loader thread it would
+ * prioritise never starts anyway (above). */
+static inline int emu_mark_setschedparam(pthread_t t, int p, const struct sched_param* s)
+{
+    (void)t; (void)p; (void)s;
+    return 0;
+}
+#define pthread_setschedparam emu_mark_setschedparam

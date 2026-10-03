@@ -19,6 +19,10 @@
  * main thread and only touches the panel state and reads the LEDs.
  */
 #include <SDL.h>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -171,6 +175,7 @@ float PulseSample(int jack)
 /* Feed `frames` stereo frames through the firmware, `out` interleaved. */
 void Render(float* out, size_t frames)
 {
+    CallbackScope in_callback;
     auto cb = AudioCb();
     const size_t bs = BlockSize();
     static std::vector<float> il, ir, ol, orr;
@@ -314,6 +319,28 @@ static void sdl_capture(void*, Uint8* stream, int len)
     }
 }
 
+#ifdef __EMSCRIPTEN__
+/* For the page: frames the audio callback has produced, and the time spent
+ * producing them -- real time is frames / 48000 of wall clock. */
+static double g_render_ms = 0.0;
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_frames() { return (double)g_tap_w.load(); }
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_render_ms() { return g_render_ms; }
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_in_level() { return g_in_level.load(); }
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_out_level() { return g_out_level.load(); }
+/* the page's volume slider; the meters and the firmware never see it */
+static float g_volume = 0.5f;
+extern "C" EMSCRIPTEN_KEEPALIVE void emu_web_set_volume(double v) { g_volume = (float)(v < 0 ? 0 : v > 1 ? 1 : v); }
+static void sdl_play_timed(void* u, Uint8* stream, int len)
+{
+    const double t0 = emscripten_get_now();
+    sdl_play(u, stream, len);
+    float* f = reinterpret_cast<float*>(stream);
+    for (int i = 0, n = len / (int)sizeof(float); i < n; i++) f[i] *= g_volume;
+    g_render_ms += emscripten_get_now() - t0;
+}
+#define sdl_play sdl_play_timed
+#endif
+
 bool StartSoundCard(bool want_mic)
 {
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) return false;
@@ -350,7 +377,9 @@ bool StartSoundCard(bool want_mic)
 
 static void firmware_thread() { firmware_main(); }
 
-int emu_ui_run(bool want_mic);                  /* emu_ui.cpp */
+int  emu_ui_run(bool want_mic);                 /* emu_ui.cpp */
+bool emu_ui_init(bool want_mic);
+bool emu_ui_frame();
 int emu_script_run(const char* path);          /* emu_script.cpp */
 
 int main(int argc, char** argv)
@@ -361,6 +390,7 @@ int main(int argc, char** argv)
     const char* rec = nullptr;
     const char* card = nullptr;
     const char* usb  = nullptr;
+    bool        nomic = false;   /* input is silence: no microphone asked for */
     std::string flash = std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.alchemy-emu/" + std::string(EMU_FW_NAME) + "-flash.bin";
     for (int i = 1; i < argc; i++)
     {
@@ -372,9 +402,13 @@ int main(int argc, char** argv)
         else if (a == "--flash" && i + 1 < argc) flash = argv[++i];
         else if (a == "--card" && i + 1 < argc) card = argv[++i];
         else if (a == "--usb" && i + 1 < argc) usb = argv[++i];
-        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none]\n", argv[0]); return 2; }
+        else if (a == "--nomic") nomic = true;
+        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none] [--card dir] [--usb launchpad] [--nomic]\n", argv[0]); return 2; }
     }
-    if (flash == "none") flash.clear();
+#ifdef __EMSCRIPTEN__
+    flash.clear();   /* the browser keeps presets in memory only */
+#endif
+    if (flash == "none" || flash.empty()) flash.clear();
     else
     {
         const std::string dir = flash.substr(0, flash.find_last_of('/'));
@@ -401,13 +435,28 @@ int main(int argc, char** argv)
     if (in_wav && !emu::LoadWav(in_wav)) { std::fprintf(stderr, "[emu] cannot read %s\n", in_wav); return 2; }
     if (rec && !emu::OpenRecord(rec)) { std::fprintf(stderr, "[emu] cannot write %s\n", rec); return 2; }
 
+#ifdef __EMSCRIPTEN__
+    /* One thread: the panel frame runs on the browser's animation frames,
+     * the audio callback on the sound card's, and the firmware's main() here
+     * -- it unwinds back to the browser at its first sleep (Asyncify). */
+    emu_ui_init(in_wav == nullptr && !nomic);
+    /* not emscripten_set_main_loop: Emscripten pauses that loop for as long
+     * as an Asyncify sleep is pending, which here is nearly always */
+    emscripten_request_animation_frame_loop([](double, void*) -> EM_BOOL {
+        emu::CallbackScope in_callback;
+        emu_ui_frame();
+        return EM_TRUE;
+    }, nullptr);
+    firmware_main();
+    return 0;
+#endif
     std::thread(firmware_thread).detach();
     /* the firmware reaches StartAudio() after its boot (presets, card) */
     for (int i = 0; i < 400 && !emu::AudioCb(); i++) std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
     int rc;
     if (headless) rc = emu_script_run(script);
-    else          rc = emu_ui_run(in_wav == nullptr);
+    else          rc = emu_ui_run(in_wav == nullptr && !nomic);
     emu::CloseRecord();
     std::fflush(stdout);
     std::_Exit(rc);

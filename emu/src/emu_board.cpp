@@ -17,6 +17,9 @@
 #include "ff.h"
 #include "ram_diskio.h"
 #include "emu.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 namespace {
 
@@ -55,10 +58,27 @@ uint32_t NowUs()
 {
     return (uint32_t)std::chrono::duration_cast<std::chrono::microseconds>(Clock::now() - g_t0).count();
 }
+#ifdef __EMSCRIPTEN__
+/* The browser has one thread. The firmware's main() runs on it under
+ * Asyncify: a sleep unwinds back to the browser, which then runs the audio
+ * callback and the panel frame -- the way the audio interrupt cuts into the
+ * main loop on the module. A sleep from inside one of those (never expected)
+ * cannot unwind, so it returns at once. */
+static int g_callback_depth = 0;
+CallbackScope::CallbackScope()  { g_callback_depth++; }
+CallbackScope::~CallbackScope() { g_callback_depth--; }
+void SleepMs(uint32_t ms)
+{
+    if (g_callback_depth == 0) emscripten_sleep(ms ? ms : 1);
+}
+#else
+CallbackScope::CallbackScope() {}
+CallbackScope::~CallbackScope() {}
 void SleepMs(uint32_t ms)
 {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
+#endif
 
 PanelState& Panel() { return g_panel; }
 
@@ -79,9 +99,16 @@ uint16_t AdcRaw(uint8_t ch)
 
 void RebootRequested(const char* why)
 {
+#ifdef __EMSCRIPTEN__
+    /* the page restarts the module (emu.html: Module.onReboot) */
+    std::fprintf(stderr, "[emu] firmware asked to reboot (%s)\n", why);
+    EM_ASM({ if (Module.onReboot) Module.onReboot(UTF8ToString($0)); }, why);
+    for (;;) SleepMs(1000);
+#else
     std::fprintf(stderr, "[emu] firmware asked to reboot (%s) -- exiting\n", why);
     std::fflush(stderr);
     std::_Exit(3);
+#endif
 }
 
 void ReadLeds(LedFrame* out)

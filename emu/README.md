@@ -86,3 +86,30 @@ script its command-line options.
 The M7's speed (CPU readings are the Mac's — check load on the module), the
 SD picker, the controllers' USB drivers themselves (and real controllers
 plugged into the Mac — next: CoreMIDI), USB audio mode, HostLink.
+
+## In the browser
+
+`make WEB=1 FW=<fw>` builds the same firmware with Emscripten into
+`build/web/<fw>/emu.{mjs,wasm}` (Elements adds `emu.data`, its sample card).
+`web/publish.sh <site>/docs/emulator` builds all nine and copies them, plus
+the demo inputs from `web/make_demos.py`, into the homepage's emulator page
+(timncox.github.io/alchemy-lab/emulator/).
+
+The browser has one thread, so the threads above become one:
+
+- the firmware's `main()` runs under **Asyncify**: every `System::Delay`
+  (`emu::SleepMs`) unwinds back to the browser and resumes after the delay;
+- the **audio callback** runs from SDL's Web Audio callback while the firmware
+  is suspended -- the way the audio interrupt cuts into the main loop on the
+  module;
+- the **panel** is drawn by `emscripten_request_animation_frame_loop`, not
+  `emscripten_set_main_loop` (Emscripten pauses that loop while any Asyncify
+  sleep is pending, i.e. always);
+- `SDL_HINT_EMSCRIPTEN_ASYNCIFY=0`: SDL's canvas present would otherwise call
+  `emscripten_sleep(0)` from inside the panel frame, a second sleep on top of
+  the firmware's, and the firmware's next rewind aborts ("unreachable").
+
+`emu::CallbackScope` marks the audio and panel code; a `SleepMs` from inside it
+returns at once instead of trying to unwind. Presets live in memory only;
+`--nomic` keeps the browser from asking for the microphone. No scripts in the
+browser build -- the tests run on the Mac build.

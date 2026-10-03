@@ -41,6 +41,9 @@ namespace emu {
 uint32_t NowMs();
 uint32_t NowUs();
 void     SleepMs(uint32_t ms);
+/* Marks code the browser runs while the firmware's main() is suspended (the
+ * audio callback, a panel frame): SleepMs cannot unwind from there. */
+struct CallbackScope { CallbackScope(); ~CallbackScope(); };
 uint16_t AdcRaw(uint8_t ch);              /* 0..65535 */
 void     RebootRequested(const char* why);
 }
