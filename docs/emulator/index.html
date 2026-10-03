@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alchemy Lab Emulator</title>
+<meta name="description" content="Play Tim's Alchemy Lab firmware in your browser: the real firmware code, compiled for the web, on an imitated module.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --wall:   #e6ebe7;
+  --wall-2: #dbe2dd;
+  --ink:    #121614;
+  --ink-2:  #3d4641;
+  --ink-3:  #66716b;
+  --rule:   #c4cdc7;
+  --panel:  #15171b;
+  --link:   #185c9a;
+  --focus:  #2a6bd6;
+  --warn:   #8a5a00;
+  --warn-bg: #f3e6c8;
+  --accent-ink: var(--accent-light, #c2561a);
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body:    "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --accent-ink: var(--accent-glow, #ff7000);
+    --wall: #0f1311; --wall-2: #161b18; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+    --rule: #28302b; --link: #8cc4ff; --focus: #8cb4ff; --warn: #f0c260; --warn-bg: #2f2512;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --accent-ink: var(--accent-glow, #ff7000);
+  --wall: #0f1311; --wall-2: #161b18; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+  --rule: #28302b; --link: #8cc4ff; --focus: #8cb4ff; --warn: #f0c260; --warn-bg: #2f2512;
+}
+* { box-sizing: border-box; }
+html { background: var(--wall); }
+body {
+  margin: 0; background: var(--wall); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px; padding-block: 0 72px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; }
+a { color: var(--link); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0; max-width: 64ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+.label { font: 500 12px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+.top { padding-block: 22px 0; font-size: 15px; }
+header { padding-block: 28px 26px; display: grid; gap: 16px; }
+h1 { font-weight: 800; font-size: clamp(40px, 6.4vw, 76px); line-height: .95; letter-spacing: -.02em; }
+h1 em { font-style: normal; color: var(--accent-ink); transition: color .4s ease; }
+.lede { font-size: 19px; line-height: 1.5; color: var(--ink-2); max-width: 54ch; }
+
+.controls { display: grid; gap: 18px; padding: 20px 0 22px; border-top: 1px solid var(--rule); }
+.row { display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  appearance: none; font: 600 15px/1 var(--body); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 999px; padding: 10px 14px; cursor: pointer;
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.chip:hover { border-color: var(--ink-3); }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--wall); }
+.opts { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; font-size: 15px; }
+.opts label { display: inline-flex; gap: 7px; align-items: center; cursor: pointer; }
+.opts input { accent-color: var(--accent-ink); margin: 0; }
+.what { font-size: 15px; color: var(--ink-2); min-height: 1.6em; }
+.what b { color: var(--ink); }
+
+.go { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.power {
+  appearance: none; cursor: pointer; font: 700 16px/1 var(--body); letter-spacing: .01em;
+  color: #fff; background: var(--accent-ink); border: 0; border-radius: 999px; padding: 14px 22px;
+  display: inline-flex; gap: 10px; align-items: center;
+}
+.power::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #fff; opacity: .9; }
+.power[disabled] { opacity: .55; cursor: default; }
+.status { font: 500 13px/1.4 var(--mono); color: var(--ink-3); }
+
+.stage {
+  background: var(--panel); border-radius: 14px; padding: 14px;
+  display: grid; justify-items: center; min-height: 240px; align-content: center;
+}
+.stage .idle { color: #8d949c; font: 500 14px/1.5 var(--mono); text-align: center; padding: 60px 16px; max-width: 46ch; }
+#canvas { display: none; width: 100% !important; height: auto !important; image-rendering: auto; border-radius: 6px; touch-action: none; }
+#canvas.on { display: block; }
+.stage.solo #canvas { max-width: 600px; }
+.notice { margin-top: 14px; background: var(--warn-bg); color: var(--ink); border-radius: 10px; padding: 12px 16px; font-size: 15px; display: none; }
+.notice.show { display: block; }
+
+section { padding-block: 34px 0; display: grid; gap: 14px; }
+h2 { font-weight: 800; font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -.01em; }
+ul.tips { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+.builds { font: 400 13px/1.7 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .lede { font-size: 17px; }
+  .stage { padding: 8px; border-radius: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top"><a href="../">← Tim's Alchemy Lab</a></div>
+
+<header>
+  <div class="label">Emulator</div>
+  <h1>Play <em id="accentWord">them</em> in your browser.</h1>
+  <p class="lede">The real firmware, the same code that runs on the module, compiled for the web. Only the
+    hardware is imitated: the knobs, buttons, lights, jacks and sound. Nothing to install.</p>
+</header>
+
+<div class="controls">
+  <div class="row">
+    <div class="label" id="pickLabel">Instrument</div>
+    <div class="chips" id="chips" role="group" aria-labelledby="pickLabel"></div>
+    <div class="what" id="what" aria-live="polite"></div>
+  </div>
+  <div class="row">
+    <div class="label" id="inLabel">What goes into it</div>
+    <div class="opts" id="inputs" role="radiogroup" aria-labelledby="inLabel">
+      <label><input type="radio" name="in" value="voice"> A sung phrase</label>
+      <label><input type="radio" name="in" value="beat"> A drum loop</label>
+      <label><input type="radio" name="in" value="mic"> Your microphone</label>
+      <label><input type="radio" name="in" value="none"> Nothing</label>
+    </div>
+  </div>
+  <div class="row" id="ctlRow">
+    <div class="opts">
+      <label><input type="checkbox" id="ctl"> Plug in a Launchpad, a Launch Control XL and a Haute42 (on screen)</label>
+    </div>
+  </div>
+  <div class="row">
+    <div class="opts">
+      <label>Volume <input type="range" id="vol" min="0" max="1" step="0.01" value="0.5" aria-label="Volume"></label>
+    </div>
+  </div>
+  <div class="go">
+    <button type="button" class="power" id="power">Power on</button>
+    <span class="status" id="status"></span>
+  </div>
+</div>
+
+<div class="stage solo" id="stage">
+  <div class="idle" id="idle">Pick an instrument and press Power on.<br>Sound starts when you do.</div>
+  <canvas id="canvas" tabindex="0" aria-label="The emulated module" oncontextmenu="event.preventDefault()"></canvas>
+</div>
+<div class="notice" id="notice" role="status"></div>
+
+<section id="how">
+  <h2>How to play it</h2>
+  <ul class="tips">
+    <li><b>Knobs:</b> drag up or down. The mouse wheel works too, and a double-click puts a knob back in the middle.</li>
+    <li><b>Buttons:</b> click and hold B1, B2 and B3, or click the panel and use the keys 1, 2 and 3. Holding two at once (for Settings and other combos) is easiest with the keys.</li>
+    <li><b>CV jacks:</b> the sliders under the panel are what you'd patch into J3 to J8. Drag for a voltage, or click GATE for 0 or +5 V.</li>
+    <li><b>What each control does:</b> every instrument's manual explains it: <span id="manual"></span>.</li>
+    <li><b>Switching instruments</b> restarts the page with the new one. Settings and saved presets last until you leave the page.</li>
+  </ul>
+</section>
+
+<section id="notes">
+  <h2>What's real and what isn't</h2>
+  <p>Real: every line of each instrument's firmware, the Alchemy SDK's own framework (pages, Settings,
+    LED rings, presets) and the FAT file system on the SD card. Imitated: the panel, the codec, the 64 MB SD
+    card, the flash chip, and the USB controllers. Not imitated: the module's processor speed, so a sound that
+    works here can still be too heavy for the real thing; and the bootloader, the card picker and HostLink.</p>
+  <p>These are the builds Tim is working on now, so they can be ahead of the downloads on the homepage. Each
+    one's source commit:</p>
+  <div class="builds" id="builds">…</div>
+  <p>The emulator is open source, in the <a href="https://github.com/timncox/alchemy-lab/tree/emu-web/emu">emu
+    folder of the alchemy-lab repo</a>. It also runs as a Mac app with scripted tests.</p>
+</section>
+
+<footer>
+  Made by Tim Cox in Brooklyn. Alchemy Lab is a product of Hermetic Modular; Mutable Instruments' modules are
+  by Emilie Gillet. This site isn't affiliated with either.
+</footer>
+
+</div>
+
+<script type="module">
+/* The nine instruments the emulator builds (Seq writes CV, not sound, so it
+   isn't here yet). `in` is the input a first-timer hears it best with; `ctl`
+   = it has a Launchpad mode. Colours and lines match the homepage. */
+const I = [
+  { id:"mark",     name:"Mark",     c:"#1f9d57", ring:"#4cf28a", in:"beat",  ctl:true,
+    what:"A five-track looper.", tip:"Tap B1 to record the drum loop, tap again to play it back, then try the other tracks.", url:"https://timncox.github.io/mark-alchemy/" },
+  { id:"belt",     name:"Belt",     c:"#b5532a", ring:"#ff9020", in:"voice", ctl:true,
+    what:"A voice tuner with harmonies.", tip:"The sung phrase comes out pulled into key. Turn HARMONY for extra voices, and try your own voice on the microphone.", url:"https://timncox.github.io/belt-alchemy/" },
+  { id:"smack",    name:"Smack",    c:"#c2185b", ring:"#ff4fa0", in:"beat",  ctl:true,
+    what:"A loop glitcher.", tip:"Hold B1 to capture a loop of the drums, then turn FX and ORDER. DJ FILTER sweeps either way from the middle.", url:"https://timncox.github.io/smack-alchemy/" },
+  { id:"clouds",   name:"Clouds",   c:"#2f7fc1", ring:"#40c0ff", in:"voice",
+    what:"Turns sound into clouds.", tip:"Turn DENSITY up to fill the cloud, and SIZE and PITCH to reshape the grains.", url:"https://timncox.github.io/mi-alchemy/clouds/" },
+  { id:"elements", name:"Elements", c:"#9a6a14", ring:"#e0b25c", in:"none",
+    what:"A virtual acoustic instrument.", tip:"Press B1 (or the key 1) to strike it. GEOMETRY and BRIGHTNESS change what the object is made of.", url:"https://timncox.github.io/mi-alchemy/elements/" },
+  { id:"marbles",  name:"Marbles",  c:"#b8336a", ring:"#ff5fa2", in:"none",
+    what:"A dice roller for music.", tip:"Marbles makes no sound of its own: it sends gates and voltages to other modules. Watch its lights and jacks; the clicks you hear are its gates.", vol:0.12, url:"https://timncox.github.io/mi-alchemy/marbles/" },
+  { id:"plaits",   name:"Plaits",   c:"#c2561a", ring:"#ff7000", in:"none",
+    what:"One voice, 24 sounds.", tip:"It drones until you press B1 to strike it. MODEL picks one of the 24 sounds.", url:"https://timncox.github.io/mi-alchemy/plaits/" },
+  { id:"warps",    name:"Warps",    c:"#2e7d5b", ring:"#3ddc97", in:"voice",
+    what:"Smashes two sounds together.", tip:"Your input against its own oscillator: turn ALGORITHM and TIMBRE.", url:"https://timncox.github.io/mi-alchemy/warps/" },
+  { id:"meld",     name:"Meld",     c:"#6a4bb0", ring:"#a88bff", in:"voice",
+    what:"Warps, with more to say.", tip:"Your input against its own oscillator: turn ALGORITHM and TIMBRE.", url:"https://github.com/timncox/mi-alchemy/blob/release/src/meld/DESIGN.md" },
+];
+
+const $ = (id) => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+let inst = I.find((x) => x.id === q.get("fw")) || I.find((x) => x.id === "plaits");
+let running = false;
+
+function setInput(v) {
+  for (const r of document.querySelectorAll('input[name="in"]')) r.checked = r.value === v;
+}
+function choose(x, fromUrl) {
+  inst = x;
+  for (const b of $("chips").children) b.setAttribute("aria-pressed", b.dataset.id === x.id);
+  document.documentElement.style.setProperty("--accent-light", x.c);
+  document.documentElement.style.setProperty("--accent-glow", x.ring);
+  $("accentWord").textContent = x.name;
+  $("what").innerHTML = `<b>${x.name}.</b> ${x.what} ${x.tip}`;
+  $("vol").value = x.vol ?? 0.5;
+  $("manual").innerHTML = `<a href="${x.url}">${x.name}'s manual</a>`;
+  $("ctlRow").style.display = x.ctl ? "" : "none";
+  if (!fromUrl) { setInput(x.in); $("ctl").checked = false; }
+}
+for (const x of I) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "chip"; b.dataset.id = x.id;
+  b.style.setProperty("--c", x.c);
+  b.innerHTML = `<i aria-hidden="true"></i>${x.name}`;
+  b.addEventListener("click", () => {
+    if (running) {             // one firmware per page: restart with the new one
+      const u = new URL(location.href);
+      u.searchParams.set("fw", x.id); u.searchParams.set("in", x.in); u.searchParams.delete("ctl");
+      location.href = u.toString();
+      return;
+    }
+    choose(x, false);
+  });
+  $("chips").appendChild(b);
+}
+choose(inst, false);
+if (q.get("in")) setInput(q.get("in"));
+if (q.get("ctl") === "1" && inst.ctl) $("ctl").checked = true;
+
+fetch("fw/manifest.json").then((r) => r.json()).then((m) => {
+  $("builds").innerHTML = I.map((x) => `${x.name} ${m[x.id] ? m[x.id].branch + " @ " + m[x.id].commit : "?"}`).join(" · ")
+    + (m.emu ? ` · emulator ${m.emu.branch} @ ${m.emu.commit}` : "");
+}).catch(() => { $("builds").textContent = "(build list unavailable)"; });
+
+function notice(t) { $("notice").textContent = t; $("notice").classList.add("show"); }
+
+$("power").addEventListener("click", async () => {
+  if (running) return;
+  running = true;
+  const p = $("power"); p.disabled = true; p.textContent = "Starting…";
+  for (const el of document.querySelectorAll('input[name="in"], #ctl')) el.disabled = true;
+  const input = document.querySelector('input[name="in"]:checked')?.value || "none";
+  const ctl = inst.ctl && $("ctl").checked;
+  const u = new URL(location.href);          // a shareable link to exactly this setup
+  u.searchParams.set("fw", inst.id); u.searchParams.set("in", input);
+  if (ctl) u.searchParams.set("ctl", "1"); else u.searchParams.delete("ctl");
+  history.replaceState(null, "", u);
+
+  const base = `fw/${inst.id}/`;
+  const args = [];
+  if (inst.id === "elements") args.push("--card", "/card");
+  if (ctl) args.push("--usb", "launchpad");
+  if (input === "none") args.push("--nomic");
+  let wav = null;
+  if (input === "voice" || input === "beat") {
+    wav = new Uint8Array(await (await fetch(`demo/${input}.wav`)).arrayBuffer());
+    args.push("--in", "/input.wav");
+  }
+  $("status").textContent = `loading ${inst.name}…`;
+  try {
+    const { default: createEmu } = await import(`./${base}emu.mjs`);
+    const log = [];
+    const M = await createEmu({
+      canvas: $("canvas"),
+      locateFile: (f) => base + f,
+      print: (t) => log.push(t), printErr: (t) => log.push(t),
+      onReboot: (why) => {
+        notice(`${inst.name} asked the module to restart (${why}). On the real Lab that's a reboot; here, reload the page to power it on again.`);
+      },
+      onAbort: (what) => notice(`The emulator stopped: ${what}. Reload the page to try again.`),
+    });
+    if (wav) M.FS.writeFile("/input.wav", wav);
+    window.emu = M;                          // for the curious, in the console
+    $("idle").remove();
+    $("canvas").classList.add("on");
+    $("stage").classList.toggle("solo", !ctl);
+    M.callMain(args);
+    M._emu_web_set_volume(+$("vol").value);
+    $("vol").addEventListener("input", () => M._emu_web_set_volume(+$("vol").value));
+    $("canvas").focus({ preventScroll: true });
+    $("stage").scrollIntoView({ behavior: "smooth", block: "start" });
+    p.textContent = `${inst.name} is on`;
+    const t0 = performance.now();
+    setInterval(() => {
+      const secs = (performance.now() - t0) / 1000;
+      const lag = Math.max(0, secs - M._emu_web_frames() / 48000);
+      $("status").textContent = `running · ${Math.round(100 * M._emu_web_render_ms() / 1000 / secs)}% of one CPU core`
+        + (secs > 3 && lag > 1.5 ? " · audio is falling behind" : "");
+    }, 1000);
+    if (input === "mic") $("status").textContent = "allow the microphone when your browser asks";
+  } catch (e) {
+    notice(`Couldn't start the emulator: ${e.message || e}. It needs a recent Chrome, Edge, Firefox or Safari.`);
+    p.textContent = "Couldn't start";
+  }
+});
+</script>
+</body>
+</html>
