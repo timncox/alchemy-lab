@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tim's Alchemy Lab</title>
-<meta name="description" content="One Eurorack module, nine instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
+<meta name="description" content="One Eurorack module, ten instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -163,7 +163,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 <header class="hero">
   <div>
     <div class="label">Tim Cox · Hermetic Modular Alchemy Lab</div>
-    <h1>One box,<br><em id="accentWord">nine</em> instruments.</h1>
+    <h1>One box,<br><em id="accentWord">ten</em> instruments.</h1>
     <p class="lede">The Alchemy Lab is a small synthesizer module whose personality is software. I write the
     software. Each program turns the same six knobs and three buttons into a different instrument.</p>
     <div class="picker">
@@ -202,9 +202,10 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="instruments">
   <h2>The instruments</h2>
-  <p class="group-note">The first three are my own designs and have been played on the module. The other six
-  bring classic open-source instruments by Mutable Instruments to the Lab. They're built and tested on a
-  computer, and the first listen on the module is next.</p>
+  <p class="group-note">The first four are my own designs. Mark, Belt and Smack have been played on the
+  module; Seq, a sequencer that writes parts for the rest of the synth, is built and tested on a computer and
+  goes on the module next. The other six bring classic open-source instruments by Mutable Instruments to the
+  Lab. They're built and tested on a computer too, and the first listen on the module is next.</p>
   <div class="inst" id="inst"></div>
 </section>
 
@@ -300,10 +301,12 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
 /* == END GENERATED GEOMETRY == */
 
-/* The nine instruments. `knobs` are each firmware's real PLAY-page names
+/* The ten instruments. `knobs` are each firmware's real PLAY-page names
    (from its source); `v` is a resting position per knob for the drawing;
    `heard` is true only for what has actually made sound on a module
-   (docs/alchemy-lab-status.md, 2026-09-22). */
+   (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
+   Instruments ports (their download row); `status` / `now` override the
+   default chip text; no `url` = no public manual yet. */
 const I = [
   { id:"mark", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
     what:"A five-track looper.",
@@ -320,32 +323,37 @@ const I = [
     say:"It grabs what you're playing, chops it into slices and plays them back reordered, stuttered and filtered.",
     knobs:["FX","Order","Length","Slice","Blend","DJ Filter"], v:[.5,.3,.6,.4,.7,.5],
     url:"https://timncox.github.io/smack-alchemy/" },
-  { id:"clouds", name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
+  { id:"seq", name:"Seq", c:"#b85a12", ring:"#ff7010", heard:false,
+    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+    what:"A sequencer that writes its own parts.",
+    say:"It plays a bass line, a lead line and four drum parts on the rest of the synth, and the lines follow a chord progression. You shape them with a few knobs instead of writing every note, and keep the ones you like. A Launchpad plays it too.",
+    knobs:["Density","Length","Slide","Jump","Tones","Octave"], v:[.6,.4,.2,.15,.1,.5] },
+  { id:"clouds", mi:true, name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
     what:"Turns sound into clouds.",
     say:"It records what you feed it and plays it back as thousands of tiny grains, so you can freeze a moment, smear it, stretch it or pitch it.",
     knobs:["Position","Size","Pitch","Density","Texture","Blend"], v:[.3,.5,.5,.8,.5,.6],
     url:"https://timncox.github.io/mi-alchemy/clouds/" },
-  { id:"elements", name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
+  { id:"elements", mi:true, name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
     what:"A virtual acoustic instrument.",
     say:"A modelled string, bell or tube that you bow, blow or strike. You change what it's made of and how it's played rather than picking a sample.",
     knobs:["Coarse","Fine","Geometry","Brightness","Damping","Position"], v:[.5,.5,.3,.6,.4,.3],
     url:"https://timncox.github.io/mi-alchemy/elements/" },
-  { id:"marbles", name:"Marbles", c:"#b8336a", ring:"#ff5fa2", heard:false,
+  { id:"marbles", mi:true, name:"Marbles", c:"#b8336a", ring:"#ff5fa2", heard:false,
     what:"A dice roller for music.",
     say:"It invents rhythms and melodies at random for the rest of the synth to play, within limits you set. If you like what it rolled, it can loop it.",
     knobs:["Rate","t Bias","t Jitter","Deja vu","X Spread","X Bias"], v:[.5,.5,.2,.7,.4,.5],
     url:"https://timncox.github.io/mi-alchemy/marbles/" },
-  { id:"plaits", name:"Plaits", c:"#c2561a", ring:"#ff7000", heard:false,
+  { id:"plaits", mi:true, name:"Plaits", c:"#c2561a", ring:"#ff7000", heard:false,
     what:"One voice, 24 sounds.",
     say:"A sound source with 24 different engines: classic synth tones, chords, speech, plucked strings and a full drum kit.",
     knobs:["Model","Frequency","Harmonics","Timbre","Morph","Decay"], v:[.35,.5,.45,.55,.4,.5],
     url:"https://timncox.github.io/mi-alchemy/plaits/" },
-  { id:"warps", name:"Warps", c:"#2e7d5b", ring:"#3ddc97", heard:false,
+  { id:"warps", mi:true, name:"Warps", c:"#2e7d5b", ring:"#3ddc97", heard:false,
     what:"Smashes two sounds together.",
     say:"Feed it two sounds and it combines them in strange ways: ring modulation, folding, a vocoder that makes one sound talk with the other, and more.",
     knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.45,.5,.7,.7,.1,.2],
     url:"https://timncox.github.io/mi-alchemy/warps/" },
-  { id:"meld", name:"Meld", c:"#6a4bb0", ring:"#a88bff", heard:false,
+  { id:"meld", mi:true, name:"Meld", c:"#6a4bb0", ring:"#a88bff", heard:false,
     what:"Warps, with more to say.",
     say:"Warps plus the original Mutable version as an extra mode. It also sends out pulses when its two sounds line up, and voltages that follow their loudness, to drive the rest of the synth.",
     knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.6,.4,.7,.6,.95,.2],
@@ -417,7 +425,7 @@ function select(id, animate) {
   document.documentElement.style.setProperty("--accent-light", inst.c);
   document.documentElement.style.setProperty("--accent-glow", inst.ring);
   document.getElementById("now").innerHTML =
-    `<b>${inst.name}</b>: ${inst.what} ${inst.heard ? "Played on the module." : "Built, first listen coming."}`;
+    `<b>${inst.name}</b>: ${inst.what} ${inst.heard ? "Played on the module." : inst.now || "Built, first listen coming."}`;
   const settle = () => {
     inst.knobs.forEach((k, i) => { knobLabels[i].textContent = k.toUpperCase(); lightRing(i, inst.ring, inst.v[i], "#23262b"); });
     halos[0].setAttribute("fill", inst.ring); halos[0].setAttribute("opacity", .55);
@@ -456,8 +464,8 @@ I.forEach(inst => {
     <div class="what">${inst.what}</div>
     <p>${inst.say}</p>
     <div class="foot">
-      <span class="status ${inst.heard ? "heard" : "soon"}">${inst.heard ? "Played on the module" : "Built · first listen next"}</span>
-      <a href="${inst.url}">${inst.design ? "Design notes" : "Manual"}</a>
+      <span class="status ${inst.heard ? "heard" : "soon"}">${inst.heard ? "Played on the module" : inst.status || "Built · first listen next"}</span>
+      ${inst.url ? `<a href="${inst.url}">${inst.design ? "Design notes" : "Manual"}</a>` : ""}
     </div>`;
   a.querySelector("button").addEventListener("click", () => {
     select(inst.id, true);
@@ -467,7 +475,7 @@ I.forEach(inst => {
 });
 
 const man = document.getElementById("manuals");
-I.forEach(inst => {
+I.filter(x => x.url).forEach(inst => {
   const a = document.createElement("a"); a.href = inst.url; a.textContent = inst.name + (inst.design ? " (notes)" : "");
   man.appendChild(a);
 });
@@ -484,7 +492,7 @@ I.filter(x => x.heard).forEach(inst => {
 /* The Mutable Instruments ports: mi-alchemy v0.1.0, a pre-release (so a fixed tag, not /latest). */
 const dlMi = document.getElementById("downloads-mi");
 const MI_REL = "https://github.com/timncox/mi-alchemy/releases/download/v0.1.0/";
-I.filter(x => !x.heard).forEach(inst => {
+I.filter(x => x.mi).forEach(inst => {
   const a = document.createElement("a");
   a.href = MI_REL + `${inst.id}_alchemy.bin`;
   a.style.setProperty("--c", inst.ring);
