@@ -1,0 +1,16 @@
+# Meld / Warps: the internal carrier cross-modulated by what comes in on J2;
+# LEVEL 2 (the modulator) to 0 changes the output.
+wait 3500
+pot 3 0.8                  # LEVEL 1
+pot 4 0.8                  # LEVEL 2
+sing 220
+wait 1500
+mark
+wait 500
+expect rms > 0.02
+expect finite
+pot 4 0.0
+wait 1500
+mark
+wait 500
+print rms

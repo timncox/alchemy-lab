@@ -1,0 +1,67 @@
+# HOLD / Lock, triggered by a gate on J8, both set on the Settings Chord page.
+wait 3000
+pot 1 0.04
+pot 2 0.17
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 220
+wait 1000
+# Settings: B2 + B3 held 2 s; B1 steps Main -> Firmware -> Chord
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+# Chord P3 = Hold mode (Freeze | Lock), P4 = J8 (Formant | Hold gate):
+# sweep each pot through its stored value to catch it, then to the far end
+pot 3 0.0
+wait 100
+pot 3 0.25
+wait 100
+pot 3 0.5
+wait 100
+pot 3 0.75
+wait 100
+pot 3 1.0
+wait 100
+pot 4 0.0
+wait 100
+pot 4 0.25
+wait 100
+pot 4 0.5
+wait 100
+pot 4 0.75
+wait 100
+pot 4 1.0
+wait 300
+tap b3                    # leave Settings
+wait 600
+expect led b2 purple      # the Settings chord did not toggle HOLD
+# put the PLAY pots back where Belt had them (they catch again)
+pot 3 0.0
+pot 4 1.0
+wait 300
+cv 8 5                    # J8 gate high: HOLD
+wait 300
+expect led b2 blue
+sing 262                  # sing C4: locked voices stay on C4 + E4 (A3's)
+wait 1500
+expect tone 329.63 > 0.02
+expect tone 392.00 < 0.005
+silence                   # Lock ducks with the voice, unlike Freeze
+wait 400
+mark
+wait 600
+expect rms < 0.003
+cv 8 0                    # gate low: voices follow again
+sing 262
+wait 1500
+expect led b2 purple
+expect tone 392.00 > 0.02 # now C4's fifth, G4

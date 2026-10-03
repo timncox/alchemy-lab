@@ -1,0 +1,33 @@
+# Elements: with STRIKE up (B3 page) B1 PLAY strikes the resonator, and a J3
+# gate does the same; it rings, then decays.
+wait 3500
+silence
+press b3                   # the exciter page while held
+wait 200
+pot 3 0.0                  # STRIKE: sweep through its stored value to catch it
+wait 100
+pot 3 0.5
+wait 100
+pot 3 0.9
+wait 100
+pot 6 0.0
+wait 100
+pot 6 0.6                  # MALLET
+wait 200
+release b3
+wait 500
+mark
+hold b1 400
+wait 300
+expect rms > 0.002         # struck
+wait 4000
+mark
+wait 500
+print rms
+mark
+cv 3 5                     # J3 gate
+wait 400
+cv 3 0
+wait 300
+expect rms > 0.002
+expect finite

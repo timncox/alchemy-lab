@@ -1,0 +1,38 @@
+# Mark: record a loop on track 1, play it with the input silent; leave
+# Settings with B2 while it plays (the Settings-exit fix, 75196d5: the press
+# that closes Settings must not also STOP the track); then B2 stops it.
+wait 3500
+pot 1 0.85                 # TRACK 1 level
+pot 6 0.0                  # TRACK SELECT 1
+sing 220
+wait 500
+tap b1                     # record
+wait 300
+expect led b1 red
+wait 1700
+tap b1                     # play
+wait 300
+expect led b1 green
+silence
+wait 1500
+mark
+wait 500
+expect rms > 0.02          # the loop plays with nothing coming in
+press b3                   # Settings: B3 then B2, held 2 s
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 400
+tap b2                     # close Settings with B2
+wait 800
+expect led b1 green        # still playing
+mark
+wait 500
+expect rms > 0.02
+tap b2                     # now B2 stops it
+wait 600
+mark
+wait 400
+expect rms < 0.003

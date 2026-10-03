@@ -1,0 +1,38 @@
+# HOLD / Freeze, end to end through the real firmware.
+# Belt in C major, first-boot voices +3rd and +5th: sing A3 -> C4 + E4.
+wait 3000                 # boot: presets, card, the 2.5 s CPU readout
+pot 1 0.04                # KEY  C
+pot 2 0.17                # SCALE Major
+pot 3 0.0                 # RETUNE fast
+pot 4 1.0                 # AMOUNT full
+pot 5 0.9                 # HARMONY level
+pot 6 0.5                 # FORMANT centre
+sing 220                  # A3
+wait 1500
+mark
+wait 500
+expect rms > 0.05         # Belt is singing
+expect tone 261.63 > 0.03 # C4 harmony
+expect tone 329.63 > 0.03 # E4 harmony
+expect led b2 purple      # harmony voices active
+hold b2 700               # HOLD on at 0.6 s
+wait 200
+expect led b2 blue
+silence
+wait 400
+mark
+wait 1000
+expect rms > 0.02         # the frozen chord sustains with nobody singing
+expect tone 261.63 > 0.02
+expect tone 329.63 > 0.02
+sing 262                  # sing C4 over it: a following harmony would go to E4 + G4
+wait 1500
+expect tone 329.63 > 0.02 # E4 still (frozen)
+expect tone 392.00 < 0.005 # no G4: the harmony did not follow
+silence
+hold b2 700               # HOLD off
+wait 800
+mark
+wait 500
+expect rms < 0.003        # faded; nobody singing
+expect led b2 purple

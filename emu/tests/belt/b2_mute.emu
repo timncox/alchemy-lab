@@ -1,0 +1,19 @@
+# B2 tap = harmony mute latch (released before 0.6 s: no HOLD).
+wait 3000
+pot 1 0.04
+pot 2 0.17
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 220
+wait 1500
+expect tone 329.63 > 0.03   # E4 harmony sounding
+tap b2
+wait 800
+expect led b2 grey
+expect tone 329.63 < 0.005  # muted
+expect tone 220.00 > 0.03   # the lead carries on
+tap b2
+wait 800
+expect led b2 purple
+expect tone 329.63 > 0.03   # back

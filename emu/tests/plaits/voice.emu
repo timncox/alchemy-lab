@@ -1,0 +1,18 @@
+# Plaits: Auto trigger mode drones from boot until the first strike; then it
+# is gated: B1 strikes and decays, a J3 trigger plays a note.
+wait 3500
+mark
+wait 500
+expect rms > 0.01          # drone
+tap b1                     # strike: now gated
+wait 4000
+mark
+wait 500
+expect rms < 0.01          # decayed
+cv 3 5
+wait 30
+cv 3 0
+mark
+wait 300
+expect rms > 0.005         # a triggered note
+expect finite

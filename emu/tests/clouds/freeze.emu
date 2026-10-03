@@ -1,0 +1,24 @@
+# Clouds: FREEZE (B1) holds the buffer -- the grains keep coming from it with
+# silence coming in; unfrozen, they fade.
+wait 3500
+pot 6 1.0                  # BLEND all wet
+pot 4 0.9                  # DENSITY: plenty of grains
+sing 220
+wait 2000
+mark
+wait 500
+expect rms > 0.03
+tap b1                     # freeze (latch)
+wait 300
+expect led b1 white
+silence
+wait 1500
+mark
+wait 500
+expect rms > 0.02          # frozen: still sounding
+tap b1                     # unfreeze
+wait 3000
+mark
+wait 500
+expect rms < 0.01
+expect unclipped

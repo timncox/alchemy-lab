@@ -1,0 +1,9 @@
+# Marbles: on its internal clock the X outputs (J3-J5) wander and T3 (J7)
+# gates.
+wait 3500
+pot 1 0.7                  # RATE up
+pot 5 0.8                  # X SPREAD
+wait 1000
+expect cvrange 3 > 0.5
+expect cvrange 4 > 0.5
+expect cvrange 7 > 1.0
