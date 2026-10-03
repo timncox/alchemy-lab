@@ -52,7 +52,9 @@ expect uart held 55 59 62
 mark
 wait 2000                   # back to Am: G leaves, A C E arrive
 expect uart held 57 60 64
-expect uart starts = 0      # a loop is not a restart
+expect uart starts = 1      # the loop back to Am re-sends Start (Tim, 10-03)
+expect uart clocks > 90     # and the clock carries on through it
+expect uart clocks < 100
 tap b2                      # stop: Stop, then everything off
 wait 300
 expect uart held none
