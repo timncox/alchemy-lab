@@ -14,6 +14,7 @@
  *   pulse <1|2>                      one 5 ms pulse on J1 / J2
  *   uart <hex> <hex> ...             bytes into USART1 RX (rear header pin 7),
  *                                    e.g. `uart 90 3c 64` = note-on C4
+ *   keys on|off <note> [vel]         a generic USB-MIDI keyboard (--usb launchpad)
  *   mark                             start a new output-level window (and edge count)
  *   expect edges <3-10> > | < | = <n>  rising edges an output made since mark
  *   expect rms > <x> | < <x>         output RMS since `mark` (0..1)
@@ -168,6 +169,8 @@ int emu_script_run(const char* path)
         else if (C == "silence") emu::SetSynthHz(0);
         else if (C == "clock")   emu::SetClock(std::atoi(a) - 1, (float)std::atof(b));
         else if (C == "pulse")   emu::Pulse(std::atoi(a) - 1);
+        else if (C == "keys")   /* keys on|off <note> [vel]: a USB-MIDI keyboard */
+            emu::ctl::KeysNote(std::atoi(b), !std::strcmp(a, "on") ? (n > 3 ? std::atoi(c) : 100) : 0);
         else if (C == "uart")
         {
             /* every hex token after the command, one byte each */

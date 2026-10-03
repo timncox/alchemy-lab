@@ -113,10 +113,10 @@ all-fw:
 test: all-fw
 	./run-tests.sh
 
-# Belt with the chord sources (belt-alchemy branch chord-sources) in its own
+# Belt with the chord sources + USB keys (belt-alchemy branch chords-all) in its own
 # build, against tests/belt-chords: the chord scripts plus every tests/belt
 # script (symlinked). The default belt build and `make test` are unchanged.
-BELT_CHORDS_ROOT ?= $(TIMOS)/belt-alchemy/.claude/worktrees/chord-sources
+BELT_CHORDS_ROOT ?= $(TIMOS)/belt-alchemy/.claude/worktrees/chords-all
 belt-chords:
 	$(MAKE) --no-print-directory FW=belt FW_ROOT=$(BELT_CHORDS_ROOT) BUILD=build/belt-chords
 test-belt-chords: belt-chords

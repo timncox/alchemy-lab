@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstdio>
 #include <cstring>
+#include <array>
 #include <deque>
 #include <mutex>
 
@@ -153,3 +154,42 @@ bool     Connected() { return g_on.load(); }
 uint32_t Buttons() { return g_pad.load(); }
 uint32_t ReportCount() { return 0; }
 } // namespace pad
+
+/* A generic USB-MIDI keyboard (belt-alchemy usb-keys, launchpad.h keys::):
+ * plugged in with the other controllers (--usb launchpad); a script plays
+ * it with `keys on|off <note> [vel]`. Firmwares whose launchpad.h has no
+ * keys:: never call these. */
+namespace {
+std::deque<std::array<uint8_t, 3>> g_keys_q;
+bool                               g_keys_down[128];
+uint32_t                           g_keys_n = 0, g_keys_drop = 0;
+}
+namespace keys {
+bool Connected() { return g_on.load(); }
+bool Held()
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    for (bool d : g_keys_down) if (d) return true;
+    return false;
+}
+bool PopMsg(uint8_t msg[3])
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    if (g_keys_q.empty()) return false;
+    std::memcpy(msg, g_keys_q.front().data(), 3);
+    g_keys_q.pop_front();
+    return true;
+}
+uint32_t MsgCount() { std::lock_guard<std::mutex> lk(g_mu); return g_keys_n; }
+uint32_t DropCount() { std::lock_guard<std::mutex> lk(g_mu); return g_keys_drop; }
+} // namespace keys
+
+void emu::ctl::KeysNote(int note, int vel)
+{
+    if (note < 0 || note > 127) return;
+    std::lock_guard<std::mutex> lk(g_mu);
+    if (!g_on.load() || g_keys_q.size() >= 128) { g_keys_drop++; return; }
+    g_keys_down[note] = vel > 0;
+    g_keys_q.push_back({(uint8_t)(vel > 0 ? 0x90 : 0x80), (uint8_t)note, (uint8_t)(vel > 0 ? vel : 0)});
+    g_keys_n++;
+}
