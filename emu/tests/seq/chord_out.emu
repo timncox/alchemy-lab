@@ -1,0 +1,91 @@
+# seq chord out: the chord playing now as MIDI on the rear header (USART1
+# TX, header pin 8), for Belt on a second Lab. Default progression: A minor,
+# i - VI - III - VII a bar each = Am F C G, close position, root F#3..F4:
+#   Am 57 60 64 · F 65 69 72 · C 60 64 67 · G 55 59 62
+require uart                # a tree without chord out: nothing to test
+wait 2500
+expect booted
+expect uart unclaimed       # default Off: USART1 / PB6 never touched
+mark
+tap b2                      # play with chord out Off
+wait 1000
+expect uart bytes = 0
+tap b2                      # stop
+wait 300
+
+# Settings (B2+B3 held 2 s), pot 2 = Chord out -> MIDI + clock, then B3 out
+press b2
+press b3
+wait 2300
+release b3
+release b2
+wait 200
+pot 2 0.0
+wait 150
+pot 2 0.95
+wait 300
+tap b3
+wait 400
+expect uart claimed
+
+mark
+tap b2                      # play: Am at once, with Start and clock
+wait 300
+expect uart held 57 60 64
+expect uart starts = 1
+expect uart ons = 3
+expect uart channel 1
+expect uart clocks > 8      # 120 BPM = 48 clocks a second
+mark
+wait 2000                   # bar 2: F (shares nothing with Am here)
+expect uart held 65 69 72
+expect uart clocks > 90
+expect uart clocks < 100
+mark
+wait 2000                   # bar 3: C (C5 in F is not C4: all three move)
+expect uart held 60 64 67
+expect uart ons = 3
+expect uart offs = 3
+mark
+wait 2000                   # bar 4: G
+expect uart held 55 59 62
+mark
+wait 2000                   # back to Am: G leaves, A C E arrive
+expect uart held 57 60 64
+expect uart starts = 0      # a loop is not a restart
+tap b2                      # stop: Stop, then everything off
+wait 300
+expect uart held none
+expect uart stops = 1
+mark
+wait 1000
+expect uart bytes = 0       # stopped: no clock, nothing
+
+# Settings again: Chord out -> MIDI (notes only), pot 5 = channel 5
+press b2
+press b3
+wait 2300
+release b3
+release b2
+wait 200
+pot 2 0.5
+wait 150
+pot 5 0.0
+wait 150
+pot 5 0.3                   # zone 4 of 16 = channel 5
+wait 300
+tap b3
+wait 400
+mark
+tap b2
+wait 1000
+expect uart held 57 60 64
+expect uart channel 5
+expect uart clocks = 0      # notes only
+expect uart starts = 0
+tap b2
+wait 300
+expect uart held none
+expect uart stops = 0
+expect alive
+expect finite

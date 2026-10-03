@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace emu {
 
@@ -29,6 +30,16 @@ float PulseSample(int jack);   /* the next input sample's pulse, 0 or 1 */
  * (idx 0..7), and when the last one was (NowUs). */
 uint32_t Edges(int idx);
 uint32_t LastEdgeUs(int idx);
+
+/* The rear header's USART1 TX (emu_uart.cpp). A firmware's emulated UART
+ * driver calls UartBuilt() at start-up, UartClaim() when it claims the pin,
+ * and UartTx() per byte; UartLog() is everything sent so far. */
+void                 UartBuilt();
+bool                 UartHasDriver();
+void                 UartClaim();
+bool                 UartClaimed();
+void                 UartTx(uint8_t b);
+std::vector<uint8_t> UartLog();
 
 /* LED frames the firmware has Show()n (a stalled control loop stops it). */
 uint32_t ShowCount();
