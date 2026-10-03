@@ -20,6 +20,16 @@ void               WriteCardFile(const char* dir, const char* path, const char* 
  * default in emu_stubs.cpp returns false). */
 bool ScreenLines(std::string* small_line, std::string* big_line);
 
+/* J1 / J2 (jack 0 / 1): a 5 ms pulse train every period_ms (0 = off) and
+ * one-shot pulses, mixed into the inputs the firmware sees (emu_main.cpp). */
+void  SetClock(int jack, float period_ms);
+void  Pulse(int jack);
+float PulseSample(int jack);   /* the next input sample's pulse, 0 or 1 */
+/* Rising edges (through 2.5 V) a firmware output has made on J3..J10
+ * (idx 0..7), and when the last one was (NowUs). */
+uint32_t Edges(int idx);
+uint32_t LastEdgeUs(int idx);
+
 /* LED frames the firmware has Show()n (a stalled control loop stops it). */
 uint32_t ShowCount();
 

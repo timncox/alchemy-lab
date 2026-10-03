@@ -1,0 +1,33 @@
+# seq: J1 clock in (16ths by default). The first pulse takes over and starts
+# it; B2 stops it even while J1 keeps clocking, and plays again in time; a
+# clock gone for 2 s stops it; J2 reset.
+wait 2500
+expect booted
+clock 1 50                  # 16ths every 50 ms = 300 BPM: a kick every 200 ms
+mark
+wait 2000
+expect edges 7 > 7          # ~10 kicks (the internal 120 BPM would give 4)
+expect edges 7 < 13
+tap b2                      # a player's stop holds against the clock
+wait 200
+mark
+wait 1500
+expect edges 7 = 0
+tap b2                      # plays again, from the next pulse
+wait 100
+mark
+wait 1500
+expect edges 7 > 4
+pulse 2                     # reset: the next pulse is step one
+wait 300
+expect alive
+clock 1 0                   # clock gone
+wait 2600                   # 2 s without a pulse: stopped
+mark
+wait 1000
+expect edges 7 = 0
+clock 1 125                 # back at 120 BPM: starts again
+mark
+wait 1500
+expect edges 7 > 1
+expect finite

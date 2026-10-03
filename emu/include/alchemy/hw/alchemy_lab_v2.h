@@ -12,6 +12,7 @@
 
 #include "daisy_seed.h"
 #include "alchemy/hw/alchemy_lab_v2_layout.h"
+#include "alchemy/hw/trigger_jack.h"
 #include "alchemy/hw/i_button.h"
 #include "alchemy/hw/v2_calibration.h"
 #include "alchemy/led/led_strip.h"
@@ -108,6 +109,12 @@ class AlchemyLabV2
     EmuStrip strip;
     LedPanel leds;
 
+    /* J1, J2: the SDK's own TriggerJack, fed the input blocks before the
+     * firmware's callback as the Lab's audio shim does (emu_board.cpp) */
+    TriggerJack  triggers[kNumTriggerJacks];
+    TriggerJack& j1 = triggers[0];
+    TriggerJack& j2 = triggers[1];
+
     EmuCvJack cv_jacks[8];   /* J3..J10 */
     EmuCvJack& j3 = cv_jacks[0];
     EmuCvJack& j4 = cv_jacks[1];
@@ -143,6 +150,11 @@ class AlchemyLabV2
     bool StmDacReady()   const { return true; }
     bool IsCalibrated()  const { return false; }
     const V2Calibration& Calibration() const { return cal_; }
+
+    /* J1/J2 to the trigger detectors, then the firmware's callback: the
+     * input half of the Lab's AudioShim (TriggerJack's friend, as there). */
+    static void AudioShim(daisy::AudioHandle::InputBuffer in,
+                          daisy::AudioHandle::OutputBuffer out, size_t n);
 
   private:
     size_t        block_size_ = kEngineBlockSamples;

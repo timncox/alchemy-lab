@@ -1,0 +1,13 @@
+#!args --card tests/seq/card
+# seq reads /seq/drums.txt from the card at power-up (tests/seq/card):
+# pattern 1 = kick on every 8th, no snare, no hats.
+wait 2500
+expect booted
+tap b2
+mark
+wait 2000
+expect edges 7 > 6          # every 250 ms: ~8 in 2 s (the default beat gives 4)
+expect edges 8 = 0          # the snare line is all dots
+expect edges 9 = 0
+tap b2
+expect finite

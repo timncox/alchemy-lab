@@ -1,0 +1,49 @@
+#!args --usb launchpad
+# seq in Launchpad mode with the Launchpad Mini MK3, Launch Control XL and
+# Haute42 plugged in (seq_alchemy.cpp's own lp/xl/pad code).
+wait 3500
+expect booted
+expect lp top 1 3           # BASS mode lit white
+expect lp top 8 23          # PLAY dim green while stopped
+lp top 8                    # play from the Launchpad
+wait 200
+expect lp top 8 21          # PLAY green
+mark
+wait 1500
+expect edges 7 > 1          # the kick plays
+expect edges 5 > 0          # and the bass
+expect lpmoves 1            # the step row animates (the playhead)
+lp side 5                   # side pad 5: mute the bass
+wait 200
+expect lp side 5 5          # red
+mark
+wait 1500
+expect edges 5 = 0          # no bass gates
+expect edges 7 > 1          # drums go on
+lp side 5                   # unmute
+xl knob 3 1 127             # XL drums row, knob 1: kick generator full
+wait 200
+mark
+wait 1000
+expect edges 7 > 6          # a kick on (nearly) every 16th
+pad a press                 # Haute42 A held: kick muted
+wait 100
+mark
+wait 800
+expect edges 7 = 0
+pad a release
+wait 100
+mark
+wait 800
+expect edges 7 > 3
+xl button 2 8               # XL lower row, button 8: stop
+wait 300
+mark
+wait 1000
+expect edges 7 = 0
+expect lp top 8 23
+lp tap 1 1                  # bass step 1: a 1-step loop
+wait 200
+expect lp 2 1 0             # step 2 is no longer in the loop
+expect alive
+expect finite

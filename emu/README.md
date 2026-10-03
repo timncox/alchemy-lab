@@ -6,7 +6,7 @@ core) are compiled **as they are**; only the board is replaced:
 
 | Replaced | By |
 |---|---|
-| `AlchemyLabV2` (the board) | `include/alchemy/hw/alchemy_lab_v2.h` — pots, B1–B3, J3–J10 (CV in **and out**), the 102-LED chain are the emulator panel |
+| `AlchemyLabV2` (the board) | `include/alchemy/hw/alchemy_lab_v2.h` — pots, B1–B3, J3–J10 (CV in **and out**), the 102-LED chain are the emulator panel; J1/J2 are the SDK's own `TriggerJack`, fed the input blocks before the firmware's callback as the Lab's audio shim does |
 | libDaisy (`daisy_seed.h`, `per/rng.h`, `hid/usb.h`, `util/CpuLoadMeter.h`, HAL) | `include/` — real time, ADC from the panel, QSPI = a flash image, the host's RNG |
 | QSPI flash at 0x90760000 | `~/.alchemy-emu/<Firmware>-flash.bin` (presets survive restarts; `--flash none` = RAM) |
 | SD card | a formatted 8 MB RAM disk under the real FatFS; `--card dir` copies a folder onto it |
@@ -21,6 +21,7 @@ core) are compiled **as they are**; only the board is replaced:
 | belt | belt-alchemy `hold` (HOLD + Hide and Seek) |
 | mark | mark-alchemy `track-page` (= the card's 75196d5) |
 | smack | smack-alchemy `worktree-smack-alchemy-port` (= the card's ff2a16c + a comment) |
+| seq | seq-alchemy `worktree-core` (the sequencer; J1 clock / J2 reset in, J3–J10 out) |
 | clouds elements marbles meld plaits warps | mi-alchemy `port` (= v0.1.0); each port's own `fw.mk`, `-DTEST` (stmlib's portable path) |
 
 Host-only adjustments, all in `fw/` / `include/fw/`, none in firmware source:
@@ -67,6 +68,7 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 | belt | HOLD Freeze (B2 0.6 s, sustains in silence, ignores a new note, fades), HOLD Lock via Settings + J8 gate, B2 mute; **controllers**: HOLD from Launchpad top 4 / XL upper 3 / Haute42 L3, the Launchpad KEY keyboard really changes key (C♯4 for A's +3rd in D), XL HARMONY fader |
 | mark | record → play a loop, plays in silence; **Settings closed with B2 doesn't stop it** (75196d5 fix); B2 stops; **controllers**: Launchpad row 1 records / plays / stops track 1, XL fader 1 is its level, XL button 1 lit in its state |
 | smack | capture loops in silence; OLED follows FX; **Settings closed with B2 doesn't punch**; **controllers**: Launchpad top 1 captures, a held row-1 pad punches (green, B1 white), a held Haute42 button punches (B2 white) |
+| seq | **transport**: stopped at boot, B2 plays (kick / snare / hats / bass gates on J7 / J8 / J9 / J5, bass pitch moves inside 0–5 V), B2 stops; **clock**: J1 at 300 BPM takes over, B2 stops it against the clock and plays again, clock gone 2 s stops it, back starts it, J2 reset; **controllers**: Launchpad play / mute / step loop, XL drums row, XL stop, Haute42 hold-mute; **drums_file**: /seq/drums.txt from the card (tests/seq/card) |
 | clouds | FREEZE holds the buffer in silence, B1 white; unfrozen it fades |
 | elements | STRIKE up: B1 and a J3 gate ring the resonator, it decays |
 | marbles | X1, X2 (J3, J4) wander and T3 (J7) gates on the internal clock |
@@ -74,7 +76,7 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 | plaits | drones from boot (Auto), strike decays, a J3 trigger plays |
 
 Script language: top of `src/emu_script.cpp` (`pot`, `press`/`hold`/`tap`,
-`cv`, `sing`, `lp`, `xl`, `pad`, `expect led|lp|xl|ring|ringchanged|pan|
+`cv`, `sing`, `clock`/`pulse` (5 ms pulses on J1 / J2), `lp`, `xl`, `pad`, `expect edges` (rising edges an output made since `mark`), `expect led|lp|xl|ring|ringchanged|pan|
 lpmoves|lpstill|rms|tone|cv|cvrange|screen|booted|alive|finite`, `snapshot`).
 `make FW=mark SAN=thread` builds a ThreadSanitizer variant (build/mark-thread/). A `#!args --usb launchpad` line gives a
 script its command-line options.

@@ -143,6 +143,31 @@ static float next_input_sample()
     return s;
 }
 
+/* J1 / J2 pulses: a train every period (0 = off) plus one-shots, 5 ms at
+ * full scale (+5 V), counted in samples so they land on the sample. */
+static std::atomic<int32_t> g_clk_period[2];   /* samples, 0 = off */
+static std::atomic<int32_t> g_pulse_req[2];
+static int32_t              g_clk_phase[2], g_pulse_left[2];
+void SetClock(int jack, float period_ms)
+{
+    if (jack < 0 || jack > 1) return;
+    g_clk_period[jack] = period_ms > 0.f ? (int32_t)(period_ms * 48.0f) : 0;
+    g_clk_phase[jack]  = 0;
+}
+void  Pulse(int jack) { if (jack >= 0 && jack < 2) g_pulse_req[jack] = 1; }
+float PulseSample(int jack)
+{
+    const int32_t per = g_clk_period[jack].load();
+    if (g_pulse_req[jack].exchange(0)) g_pulse_left[jack] = 240;
+    if (per > 0)
+    {
+        if (g_clk_phase[jack] == 0) g_pulse_left[jack] = 240;
+        g_clk_phase[jack] = (g_clk_phase[jack] + 1) % per;
+    }
+    if (g_pulse_left[jack] > 0) { g_pulse_left[jack]--; return 1.0f; }
+    return 0.0f;
+}
+
 /* Feed `frames` stereo frames through the firmware, `out` interleaved. */
 void Render(float* out, size_t frames)
 {
@@ -158,7 +183,8 @@ void Render(float* out, size_t frames)
         for (size_t i = 0; i < n; i++)
         {
             const float s = next_input_sample();
-            il[i] = ir[i] = s;
+            il[i] = s + PulseSample(0);
+            ir[i] = s + PulseSample(1);
             in_pk = std::max(in_pk, std::fabs(s));
         }
         if (cb && n == bs)

@@ -10,7 +10,10 @@
  *   cv <3-8> <volts>                 J3..J8
  *   sing <hz>                        a sung buzz at hz on J1/J2 ("sing 0" =
  *   silence                          silence; default when there is no --in)
- *   mark                             start a new output-level window
+ *   clock <1|2> <ms>                 a 5 ms pulse every <ms> on J1 / J2 (0 = off)
+ *   pulse <1|2>                      one 5 ms pulse on J1 / J2
+ *   mark                             start a new output-level window (and edge count)
+ *   expect edges <3-10> > | < | = <n>  rising edges an output made since mark
  *   expect rms > <x> | < <x>         output RMS since `mark` (0..1)
  *   expect screen <text>             the OLED (Smack) shows <text> (substring)
  *   expect tone <hz> > <x> | < <x>   amplitude at hz in the last ~170 ms out
@@ -28,7 +31,7 @@
  *   xl knob <row 1-3> <col> <0-127>  Launch Control XL; xl fader <col> <v>;
  *   xl button <row 1-2> <col> [press|release]
  *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
- *   expect lp <col> <row> <colour> | expect lp top <n> <colour>
+ *   expect lp <col> <row> <colour> | expect lp top|side <n> <colour>
  *                                    (<colour> a number = that palette index)
  *   expect ring <pot> > | < <n>      lit LEDs on that pot's ring
  *   ringsave <pot> / expect ringchanged <pot>   the ring's LEDs moved
@@ -58,6 +61,7 @@
 namespace {
 
 std::atomic<bool> g_run{true};
+uint32_t          g_edge_mark[8];
 
 void driver()
 {
@@ -159,7 +163,28 @@ int emu_script_run(const char* path)
         else if (C == "cv")      P.cv_volts[std::atoi(a) - 3] = (float)std::atof(b);
         else if (C == "sing")    emu::SetSynthHz(std::atoi(a));
         else if (C == "silence") emu::SetSynthHz(0);
-        else if (C == "mark")    emu::TakeOutRms();
+        else if (C == "clock")   emu::SetClock(std::atoi(a) - 1, (float)std::atof(b));
+        else if (C == "pulse")   emu::Pulse(std::atoi(a) - 1);
+        else if (C == "mark")
+        {
+            emu::TakeOutRms();
+            for (int j = 0; j < 8; j++) g_edge_mark[j] = emu::Edges(j);
+        }
+        else if (C == "expect" && !std::strcmp(a, "edges"))
+        {
+            /* expect edges <jack 3-10> > | < | = <n>: rising edges since mark */
+            const int      j = std::atoi(b) - 3;
+            const uint32_t got = emu::Edges(j) - g_edge_mark[j], want = (uint32_t)std::atoi(d);
+            const bool ok = !std::strcmp(c, ">") ? got > want : !std::strcmp(c, "<") ? got < want : got == want;
+            std::printf("%s line %d: J%d made %u rising edges since mark, want %s %u\n",
+                        ok ? "PASS" : "FAIL", line_no, j + 3, got, c, want);
+            if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "edges"))
+        {
+            for (int j = 0; j < 8; j++)
+                std::printf("  J%d %u edges since mark\n", j + 3, emu::Edges(j) - g_edge_mark[j]);
+        }
         else if (C == "snapshot")
         {
             const int rc = emu_ui_snapshot(a);
@@ -223,6 +248,7 @@ int emu_script_run(const char* path)
             const char* want;
             char where[32];
             if (!std::strcmp(b, "top")) { idx = emu::ctl::LpTop(std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "top %s", c); }
+            else if (!std::strcmp(b, "side")) { idx = emu::ctl::LpSide(std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "side %s", c); }
             else { idx = emu::ctl::LpGrid(std::atoi(b) - 1, std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "pad %s,%s", b, c); }
             emu::LpRgb(idx, &r, &g, &bl);
             const char* got = classify(r, g, bl);

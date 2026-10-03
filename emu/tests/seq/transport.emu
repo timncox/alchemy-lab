@@ -1,0 +1,28 @@
+# seq: stopped at boot; B2 plays the default pattern (A minor, kick on the
+# beat, snare on 2 and 4, a generated bass and lead) on the jacks; B2 stops.
+#   J3/J4 bass/lead pitch, J5/J6 gates, J7 kick, J8 snare, J9 hat, J10 perc
+wait 2500
+expect booted
+expect alive
+mark
+wait 1000
+expect edges 7 = 0          # stopped: no kick
+expect edges 5 = 0          # no bass gate
+tap b2
+mark
+wait 2000
+expect edges 7 > 2          # 120 BPM: a kick every 500 ms, ~4 in 2 s
+expect edges 7 < 6
+expect edges 8 > 0          # snare on 2 and 4
+expect edges 9 > 1          # hats on the off-beats
+expect edges 5 > 2          # the bass plays notes
+expect cvrange 3 > 0.2      # and its pitch moves
+expect cv 3 < 5.01          # inside 0..5 V
+tap b2                      # stop
+wait 200
+mark
+wait 1500
+expect edges 7 = 0
+expect edges 5 = 0
+expect alive
+expect finite

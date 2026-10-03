@@ -3,6 +3,7 @@
  * chain, the QSPI flash image (presets persist across runs), the SD card (a
  * formatted RAM disk) and the audio callback hand-off.
  */
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -26,7 +27,11 @@ emu::PanelState g_panel;
 std::mutex      g_led_mu;
 emu::LedFrame   g_leds = {};
 
-daisy::AudioHandle::AudioCallback g_cb = nullptr;
+daisy::AudioHandle::AudioCallback g_cb = nullptr;      /* what Render() calls */
+daisy::AudioHandle::AudioCallback g_user_cb = nullptr; /* the firmware's */
+alchemy::AlchemyLabV2*            g_board = nullptr;
+std::atomic<uint32_t>             g_edges[8], g_edge_us[8];
+
 size_t                            g_block = 24;
 
 /* Flash image the preset store lives in; persisted to emu::FlashPath().
@@ -210,8 +215,17 @@ float EmuCvJack::Volts() const
     return idx_ < kNumCvInputs ? g_panel.cv_volts[idx_].load() : 0.0f;
 }
 float EmuCvJack::Value() const { return emu::volts_to_raw(Volts()); }
-bool  EmuCvJack::SetVolts(float v)   { g_panel.cv_out[idx_] = v; return true; }
-bool  EmuCvJack::StageVolts(float v) { g_panel.cv_out[idx_] = v; return true; }
+static void out_volts(uint8_t idx, float v)
+{
+    if (g_panel.cv_out[idx].load() < 2.5f && v >= 2.5f)
+    {
+        g_edges[idx]++;
+        g_edge_us[idx] = emu::NowUs();
+    }
+    g_panel.cv_out[idx] = v;
+}
+bool  EmuCvJack::SetVolts(float v)   { out_volts(idx_, v); return true; }
+bool  EmuCvJack::StageVolts(float v) { out_volts(idx_, v); return true; }
 bool  EmuCvJack::EnableCvOutput()    { g_panel.cv_is_out[idx_] = true; return true; }
 bool  EmuCvJack::DisableCvOutput()   { g_panel.cv_is_out[idx_] = false; return true; }
 bool  EmuCvJack::IsOutput() const    { return g_panel.cv_is_out[idx_].load(); }
@@ -233,11 +247,27 @@ void AlchemyLabV2::ProcessAllControls()
     for (uint8_t i = 0; i < kNumButtons; i++) emu_buttons[i].Sample(now);
 }
 
-void AlchemyLabV2::StartAudio(daisy::AudioHandle::AudioCallback cb) { g_cb = cb; }
+void AlchemyLabV2::StartAudio(daisy::AudioHandle::AudioCallback cb)
+{
+    g_board   = this;
+    g_user_cb = cb;
+    g_cb      = &AlchemyLabV2::AudioShim;
+}
+
+/* The Lab's audio shim, as far as inputs go (alchemy_lab_v2.cpp AudioShim). */
+void AlchemyLabV2::AudioShim(daisy::AudioHandle::InputBuffer in,
+                             daisy::AudioHandle::OutputBuffer out, size_t n)
+{
+    g_board->triggers[0].ProcessBlock(in[kCodecInChJ1], n);
+    g_board->triggers[1].ProcessBlock(in[kCodecInChJ2], n);
+    if (g_user_cb) g_user_cb(in, out, n);
+}
 
 } // namespace alchemy
 
 uint32_t emu::ShowCount() { return alchemy::g_shows.load(); }
+uint32_t emu::Edges(int idx) { return idx >= 0 && idx < 8 ? g_edges[idx].load() : 0u; }
+uint32_t emu::LastEdgeUs(int idx) { return idx >= 0 && idx < 8 ? g_edge_us[idx].load() : 0u; }
 
 void emu::WriteCardFile(const char* dir, const char* path, const char* text)
 {

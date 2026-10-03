@@ -8,7 +8,7 @@
 set -u
 cd "$(dirname "$0")"
 FWS=("$@")
-[ ${#FWS[@]} -eq 0 ] && FWS=(belt mark smack clouds elements marbles meld plaits warps)
+[ ${#FWS[@]} -eq 0 ] && FWS=(belt mark smack seq clouds elements marbles meld plaits warps)
 mkdir -p build/logs
 
 run_fw() {

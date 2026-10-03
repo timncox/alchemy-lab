@@ -8,7 +8,7 @@
 # the Alchemy SDK framework is compiled as-is. Only the board, libDaisy's
 # surface and the USB-host / picker modules are replaced (include/, src/).
 
-FWS := belt mark smack clouds elements marbles meld plaits warps
+FWS := belt mark smack seq clouds elements marbles meld plaits warps
 FW  ?= belt
 ifeq ($(filter $(FW),$(FWS)),)
 $(error FW must be one of: $(FWS))
@@ -59,6 +59,7 @@ SDK_SRC := \
   framework/src/storage/sd_card.cpp framework/src/storage/fs_extension.cpp \
   hardware/alchemy-lab/v2/src/alchemy_lab_v2_layout.cpp \
   hardware/alchemy-lab/v2/src/v2_calibration.cpp \
+  hardware/alchemy-lab/v2/src/trigger_jack.cpp \
   tests/host/ram_diskio.cpp
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
