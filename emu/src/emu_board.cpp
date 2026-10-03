@@ -217,6 +217,13 @@ float EmuCvJack::Volts() const
 float EmuCvJack::Value() const { return emu::volts_to_raw(Volts()); }
 static void out_volts(uint8_t idx, float v)
 {
+#ifdef EMU_CODEC_V011_COMPENSATED
+    /* J9 / J10 as the jack sees them: the v0.11 SDK's sample = volts / 5,
+     * through the Seed2 DFM's inverting DC output, -8.667 V per +1 sample
+     * (alchemy-sdk 4eb0e4c). Set for a firmware that pre-scales its codec
+     * volts for that (fw/seq.mk), so `expect cv 10` reads jack volts. */
+    if (idx >= alchemy::kNumCvInputs) v = v / 5.0f * (-4.0f * 39.0f / 18.0f);
+#endif
     if (g_panel.cv_out[idx].load() < 2.5f && v >= 2.5f)
     {
         g_edges[idx]++;

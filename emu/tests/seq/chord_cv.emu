@@ -1,0 +1,82 @@
+# seq chord out as CV: J10 = the current chord's ROOT, 1 V/oct, 0 V = C,
+# 0 .. 11/12 V (volts at the jack: the emulator models the codec's inverting
+# DC output for this tree). Default progression A minor i VI III VII:
+#   Am 0.750 V · F 0.417 V · C 0.000 V · G 0.583 V
+require uart                # a tree without chord out: nothing to test
+wait 2500
+expect booted
+mark
+tap b2                      # Chord out Off: J10 is Perc, J9 Hat
+wait 2000
+expect edges 9 > 1          # hats are positive 5 V pulses at the jack
+expect cv 10 = 0            # between perc hits
+tap b2
+wait 300
+
+# Settings (B2+B3 held 2 s): pot 2 = Chord out -> CV (zone 4 of 6)
+press b2
+press b3
+wait 2300
+release b3
+release b2
+wait 200
+pot 2 0.0
+wait 150
+pot 2 0.583
+wait 300
+tap b3
+wait 400
+expect cv 10 = 0.750        # stopped: chord 1's root held (A)
+expect uart unclaimed       # CV only: the rear header is not touched
+
+mark
+tap b2
+wait 300
+expect cv 10 = 0.750        # Am
+wait 2000
+expect cv 10 = 0.417        # F
+wait 2000
+expect cv 10 = 0.000        # C
+wait 2000
+expect cv 10 = 0.583        # G
+expect edges 10 = 0         # perc silent while J10 is the chord
+tap b2                      # stop: the root holds
+wait 1000
+expect cv 10 = 0.583
+
+# CV ref: 0 V for Belt's Learn, then back to CV and the held root
+press b2
+press b3
+wait 2300
+release b3
+release b2
+wait 200
+pot 2 0.917                 # zone 6 of 6: CV ref
+wait 300
+tap b3
+wait 400
+expect cv 10 = 0.000
+expect uart bytes = 0       # no MIDI in CV ref
+press b2
+press b3
+wait 2300
+release b3
+release b2
+wait 200
+pot 2 0.75                  # zone 5 of 6: CV + MIDI
+wait 300
+tap b3
+wait 400
+expect cv 10 = 0.583        # the held root again
+mark
+tap b2
+wait 300
+expect cv 10 = 0.750        # play from the top: Am
+expect uart held 57 60 64   # and the MIDI with it
+expect uart starts = 1
+tap b2
+wait 300
+expect cv 10 = 0.750
+expect uart held none
+expect alive
+expect finite

@@ -75,6 +75,16 @@ objname = $(BUILD)/obj/$(subst /,_,$(subst ..,up,$(1))).o
 OBJS := $(foreach f,$(ALL_CXX) $(ALL_C) $(ALL_CC),$(call objname,$(f))) $(BUILD)/obj/firmware.o
 HDRS := $(wildcard include/*.h include/*/*.h include/*/*/*.h src/*.h)
 
+# Which source tree and emulator switches this build is of: when either
+# changes (FW_ROOT=<another worktree>), everything rebuilds -- a file's date
+# alone would keep objects from the other tree.
+BUILD_CONFIG := $(BUILD)/config.txt
+BUILD_WANT   := $(FW_MAIN) $(filter -DEMU_%,$(FW_DEFS))
+ifneq ($(shell cat $(BUILD_CONFIG) 2>/dev/null),$(strip $(BUILD_WANT)))
+$(shell mkdir -p $(BUILD) && echo '$(strip $(BUILD_WANT))' > $(BUILD_CONFIG))
+endif
+HDRS += $(BUILD_CONFIG)
+
 .DEFAULT_GOAL := all
 all: $(BUILD)/emu
 

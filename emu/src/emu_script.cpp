@@ -26,7 +26,7 @@
  *                                    no NaN or inf in the output
  *   expect unclipped                 under 1% of output frames at full scale
  *   expect leds > <n>                LEDs lit anywhere on the panel
- *   expect cv <3-10> > | < <volts>   a jack the firmware drives as an output
+ *   expect cv <3-10> > | < | = <volts>  a jack the firmware drives (= within 5 mV)
  *   expect cvrange <3-10> > <volts>  that output swings more than <volts> in 2 s
  *   print rms | cv                   output level since mark / CV outputs
  *   lp tap|press|release <col> <row>  Launchpad grid, 1-based, rows top-down
@@ -46,6 +46,15 @@
  *   print tones                      A3..C5 amplitudes in the output
  *   print screen                     the OLED's two lines
  *   snapshot <file.bmp>              the panel, drawn as the window draws it
+ *   require uart                     stop here, passing, if this build has no
+ *                                    rear-header UART driver (an older tree)
+ *   expect uart claimed|unclaimed    whether the firmware has claimed USART1
+ *   expect uart ons|offs|clocks|starts|stops|bytes > | < | = <n>
+ *                                    MIDI it sent on the rear header since mark
+ *   expect uart held <note>... | none  the notes it has on now (MIDI numbers,
+ *                                    any order), from everything it sent
+ *   expect uart channel <1-16>       the channel of its last note on
+ *   print uart                       the bytes since mark, in hex
  */
 #include <atomic>
 #include <chrono>
@@ -56,6 +65,8 @@
 #include <cstring>
 #include <string>
 #include <thread>
+#include <vector>
+#include <algorithm>
 
 #include "alchemy/hw/alchemy_lab_v2.h"
 #include "emu.h"
@@ -66,6 +77,49 @@ namespace {
 
 std::atomic<bool> g_run{true};
 uint32_t          g_edge_mark[8];
+size_t            g_uart_mark = 0;
+
+/* The rear-header MIDI log, read as a receiver would: counts since mark,
+ * the notes on now (from the start), the last note on's channel. */
+struct UartView
+{
+    int ons = 0, offs = 0, clocks = 0, starts = 0, stops = 0, bytes = 0;
+    std::vector<int> held;
+    int last_ch = -1;
+};
+
+UartView uart_view()
+{
+    const std::vector<uint8_t> log = emu::UartLog();
+    UartView v;
+    bool on[16][128] = {};
+    uint8_t msg[3];
+    int have = 0;
+    for (size_t i = 0; i < log.size(); i++)
+    {
+        const uint8_t b = log[i];
+        const bool since = i >= g_uart_mark;
+        if (since) v.bytes++;
+        if (b >= 0xF8)
+        {
+            if (since) { v.clocks += b == 0xF8; v.starts += b == 0xFA; v.stops += b == 0xFC; }
+            continue;
+        }
+        if (b & 0x80) { msg[0] = b; have = 1; continue; }
+        if (!have) continue;
+        msg[have++] = b;
+        if (have < 3) continue;
+        have = 0;
+        const int st = msg[0] & 0xF0, ch = msg[0] & 15, note = msg[1];
+        if (st == 0x90 && msg[2] > 0) { on[ch][note] = true; v.last_ch = ch; if (since) v.ons++; }
+        else if (st == 0x80 || st == 0x90) { on[ch][note] = false; if (since) v.offs++; }
+    }
+    for (int ch = 0; ch < 16; ch++)
+        for (int n = 0; n < 128; n++)
+            if (on[ch][n]) v.held.push_back(n);
+    std::sort(v.held.begin(), v.held.end());
+    return v;
+}
 
 void driver()
 {
@@ -190,6 +244,72 @@ int emu_script_run(const char* path)
         {
             emu::TakeOutRms();
             for (int j = 0; j < 8; j++) g_edge_mark[j] = emu::Edges(j);
+            g_uart_mark = emu::UartLog().size();
+        }
+        else if (C == "require" && !std::strcmp(a, "uart"))
+        {
+            if (!emu::UartHasDriver())
+            {
+                std::printf("SKIP line %d: this build has no rear-header UART driver; the rest is skipped\n", line_no);
+                break;
+            }
+        }
+        else if (C == "expect" && !std::strcmp(a, "uart") && (!std::strcmp(b, "claimed") || !std::strcmp(b, "unclaimed")))
+        {
+            const bool want = !std::strcmp(b, "claimed"), ok = emu::UartClaimed() == want;
+            std::printf("%s line %d: USART1 is %s, want %s\n", ok ? "PASS" : "FAIL", line_no,
+                        emu::UartClaimed() ? "claimed" : "unclaimed", b);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "uart") && !std::strcmp(b, "held"))
+        {
+            /* the rest of the line: note numbers, or "none" */
+            std::vector<int> want;
+            const char* p = std::strstr(line, "held") + 4;
+            for (char* end; ; p = end)
+            {
+                const long x = std::strtol(p, &end, 10);
+                if (end == p) break;
+                want.push_back((int)x);
+            }
+            std::sort(want.begin(), want.end());
+            const UartView v = uart_view();
+            const bool ok = v.held == want;
+            std::printf("%s line %d: notes on:", ok ? "PASS" : "FAIL", line_no);
+            for (int x : v.held) std::printf(" %d", x);
+            if (v.held.empty()) std::printf(" none");
+            std::printf(", want");
+            for (int x : want) std::printf(" %d", x);
+            if (want.empty()) std::printf(" none");
+            std::printf("\n");
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "uart") && !std::strcmp(b, "channel"))
+        {
+            const UartView v = uart_view();
+            const bool ok = v.last_ch + 1 == std::atoi(c);
+            std::printf("%s line %d: last note on was on channel %d, want %s\n", ok ? "PASS" : "FAIL",
+                        line_no, v.last_ch + 1, c);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "uart"))
+        {
+            /* expect uart ons|offs|clocks|starts|stops|bytes > | < | = <n> (since mark) */
+            const UartView v = uart_view();
+            const std::string what = b;
+            const int got = what == "ons" ? v.ons : what == "offs" ? v.offs : what == "clocks" ? v.clocks
+                          : what == "starts" ? v.starts : what == "stops" ? v.stops : what == "bytes" ? v.bytes : -1;
+            const int want = std::atoi(d);
+            const bool ok = got >= 0 && (!std::strcmp(c, ">") ? got > want : !std::strcmp(c, "<") ? got < want : got == want);
+            std::printf("%s line %d: uart %s since mark = %d, want %s %d\n", ok ? "PASS" : "FAIL", line_no, b, got, c, want);
+            if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "uart"))
+        {
+            const std::vector<uint8_t> log = emu::UartLog();
+            std::printf("  uart since mark (%zu bytes):", log.size() - std::min(log.size(), g_uart_mark));
+            for (size_t i = g_uart_mark; i < log.size(); i++) std::printf(" %02X", log[i]);
+            std::printf("\n");
         }
         else if (C == "expect" && !std::strcmp(a, "edges"))
         {
@@ -428,7 +548,9 @@ int emu_script_run(const char* path)
             const float v = P2.cv_out[j].load();
             const bool is_out = P2.cv_is_out[j].load();
             const float want = (float)std::atof(d);
-            const bool ok = is_out && (!std::strcmp(c, ">") ? v > want : v < want);
+            /* "=" is within 5 mV (a semitone is 83 mV) */
+            const bool ok = is_out && (!std::strcmp(c, ">") ? v > want : !std::strcmp(c, "<") ? v < want
+                                                                       : std::fabs(v - want) <= 0.005f);
             std::printf("%s line %d: J%d %s %.3f V %s %.3f\n", ok ? "PASS" : "FAIL", line_no, j + 3,
                         is_out ? "outputs" : "is not an output,", v, c, want);
             if (!ok) fails++;
