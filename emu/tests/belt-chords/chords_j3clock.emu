@@ -1,0 +1,118 @@
+# Belt chord sources: J3 = Chord clock (Settings, Sources P2). Each rising
+# edge on J3 moves the sequencer to its next chord, whatever the tempo, and
+# J3 no longer punches hard-tune. Chords as sevenths (Sources P4).
+# C major, I - vi - iii - vii at C3: I7 = C3 E3 G3 B3, vi7 = A3 C4 E4 G4.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04                 # KEY C
+pot 2 0.17                 # SCALE Major
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 220
+xl knob 1 1 0              # voices Off
+xl knob 1 2 0
+wait 500
+# Hard gate first (the default): J3 high punches hard-tune, B1 white
+cv 3 5
+wait 300
+expect led b1 white
+cv 3 0
+wait 300
+# Settings -> Chord: LEAD 0 -> Sources: Seq, J3 = Chord clock, Sevenths,
+# TEMPO slowest (40 BPM: a bar is 6 s, so only J3 moves the chords)
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 1.0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+pot 3 1.0
+wait 100
+pot 3 0.5
+wait 100
+pot 3 0.0
+wait 100
+pot 2 0.0                  # J3: catch, then Chord clock
+wait 100
+pot 2 0.5
+wait 100
+pot 2 1.0
+wait 100
+pot 2 0.75
+wait 100
+pot 4 0.0                  # Chord: catch, then Sevenths
+wait 100
+pot 4 0.5
+wait 100
+pot 4 1.0
+wait 100
+pot 4 0.75
+wait 100
+pot 1 0.0                  # Chords from: Seq
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.375
+wait 300
+tap b3                     # leave Settings
+wait 600
+lp top 5
+wait 300
+expect lp 1 7 21           # chord 1, held until J3 says otherwise
+expect tone 130.81 > 0.01  # I7: C3 E3 G3 B3
+expect tone 246.94 > 0.01  # the seventh
+expect tone 220.00 < 0.004 # not vi's A3
+cv 3 5                    # J3 edge: chord 2
+wait 60
+cv 3 0
+wait 400
+expect led b1 green        # J3 high did NOT punch hard-tune (A3 in tune)
+expect lp 2 2 21
+expect lp 1 7 37
+expect tone 220.00 > 0.01  # vi7: A3 C4 E4 G4
+expect tone 392.00 > 0.01
+expect tone 130.81 < 0.004
+wait 2000                  # no edge, no change (the tempo would take 6 s)
+expect lp 2 2 21
+cv 3 5                     # edge: chord 3
+wait 30
+cv 3 0
+wait 200
+expect lp 3 5 21
+cv 3 5                     # edge: chord 4
+wait 30
+cv 3 0
+wait 200
+expect lp 4 1 21
+cv 3 5                     # edge: round to chord 1
+wait 30
+cv 3 0
+wait 400
+expect lp 1 7 21
+expect tone 130.81 > 0.01
+# a held-high J3 is one edge, not a stream
+cv 3 5
+wait 1500
+expect lp 2 2 21
+cv 3 0
+wait 200
+expect lp 2 2 21
+expect booted
+expect alive
+expect finite

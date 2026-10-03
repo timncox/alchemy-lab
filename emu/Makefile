@@ -64,7 +64,8 @@ SDK_SRC := \
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
 EMU_CXX := src/emu_board.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
-           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp $(FW_STUBS)
+           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp \
+           src/emu_uart.cpp $(FW_STUBS)
 
 ALL_CXX := $(addprefix $(ALCHEMY_DIR)/,$(SDK_SRC)) $(SDK_ANIMS) $(EMU_CXX) $(FW_CXX)
 ALL_C   := $(FW_C) $(FATFS)/ff.c $(FATFS)/option/ccsbcs.c
@@ -112,7 +113,16 @@ all-fw:
 test: all-fw
 	./run-tests.sh
 
+# Belt with the chord sources (belt-alchemy branch chord-sources) in its own
+# build, against tests/belt-chords: the chord scripts plus every tests/belt
+# script (symlinked). The default belt build and `make test` are unchanged.
+BELT_CHORDS_ROOT ?= $(TIMOS)/belt-alchemy/.claude/worktrees/chord-sources
+belt-chords:
+	$(MAKE) --no-print-directory FW=belt FW_ROOT=$(BELT_CHORDS_ROOT) BUILD=build/belt-chords
+test-belt-chords: belt-chords
+	./run-tests.sh belt-chords
+
 clean:
 	rm -rf build
 
-.PHONY: all all-fw test clean
+.PHONY: all all-fw test clean belt-chords test-belt-chords

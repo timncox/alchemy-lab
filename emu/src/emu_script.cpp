@@ -12,6 +12,8 @@
  *   silence                          silence; default when there is no --in)
  *   clock <1|2> <ms>                 a 5 ms pulse every <ms> on J1 / J2 (0 = off)
  *   pulse <1|2>                      one 5 ms pulse on J1 / J2
+ *   uart <hex> <hex> ...             bytes into USART1 RX (rear header pin 7),
+ *                                    e.g. `uart 90 3c 64` = note-on C4
  *   mark                             start a new output-level window (and edge count)
  *   expect edges <3-10> > | < | = <n>  rising edges an output made since mark
  *   expect rms > <x> | < <x>         output RMS since `mark` (0..1)
@@ -56,6 +58,7 @@
 
 #include "alchemy/hw/alchemy_lab_v2.h"
 #include "emu.h"
+#include "per/uart.h"
 #include "emu_audio.h"
 
 namespace {
@@ -165,6 +168,21 @@ int emu_script_run(const char* path)
         else if (C == "silence") emu::SetSynthHz(0);
         else if (C == "clock")   emu::SetClock(std::atoi(a) - 1, (float)std::atof(b));
         else if (C == "pulse")   emu::Pulse(std::atoi(a) - 1);
+        else if (C == "uart")
+        {
+            /* every hex token after the command, one byte each */
+            uint8_t bytes[64];
+            size_t  nb = 0;
+            const char* p = std::strstr(line, "uart") + 4;
+            char* end = nullptr;
+            for (long v; nb < sizeof bytes && (v = std::strtol(p, &end, 16), end != p); p = end)
+                bytes[nb++] = (uint8_t)v;
+            if (emu::UartInject(bytes, nb) != nb)
+            {
+                std::fprintf(stderr, "[emu] line %d: uart: nothing listening on USART1\n", line_no);
+                fails++;
+            }
+        }
         else if (C == "mark")
         {
             emu::TakeOutRms();
@@ -187,6 +205,10 @@ int emu_script_run(const char* path)
         }
         else if (C == "snapshot")
         {
+            /* the folder may not exist: a suite can run another build's
+             * scripts (tests/belt-chords runs tests/belt's) */
+            const std::string dir = std::string(a).substr(0, std::string(a).find_last_of('/'));
+            if (dir != a) std::system(("mkdir -p '" + dir + "'").c_str());
             const int rc = emu_ui_snapshot(a);
             std::printf("%s snapshot %s\n", rc ? "FAILED" : "wrote", a);
         }
