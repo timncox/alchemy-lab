@@ -1,4 +1,4 @@
-# seq (seq-alchemy), the sequencer that replaces the Oxi One. Default source:
+# seq (seq-alchemy), a generative sequencer for the Alchemy Lab. Default source:
 # its worktree-core branch (core/seq.c + alchemy/src/seq_alchemy.cpp).
 FW_NAME   := seq
 FW_ROOT   ?= $(TIMOS)/seq-alchemy/.claude/worktrees/core
