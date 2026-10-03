@@ -297,7 +297,13 @@ bool emu_ui_init(bool want_mic)
     if (!emu::StartSoundCard(want_mic)) std::fprintf(stderr, "[emu] running without sound\n");
     Ui& u = g_ui;
     u.win = SDL_CreateWindow(EMU_FW_NAME " - Alchemy Lab emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+#ifdef __EMSCRIPTEN__
+                             /* 1x pixels: the panel is software-drawn every frame,
+                              * and a 2x Retina canvas would be four times the work */
+                             kW + emu_ctl_width(), kH, 0);
+#else
                              kW + emu_ctl_width(), kH, SDL_WINDOW_ALLOW_HIGHDPI);
+#endif
 #ifdef __EMSCRIPTEN__
     /* a 2D canvas: no WebGL context to lose, and it can be screenshotted */
     u.ren = SDL_CreateRenderer(u.win, -1, SDL_RENDERER_SOFTWARE);

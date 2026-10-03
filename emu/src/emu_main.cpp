@@ -325,6 +325,9 @@ static void sdl_capture(void*, Uint8* stream, int len)
 static double g_render_ms = 0.0;
 extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_frames() { return (double)g_tap_w.load(); }
 extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_render_ms() { return g_render_ms; }
+double g_panel_ms = 0.0, g_panel_frames = 0.0;
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_panel_ms() { return g_panel_ms; }
+extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_panel_frames() { return g_panel_frames; }
 extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_in_level() { return g_in_level.load(); }
 extern "C" EMSCRIPTEN_KEEPALIVE double emu_web_out_level() { return g_out_level.load(); }
 /* the page's volume slider; the meters and the firmware never see it */
@@ -443,8 +446,13 @@ int main(int argc, char** argv)
     /* not emscripten_set_main_loop: Emscripten pauses that loop for as long
      * as an Asyncify sleep is pending, which here is nearly always */
     emscripten_request_animation_frame_loop([](double, void*) -> EM_BOOL {
+        static unsigned tick = 0;
+        if (tick++ & 1) return EM_TRUE;   /* the panel at 30 fps is plenty */
         emu::CallbackScope in_callback;
+        const double t0 = emscripten_get_now();
         emu_ui_frame();
+        emu::g_panel_ms += emscripten_get_now() - t0;
+        emu::g_panel_frames++;
         return EM_TRUE;
     }, nullptr);
     firmware_main();
