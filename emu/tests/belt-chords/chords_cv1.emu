@@ -1,0 +1,132 @@
+# Belt chord sources: the ONE-JACK CV chord (Tim, 2026-10-03; Sources P6
+# CV ins = Chord, the default). J4, 1 V/oct, 0 V = C3, is the chord's root,
+# snapped to KEY / SCALE; the diatonic chord on it is held. C major:
+# 0 V C, 2/12 Dm, 5/12 F, 9/12 Am, 11/12 B dim. Then J3 = Chord clock
+# (sample and hold) and the single 0 V learn (B3 green = J4 learned).
+#!args --usb launchpad
+wait 4500
+pot 1 0.04                 # KEY C
+pot 2 0.17                 # SCALE Major
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 196
+xl knob 1 1 0
+xl knob 1 2 0
+cv 4 0.0
+wait 500
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 1.0                  # Chord P2 LEAD -> 0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+pot 1 0.0                  # Sources P1 Chords from: CV (P6 stays on Chord)
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.625
+wait 300
+tap b3
+wait 800
+expect tone 130.81 > 0.01  # 0 V: C3 E3 G3
+expect tone 164.81 > 0.01
+expect tone 196.00 > 0.01
+expect tone 146.83 < 0.004
+cv 4 0.1667                # 2/12 V: Dm = D3 F3 A3
+wait 500
+expect tone 146.83 > 0.01
+expect tone 174.61 > 0.01
+expect tone 220.00 > 0.01
+expect tone 164.81 < 0.008 # E3 gone (F3 a semitone up leaks ~0.004 into the bin)
+cv 4 0.4167                # 5/12 V: F = F3 A3 C4
+wait 500
+expect tone 174.61 > 0.01
+expect tone 220.00 > 0.01
+expect tone 261.63 > 0.01
+cv 4 0.7500                # 9/12 V: Am = A3 C4 E4
+wait 500
+expect tone 220.00 > 0.01
+expect tone 261.63 > 0.01
+expect tone 329.63 > 0.01
+cv 4 0.9167                # 11/12 V: B dim = B3 D4 F4
+wait 500
+expect tone 246.94 > 0.01
+expect tone 293.66 > 0.01
+expect tone 349.23 > 0.01
+expect tone 369.99 < 0.006 # not F#4: diminished, from the scale
+cv 4 0.5417                # 6.5 st, between F# and G -> snaps to G (G B D)
+wait 500
+expect tone 196.00 > 0.01
+expect tone 246.94 > 0.01
+expect tone 293.66 > 0.01
+# J3 = Chord clock: read only on an edge
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 2 0.0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 1.0
+wait 100
+pot 2 0.75                 # J3: Chord clock
+wait 300
+tap b3
+wait 600
+cv 4 0.0                   # back to C on the jack, no edge yet: still G
+wait 500
+expect tone 196.00 > 0.01
+expect tone 130.81 < 0.004
+cv 3 5                     # edge: sampled -> C
+wait 50
+cv 3 0
+wait 500
+expect tone 130.81 > 0.01
+expect tone 293.66 < 0.006
+# the one-jack learn: the sender holds 0 V on J4 (here +30 mV off);
+# J5-J7 carry whatever they carry and are not learned
+cv 4 0.030
+cv 5 2.0
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 5 0.0                  # CV cal: catch (On), then Learn, then On
+wait 100
+pot 5 0.5
+wait 100
+pot 5 1.0
+wait 100
+pot 5 0.85
+wait 600
+pot 5 0.5
+wait 300
+tap b3
+wait 400
+expect led b3 green        # J4 learned: all this mode needs
+expect booted
+expect alive
+expect finite
