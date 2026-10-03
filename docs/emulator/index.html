@@ -175,7 +175,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
     card, the flash chip, and the USB controllers. Not imitated: the module's processor speed, so a sound that
     works here can still be too heavy for the real thing; and the bootloader, the card picker and HostLink.</p>
   <p>These are the builds Tim is working on now, so they can be ahead of the downloads on the homepage. Each
-    one's source commit:</p>
+    build, by branch and commit (not all of them are on GitHub yet):</p>
   <div class="builds" id="builds">…</div>
   <p>The emulator is open source, in the <a href="https://github.com/timncox/alchemy-lab/tree/emu-web/emu">emu
     folder of the alchemy-lab repo</a>. It also runs as a Mac app with scripted tests.</p>
@@ -310,7 +310,8 @@ $("power").addEventListener("click", async () => {
     setInterval(() => {
       const secs = (performance.now() - t0) / 1000;
       const lag = Math.max(0, secs - M._emu_web_frames() / 48000);
-      $("status").textContent = `running · ${Math.round(100 * M._emu_web_render_ms() / 1000 / secs)}% of one CPU core`
+      const pct = (ms) => Math.round(100 * ms / 1000 / secs);
+      $("status").textContent = `running · sound ${pct(M._emu_web_render_ms())}% + panel ${pct(M._emu_web_panel_ms())}% of one CPU core`
         + (secs > 3 && lag > 1.5 ? " · audio is falling behind" : "");
     }, 1000);
     if (input === "mic") $("status").textContent = "allow the microphone when your browser asks";
