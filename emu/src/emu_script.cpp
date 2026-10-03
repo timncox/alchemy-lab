@@ -23,7 +23,7 @@
  *                                    no NaN or inf in the output
  *   expect unclipped                 under 1% of output frames at full scale
  *   expect leds > <n>                LEDs lit anywhere on the panel
- *   expect cv <3-10> > | < <volts>   a jack the firmware drives as an output
+ *   expect cv <3-10> > | < | = <volts>  a jack the firmware drives (= within 5 mV)
  *   expect cvrange <3-10> > <volts>  that output swings more than <volts> in 2 s
  *   print rms | cv                   output level since mark / CV outputs
  *   lp tap|press|release <col> <row>  Launchpad grid, 1-based, rows top-down
@@ -523,7 +523,9 @@ int emu_script_run(const char* path)
             const float v = P2.cv_out[j].load();
             const bool is_out = P2.cv_is_out[j].load();
             const float want = (float)std::atof(d);
-            const bool ok = is_out && (!std::strcmp(c, ">") ? v > want : v < want);
+            /* "=" is within 5 mV (a semitone is 83 mV) */
+            const bool ok = is_out && (!std::strcmp(c, ">") ? v > want : !std::strcmp(c, "<") ? v < want
+                                                                       : std::fabs(v - want) <= 0.005f);
             std::printf("%s line %d: J%d %s %.3f V %s %.3f\n", ok ? "PASS" : "FAIL", line_no, j + 3,
                         is_out ? "outputs" : "is not an output,", v, c, want);
             if (!ok) fails++;

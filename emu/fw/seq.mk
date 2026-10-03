@@ -13,5 +13,13 @@ FW_STUBS  := src/emu_ctl.cpp   # no USB audio mode in seq
 ifneq ($(wildcard $(FW_ROOT)/alchemy/src/midi_out.h),)
 FW_STUBS  += src/emu_midi_out.cpp
 endif
+# A tree that pre-scales J9/J10 for the v0.11 SDK's codec transfer
+# (codec_volts in seq_alchemy.cpp), built against an SDK without the fix:
+# model the real jack volts so `expect cv 9|10` reads what the jack does.
+ifneq ($(shell grep -l codec_volts $(FW_MAIN) 2>/dev/null),)
+ifeq ($(wildcard $(ALCHEMY_DIR)/hardware/alchemy-lab/v2/include/alchemy/hw/v2_codec_cv.h),)
+FW_DEFS   += -DEMU_CODEC_V011_COMPENSATED
+endif
+endif
 EMU_LABELS     := DENSITY|LENGTH|SLIDE|JUMP|TONES|OCTAVE
 EMU_LABELS_ALT := TEMPO|SWING|GLIDE|KEY|SCALE|CLOCK IN

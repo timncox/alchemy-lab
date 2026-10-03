@@ -22,7 +22,7 @@ release b2
 wait 200
 pot 2 0.0
 wait 150
-pot 2 0.95
+pot 2 0.417                 # zone 3 of 6: MIDI + clock
 wait 300
 tap b3
 wait 400
@@ -68,7 +68,7 @@ wait 2300
 release b3
 release b2
 wait 200
-pot 2 0.5
+pot 2 0.25                  # zone 2 of 6: MIDI
 wait 150
 pot 5 0.0
 wait 150
