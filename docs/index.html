@@ -77,6 +77,14 @@ h1 em { font-style: normal; color: var(--accent-ink); transition: color .5s ease
 .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--wall); }
 .now { font-size: 15px; color: var(--ink-2); min-height: 1.6em; }
 .now b { color: var(--ink); }
+.play-cta {
+  justify-self: start; display: inline-flex; gap: 10px; align-items: center; margin-top: 6px;
+  font: 700 16px/1 var(--body); text-decoration: none; color: var(--wall); background: var(--ink);
+  border-radius: 999px; padding: 13px 20px;
+}
+.play-cta::before { content: ""; width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent var(--accent-ink); transition: border-color .5s ease; }
+.play-cta:hover { opacity: .88; }
 .stage { display: grid; justify-items: center; gap: 12px; }
 .module {
   width: 100%; max-width: 300px; background: #0b0c0e; border-radius: 10px; padding: 12px;
@@ -170,6 +178,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       <div class="label" id="pickLabel">Try it: pick an instrument</div>
       <div class="chips" id="chips" role="group" aria-labelledby="pickLabel"></div>
       <div class="now" id="now" aria-live="polite"></div>
+      <a class="play-cta" id="playCta" href="emulator/">Play them in your browser</a>
     </div>
   </div>
   <div class="stage">
@@ -291,6 +300,8 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   <p>Each instrument has a full manual: every knob, button and jack, how to install it, and what's still
   untested.</p>
   <div class="links" id="manuals"></div>
+  <p class="group-note">No module? <a href="emulator/">The emulator</a> runs nine of them in your browser: the
+  real firmware, compiled for the web, on an imitated panel.</p>
   <p class="group-note">Source code: <a href="https://github.com/timncox/mark-alchemy">mark-alchemy</a>,
   <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>,
   <a href="https://github.com/timncox/smack-alchemy">smack-alchemy</a> and
@@ -315,6 +326,8 @@ const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1
    (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
    Instruments ports (their download row); `status` / `now` override the
    default chip text; no `url` = no public manual yet. */
+/* the instruments the emulator page runs (emulator/: Seq writes CV, not sound) */
+const EMU = new Set(["mark", "belt", "smack", "clouds", "elements", "marbles", "plaits", "warps", "meld"]);
 const I = [
   { id:"mark", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
     what:"A five-track looper.",
@@ -435,6 +448,9 @@ function select(id, animate) {
   document.documentElement.style.setProperty("--accent-glow", inst.ring);
   document.getElementById("now").innerHTML =
     `<b>${inst.name}</b>: ${inst.what} ${inst.heard ? "Played on the module." : inst.now || "Built, first listen coming."}`;
+  const cta = document.getElementById("playCta");
+  cta.href = EMU.has(inst.id) ? `emulator/?fw=${inst.id}` : "emulator/";
+  cta.textContent = EMU.has(inst.id) ? `Play ${inst.name} in your browser` : "Play them in your browser";
   const settle = () => {
     inst.knobs.forEach((k, i) => { knobLabels[i].textContent = k.toUpperCase(); lightRing(i, inst.ring, inst.v[i], "#23262b"); });
     halos[0].setAttribute("fill", inst.ring); halos[0].setAttribute("opacity", .55);
@@ -475,6 +491,7 @@ I.forEach(inst => {
     <div class="foot">
       <span class="status ${inst.heard ? "heard" : "soon"}">${inst.heard ? "Played on the module" : inst.status || "Built · first listen next"}</span>
       ${inst.url ? `<a href="${inst.url}">${inst.design ? "Design notes" : "Manual"}</a>` : ""}
+      ${EMU.has(inst.id) ? `<a href="emulator/?fw=${inst.id}">Play it in your browser</a>` : ""}
     </div>`;
   a.querySelector("button").addEventListener("click", () => {
     select(inst.id, true);
