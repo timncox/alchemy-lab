@@ -1,0 +1,494 @@
+# Smack: every controller function (Launchpad Mini MK3, Launch Control XL,
+# Haute42), checked against what smack_alchemy.cpp documents. The OLED names
+# the effect being punched, so every pad / button is checked by name.
+#  Launchpad rows 1-4 = the 27 punch effects (hold); row 8 playhead; top 1
+#  CAPTURE, 2 RE-ROLL, 3 LIVE, 4 CLEAR (hold 1 s). XL faders 1-6 = PLAY
+#  knobs, top knobs 1-6 = SETUP knobs, upper 1-4 CAPTURE RE-ROLL LIVE CLEAR,
+#  lower 1-8 punch effects 1-8. Haute42: every button a punch effect.
+#!args --usb launchpad
+wait 4500
+sing 220
+wait 8000                  # longer than LENGTH steps
+xl button 1 1              # CAPTURE from the XL
+wait 1500
+expect led b1 green        # looping
+expect lpmoves 8           # the playhead
+expect screen Loop
+expect lp 2 1 9            # the PUNCH FX knob's effect (Retrig) bright
+expect lp 3 1 11           # row 1 dim orange
+expect lp 1 2 15           # row 2 dim amber
+expect lp 1 3 39           # row 3 dim cyan
+expect lp 1 4 55           # row 4 dim magenta
+expect lp 4 4 off          # 27 effects: row 4 ends at pad 3
+# -- every Launchpad punch pad: green while held, B1 white, the OLED names it
+lp press 1 1
+wait 250
+expect lp 1 1 21
+expect led b1 white
+expect screen Clean
+lp release 1 1
+wait 200
+lp press 2 1
+wait 250
+expect lp 2 1 21
+expect led b1 white
+expect screen Retrig
+lp release 2 1
+wait 200
+lp press 3 1
+wait 250
+expect lp 3 1 21
+expect led b1 white
+expect screen Reverse
+lp release 3 1
+wait 200
+lp press 4 1
+wait 250
+expect lp 4 1 21
+expect led b1 white
+expect screen Pitch
+lp release 4 1
+wait 200
+lp press 5 1
+wait 250
+expect lp 5 1 21
+expect led b1 white
+expect screen Speed
+lp release 5 1
+wait 200
+lp press 6 1
+wait 250
+expect lp 6 1 21
+expect led b1 white
+expect screen Gate
+lp release 6 1
+wait 200
+lp press 7 1
+wait 250
+expect lp 7 1 21
+expect led b1 white
+expect screen Buzz
+lp release 7 1
+wait 200
+lp press 8 1
+wait 250
+expect lp 8 1 21
+expect led b1 white
+expect screen Crush
+lp release 8 1
+wait 200
+lp press 1 2
+wait 250
+expect lp 1 2 21
+expect led b1 white
+expect screen Repeat
+lp release 1 2
+wait 200
+lp press 2 2
+wait 250
+expect lp 2 2 21
+expect led b1 white
+expect screen Rev After
+lp release 2 2
+wait 200
+lp press 3 2
+wait 250
+expect lp 3 2 21
+expect led b1 white
+expect screen Tape Stop
+lp release 3 2
+wait 200
+lp press 4 2
+wait 250
+expect lp 4 2 21
+expect led b1 white
+expect screen Tape Start
+lp release 4 2
+wait 200
+lp press 5 2
+wait 250
+expect lp 5 2 21
+expect led b1 white
+expect screen Scratch
+lp release 5 2
+wait 200
+lp press 6 2
+wait 250
+expect lp 6 2 21
+expect led b1 white
+expect screen Env
+lp release 6 2
+wait 200
+lp press 7 2
+wait 250
+expect lp 7 2 21
+expect led b1 white
+expect screen Pan
+lp release 7 2
+wait 200
+lp press 8 2
+wait 250
+expect lp 8 2 21
+expect led b1 white
+expect screen Filter
+lp release 8 2
+wait 200
+lp press 1 3
+wait 250
+expect lp 1 3 21
+expect led b1 white
+expect screen Vowel
+lp release 1 3
+wait 200
+lp press 2 3
+wait 250
+expect lp 2 3 21
+expect led b1 white
+expect screen Tonal Delay
+lp release 2 3
+wait 200
+lp press 3 3
+wait 250
+expect lp 3 3 21
+expect led b1 white
+expect screen Freeze
+lp release 3 3
+wait 200
+lp press 4 3
+wait 250
+expect lp 4 3 21
+expect led b1 white
+expect screen Delay
+lp release 4 3
+wait 200
+lp press 5 3
+wait 250
+expect lp 5 3 21
+expect led b1 white
+expect screen Dist
+lp release 5 3
+wait 200
+lp press 6 3
+wait 250
+expect lp 6 3 21
+expect led b1 white
+expect screen Phaser
+lp release 6 3
+wait 200
+lp press 7 3
+wait 250
+expect lp 7 3 21
+expect led b1 white
+expect screen Verb
+lp release 7 3
+wait 200
+lp press 8 3
+wait 250
+expect lp 8 3 21
+expect led b1 white
+expect screen P-Shift
+lp release 8 3
+wait 200
+lp press 1 4
+wait 250
+expect lp 1 4 21
+expect led b1 white
+expect screen Ring Mod
+lp release 1 4
+wait 200
+lp press 2 4
+wait 250
+expect lp 2 4 21
+expect led b1 white
+expect screen Comb
+lp release 2 4
+wait 200
+lp press 3 4
+wait 250
+expect lp 3 4 21
+expect led b1 white
+expect screen Scatter
+lp release 3 4
+wait 200
+expect led b1 green
+# -- XL top knob 4 = PUNCH FX: the bright pad moves; B2 punches that effect
+xl knob 1 4 64             # zone 13 of 27: Env
+wait 400
+expect lp 6 2 13
+press b2
+wait 300
+expect led b1 white
+expect screen Env
+release b2
+wait 300
+# -- top 3 LIVE (and XL upper 3)
+lp top 3
+wait 300
+expect lp top 3 37
+expect led b1 cyan
+expect screen LIVE
+expect xl button 1 3 0x3C
+lp top 3
+wait 300
+expect lp top 3 39
+xl button 1 3
+wait 300
+expect led b1 cyan
+xl button 1 3
+wait 300
+expect led b1 green
+# -- top 2 / XL upper 2 RE-ROLL: still looping
+lp top 2
+wait 600
+expect led b1 green
+expect lpmoves 8
+xl button 1 2
+wait 600
+expect led b1 green
+# -- XL lower 1-8 hold punch effects 1-8 (Retrig .. Repeat)
+xl button 2 1 press
+wait 250
+expect xl button 2 1 0x3C
+expect led b1 white
+expect screen Retrig
+xl button 2 1 release
+wait 200
+xl button 2 2 press
+wait 250
+expect xl button 2 2 0x3C
+expect led b1 white
+expect screen Reverse
+xl button 2 2 release
+wait 200
+xl button 2 3 press
+wait 250
+expect xl button 2 3 0x3C
+expect led b1 white
+expect screen Pitch
+xl button 2 3 release
+wait 200
+xl button 2 4 press
+wait 250
+expect xl button 2 4 0x3C
+expect led b1 white
+expect screen Speed
+xl button 2 4 release
+wait 200
+xl button 2 5 press
+wait 250
+expect xl button 2 5 0x3C
+expect led b1 white
+expect screen Gate
+xl button 2 5 release
+wait 200
+xl button 2 6 press
+wait 250
+expect xl button 2 6 0x3C
+expect led b1 white
+expect screen Buzz
+xl button 2 6 release
+wait 200
+xl button 2 7 press
+wait 250
+expect xl button 2 7 0x3C
+expect led b1 white
+expect screen Crush
+xl button 2 7 release
+wait 200
+xl button 2 8 press
+wait 250
+expect xl button 2 8 0x3C
+expect led b1 white
+expect screen Repeat
+xl button 2 8 release
+wait 200
+# -- XL faders = PLAY knobs (level rings count, selector rings move)
+xl fader 1 0
+wait 300
+expect ring 1 < 3
+xl fader 1 127
+wait 300
+expect ring 1 > 10
+xl fader 2 0
+wait 300
+expect ring 2 < 3
+xl fader 2 127
+wait 300
+expect ring 2 > 10
+ringsave 3
+xl fader 3 127
+wait 300
+expect ringchanged 3
+ringsave 4
+xl fader 4 127
+wait 300
+expect ringchanged 4
+xl fader 5 0
+wait 300
+expect ring 5 < 3
+xl fader 5 127
+wait 300
+expect ring 5 > 10
+ringsave 6
+xl fader 6 127
+wait 300
+expect ringchanged 6
+xl fader 6 64
+xl fader 5 64
+# -- XL top knobs = SETUP knobs (shown while B3 is held)
+press b3
+wait 300
+xl knob 1 1 0
+wait 300
+expect ring 1 < 3
+xl knob 1 1 127
+wait 300
+expect ring 1 > 10
+xl knob 1 2 127
+wait 300
+expect ring 2 > 10
+ringsave 3
+xl knob 1 3 127
+wait 300
+expect ringchanged 3
+xl knob 1 4 127
+wait 300
+expect ring 4 > 10
+ringsave 5
+xl knob 1 5 127
+wait 300
+expect ringchanged 5
+xl knob 1 6 127
+wait 300
+expect ring 6 > 10
+xl knob 1 5 0
+xl knob 1 6 50
+release b3
+wait 600
+# -- Haute42: every button holds its effect (the matching Launchpad pad goes
+#    green, B2 white, the OLED names it)
+pad x press
+wait 250
+expect lp 2 1 21
+expect led b2 white
+expect screen Retrig
+pad x release
+wait 200
+pad y press
+wait 250
+expect lp 1 2 21
+expect led b2 white
+expect screen Repeat
+pad y release
+wait 200
+pad rb press
+wait 250
+expect lp 3 1 21
+expect led b2 white
+expect screen Reverse
+pad rb release
+wait 200
+pad lb press
+wait 250
+expect lp 3 2 21
+expect led b2 white
+expect screen Tape Stop
+pad lb release
+wait 200
+pad a press
+wait 250
+expect lp 8 2 21
+expect led b2 white
+expect screen Filter
+pad a release
+wait 200
+pad b press
+wait 250
+expect lp 8 1 21
+expect led b2 white
+expect screen Crush
+pad b release
+wait 200
+pad rt press
+wait 250
+expect lp 4 3 21
+expect led b2 white
+expect screen Delay
+pad rt release
+wait 200
+pad lt press
+wait 250
+expect lp 3 3 21
+expect led b2 white
+expect screen Freeze
+pad lt release
+wait 200
+pad left press
+wait 250
+expect lp 6 1 21
+expect led b2 white
+expect screen Gate
+pad left release
+wait 200
+pad down press
+wait 250
+expect lp 5 2 21
+expect led b2 white
+expect screen Scratch
+pad down release
+wait 200
+pad right press
+wait 250
+expect lp 5 3 21
+expect led b2 white
+expect screen Dist
+pad right release
+wait 200
+pad up press
+wait 250
+expect lp 7 3 21
+expect led b2 white
+expect screen Verb
+pad up release
+wait 200
+pad l3 press
+wait 250
+expect lp 4 1 21
+expect led b2 white
+expect screen Pitch
+pad l3 release
+wait 200
+pad r3 press
+wait 250
+expect lp 6 3 21
+expect led b2 white
+expect screen Phaser
+pad r3 release
+wait 200
+expect finite
+# -- top 4 CLEAR (hold 1 s): red while held, then idle and quiet
+lp top 4 press
+wait 300
+expect lp top 4 5
+wait 1000
+lp top 4 release
+wait 600
+expect lp top 4 7
+expect lpstill 8
+expect screen Pattern
+silence
+wait 600
+mark
+wait 400
+expect rms < 0.01
+# -- top 1 CAPTURE from the Launchpad (LENGTH back to its shortest first:
+#    at the longest the playhead takes seconds to cross one of 8 pads)
+xl fader 3 0
+sing 262
+wait 8000
+lp top 1 press
+wait 900
+lp top 1 release
+wait 1500
+expect led b1 green
+expect lpmoves 8

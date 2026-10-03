@@ -29,8 +29,13 @@ emu::LedFrame   g_leds = {};
 daisy::AudioHandle::AudioCallback g_cb = nullptr;
 size_t                            g_block = 24;
 
-/* Flash image the preset store lives in; persisted to emu::FlashPath(). */
-constexpr size_t kFlashBytes = 256u * 1024u;
+/* Flash image the preset store lives in; persisted to emu::FlashPath().
+ * It must hold every slot: 16 slots x 2 ping-pong sides x 5 sectors x 4 KB
+ * = 640 KB. (It was 256 KB: the home slots 12-14 then wrote past the end --
+ * in Mark's binary straight into its engine pool, which crashed Mark.) */
+constexpr size_t kFlashBytes = 1024u * 1024u;
+static_assert(kFlashBytes >= 16u * 2u * alchemy::kPresetSectorSize * alchemy::kPresetSectorsPerSide,
+              "the emulated flash must hold every preset slot");
 alignas(4096) uint8_t g_flash[kFlashBytes];
 
 } // namespace

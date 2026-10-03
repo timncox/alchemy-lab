@@ -1,0 +1,307 @@
+# Belt: every controller function (Launchpad Mini MK3, Launch Control XL,
+# Haute42), checked against what belt_alchemy.cpp documents.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04
+pot 2 0.17
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+silence                    # no sung note, so the key pads show only the key
+wait 500
+# -- Launchpad KEY keyboard: every key lights as the root (palette 45)
+lp tap 2 1
+wait 200
+expect lp 2 1 45
+lp tap 3 1
+wait 200
+expect lp 3 1 45
+lp tap 5 1
+wait 200
+expect lp 5 1 45
+lp tap 6 1
+wait 200
+expect lp 6 1 45
+lp tap 7 1
+wait 200
+expect lp 7 1 45
+lp tap 1 2
+wait 200
+expect lp 1 2 45
+lp tap 2 2
+wait 200
+expect lp 2 2 45
+lp tap 3 2
+wait 200
+expect lp 3 2 45
+lp tap 4 2
+wait 200
+expect lp 4 2 45
+lp tap 5 2
+wait 200
+expect lp 5 2 45
+lp tap 6 2
+wait 200
+expect lp 6 2 45
+lp tap 7 2
+wait 200
+expect lp 7 2 45
+lp tap 1 2                 # back to C
+wait 200
+expect lp 1 2 45
+expect lp 3 2 47           # E: in C major, dim blue
+expect lp 2 1 1            # C#: not in the scale, grey
+# -- Launchpad SCALE pads: the selected one bright magenta (53), others dim (55)
+lp tap 1 4
+wait 200
+expect lp 1 4 53
+lp tap 2 4
+wait 200
+expect lp 2 4 53
+lp tap 3 4
+wait 200
+expect lp 3 4 53
+lp tap 4 4
+wait 200
+expect lp 4 4 53
+lp tap 5 4
+wait 200
+expect lp 5 4 53
+lp tap 6 4
+wait 200
+expect lp 6 4 53
+lp tap 7 4
+wait 200
+expect lp 7 4 53
+lp tap 8 4
+wait 200
+expect lp 8 4 53
+lp tap 1 5
+wait 200
+expect lp 1 5 53
+expect lp 2 4 55
+lp tap 2 4                 # back to Major
+wait 200
+expect lp 2 4 53
+expect lp 1 5 55
+# -- top 1 HARD: tap latches, hold is momentary
+lp top 1
+wait 200
+expect lp top 1 5
+expect led b1 white
+lp top 1
+wait 200
+expect lp top 1 7
+lp top 1 press
+wait 500
+expect led b1 white
+lp top 1 release
+wait 200
+expect lp top 1 7
+# -- top 2 MUTE: tap latches, hold is momentary
+lp top 2
+wait 200
+expect lp top 2 13
+expect led b2 grey
+lp top 2
+wait 200
+expect lp top 2 15
+expect led b2 purple
+lp top 2 press
+wait 500
+expect led b2 grey
+lp top 2 release
+wait 200
+expect led b2 purple
+# -- top 4 HOLD
+lp top 4
+wait 200
+expect lp top 4 45
+expect led b2 blue
+lp top 4
+wait 200
+expect lp top 4 47
+# -- top 3 PLAY: rows 1-6 a keyboard; a held pad sings its note
+lp top 3
+wait 200
+expect lp top 3 21
+sing 220
+wait 800
+lp press 5 4               # row 4 = C4 naturals: G4
+wait 1000
+expect lp 5 4 21
+expect tone 392.00 > 0.01
+lp release 5 4
+wait 1000
+expect tone 392.00 < 0.005
+lp top 3                   # back to KEY
+wait 200
+expect lp top 3 23
+silence
+# -- XL faders 1-4 = RETUNE AMOUNT HARMONY FORMANT (their rings)
+xl fader 1 0
+wait 300
+expect ring 3 < 3
+xl fader 1 127
+wait 300
+expect ring 3 > 10
+xl fader 2 0
+wait 300
+expect ring 4 < 3
+xl fader 2 127
+wait 300
+expect ring 4 > 10
+xl fader 3 0
+wait 300
+expect ring 5 < 3
+xl fader 3 115
+wait 300
+expect ring 5 > 10
+xl fader 4 64
+wait 300
+expect ring 6 < 4
+xl fader 4 127
+wait 300
+expect ring 6 > 4
+xl fader 4 64
+# -- XL faders 5-6 = DOUBLER SPREAD (SETUP page, shown while B3 is held)
+press b3
+wait 300
+xl fader 5 127
+wait 300
+expect ring 5 > 10
+xl fader 5 0
+wait 300
+expect ring 5 < 3
+xl fader 6 127
+wait 300
+expect ring 6 > 10
+xl fader 6 0
+wait 300
+expect ring 6 < 3
+release b3
+wait 300
+# -- XL top knobs 1-4 = VOICE 1-4 intervals (row 7 and the knob LEDs)
+xl knob 1 1 0              # voice 1 Off
+wait 300
+expect lp 1 7 off
+expect xl knob 1 1 0x1C
+xl knob 1 1 79             # +3rd
+wait 300
+expect lp 1 7 cyan
+expect xl knob 1 1 0x3C
+xl knob 1 3 79             # voice 3 on
+wait 300
+expect lp 3 7 cyan
+xl knob 1 4 79
+wait 300
+expect lp 4 7 cyan
+xl knob 1 3 0
+xl knob 1 4 0
+wait 300
+expect lp 3 7 off
+expect lp 4 7 off
+# -- XL middle knobs 1-2 = KEY and SCALE
+xl knob 2 1 26             # D
+wait 300
+expect lp 2 2 45
+xl knob 2 2 35             # Minor
+wait 300
+expect lp 3 4 53
+xl knob 2 1 5              # C
+xl knob 2 2 18             # Major
+wait 300
+expect lp 1 2 45
+expect lp 2 4 53
+# -- XL upper buttons 1 HARD, 2 MUTE, 3 HOLD
+xl button 1 1
+wait 200
+expect xl button 1 1 0x0F
+expect led b1 white
+xl button 1 1
+wait 200
+expect xl button 1 1 0x0D
+xl button 1 2
+wait 200
+expect xl button 1 2 0x3F
+expect led b2 grey
+xl button 1 2
+wait 200
+expect xl button 1 2 0x1D
+xl button 1 3
+wait 200
+expect xl button 1 3 0x3C
+expect led b2 blue
+xl button 1 3
+wait 200
+expect xl button 1 3 0x1C
+# -- Haute42: every punch button holds (B2 white while held)
+sing 220
+wait 500
+pad x press
+wait 250
+expect led b2 white
+pad x release
+wait 250
+pad y press
+wait 250
+expect led b2 white
+pad y release
+wait 250
+pad rb press
+wait 250
+expect led b2 white
+pad rb release
+wait 250
+pad lb press
+wait 250
+expect led b2 white
+pad lb release
+wait 250
+pad a press
+wait 250
+expect led b2 white
+pad a release
+wait 250
+pad b press
+wait 250
+expect led b2 white
+pad b release
+wait 250
+pad rt press
+wait 250
+expect led b2 white
+pad rt release
+wait 250
+pad lt press
+wait 250
+expect led b2 white
+pad lt release
+wait 250
+pad left press
+wait 250
+expect led b2 white
+pad left release
+wait 250
+pad down press
+wait 250
+expect led b2 white
+pad down release
+wait 250
+pad right press
+wait 250
+expect led b2 white
+pad right release
+wait 250
+pad up press
+wait 250
+expect led b2 white
+pad up release
+wait 250
+pad r3 press
+wait 250
+expect led b2 white
+pad r3 release
+wait 250
+expect led b2 purple
+expect finite

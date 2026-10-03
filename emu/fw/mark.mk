@@ -11,3 +11,4 @@ FW_STUBS  := src/stubs_usbhost.cpp src/emu_ctl.cpp
 EMU_LABELS     := TRACK 1|TRACK 2|TRACK 3|TRACK 4|TRACK 5|TRACK SEL
 EMU_LABELS_ALT := QUANTIZE|REC ->|DUB|PLAY|TEMPO|MASTER
 FW_MAIN_FLAGS := -include include/fw/mark_prefix.h
+EMUFLAGS_mark_core_alchemy := -include include/fw/mark_core_prefix.h

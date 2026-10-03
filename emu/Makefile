@@ -18,7 +18,7 @@ TIMOS       ?= $(HOME)/tim-os
 ALCHEMY_DIR ?= $(TIMOS)/belt-alchemy/lib/alchemy-sdk
 LIBDAISY_DIR ?= $(TIMOS)/belt-alchemy/lib/libDaisy
 FATFS       := $(LIBDAISY_DIR)/Middlewares/Third_Party/FatFs/src
-BUILD       := build/$(FW)
+BUILD       := build/$(FW)$(if $(SAN),-$(SAN))
 
 ifneq ($(filter $(FW),clouds elements marbles meld plaits warps),)
 include fw/mi.mk
@@ -39,8 +39,10 @@ INCS := -Iinclude -Isrc $(FW_INCS) \
         -I$(ALCHEMY_DIR)/hardware/alchemy-lab/v2/include \
         -I$(ALCHEMY_DIR)/tests/host -Iinclude/fatfs_conf -I$(FATFS) -I$(ALCHEMY_DIR)
 
-CXXFLAGS := -std=gnu++17 -O2 -g -w $(DEFS) $(INCS) $(SDL_CFLAGS)
-CFLAGS   := -std=gnu11 -O2 -g -w $(DEFS) $(INCS) $(FW_CFLAGS)
+# SAN=thread / SAN=address: a sanitizer build in build/<fw>-<san>/
+SANFLAGS := $(if $(SAN),-fsanitize=$(SAN) -fno-omit-frame-pointer)
+CXXFLAGS := -std=gnu++17 -O2 -g -w $(DEFS) $(INCS) $(SDL_CFLAGS) $(SANFLAGS)
+CFLAGS   := -std=gnu11 -O2 -g -w $(DEFS) $(INCS) $(FW_CFLAGS) $(SANFLAGS)
 
 SDK_SRC := \
   framework/src/surface/control_loop.cpp framework/src/surface/cv_matrix.cpp \
@@ -75,7 +77,7 @@ HDRS := $(wildcard include/*.h include/*/*.h include/*/*/*.h src/*.h)
 all: $(BUILD)/emu
 
 $(BUILD)/emu: $(OBJS)
-	$(CXX) $(OBJS) $(SDL_LIBS) $(FW_LDFLAGS) -o $@
+	$(CXX) $(OBJS) $(SDL_LIBS) $(FW_LDFLAGS) $(SANFLAGS) -o $@
 
 # The firmware's own TU: its main() becomes firmware_main(), ELF sections go.
 $(BUILD)/obj/firmware.o: $(FW_MAIN) $(HDRS)
@@ -87,10 +89,11 @@ $(call objname,$(1)): $(1) $(HDRS)
 	@mkdir -p $$(dir $$@)
 	$$(CXX) $$(CXXFLAGS) -include include/emu_prefix.h -c $$< -o $$@
 endef
+# per-file extras from fw/<fw>.mk: EMUFLAGS_<file basename>
 define C_RULE
-$(call objname,$(1)): $(1)
+$(call objname,$(1)): $(1) $(HDRS)
 	@mkdir -p $$(dir $$@)
-	$$(CC) $$(CFLAGS) -include include/emu_prefix.h -c $$< -o $$@
+	$$(CC) $$(CFLAGS) -include include/emu_prefix.h $$(EMUFLAGS_$(notdir $(basename $(1)))) -c $$< -o $$@
 endef
 define CC_RULE
 $(call objname,$(1)): $(1)

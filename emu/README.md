@@ -25,6 +25,8 @@ core) are compiled **as they are**; only the board is replaced:
 
 Host-only adjustments, all in `fw/` / `include/fw/`, none in firmware source:
 Mark's pool 62 → 72 MiB (8-byte pointers outgrow the M7's 99.6 %-full pool);
+Mark's engine without threads / dlopen / directories, as on the module
+(`include/fw/mark_core_prefix.h` mirrors its `host_stubs.c`);
 Elements' ELF asm-labelled sample arrays aliased for Mach-O; Elements'
 `elements.smp` built by its own tool and put on the card.
 
@@ -61,6 +63,7 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 
 | FW | Functional test |
 |---|---|
+| belt, mark, smack | **controllers_full**: every documented Launchpad / Launch Control XL / Haute42 function — Belt 94 checks (all 12 KEY pads, all 9 SCALE pads, HARD / MUTE tap + hold, HOLD, PLAY held notes sound, all 6 faders, voice / key / scale knobs, all buttons, all 13 punch buttons), Mark 44 (record / play / overdub / undo / redo / stop / ALL / clear per track from both controllers, levels, master, pan), Smack 194 (all 27 punch pads and every Haute42 button checked by the effect name on the OLED, PUNCH FX knob, LIVE, RE-ROLL, CLEAR, capture, all faders and SETUP knobs, the 8 lower punch buttons) |
 | belt | HOLD Freeze (B2 0.6 s, sustains in silence, ignores a new note, fades), HOLD Lock via Settings + J8 gate, B2 mute; **controllers**: HOLD from Launchpad top 4 / XL upper 3 / Haute42 L3, the Launchpad KEY keyboard really changes key (C♯4 for A's +3rd in D), XL HARMONY fader |
 | mark | record → play a loop, plays in silence; **Settings closed with B2 doesn't stop it** (75196d5 fix); B2 stops; **controllers**: Launchpad row 1 records / plays / stops track 1, XL fader 1 is its level, XL button 1 lit in its state |
 | smack | capture loops in silence; OLED follows FX; **Settings closed with B2 doesn't punch**; **controllers**: Launchpad top 1 captures, a held row-1 pad punches (green, B1 white), a held Haute42 button punches (B2 white) |
@@ -71,8 +74,9 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 | plaits | drones from boot (Auto), strike decays, a J3 trigger plays |
 
 Script language: top of `src/emu_script.cpp` (`pot`, `press`/`hold`/`tap`,
-`cv`, `sing`, `lp`, `xl`, `pad`, `expect led|lp|xl|rms|tone|cv|cvrange|screen|
-booted|alive|finite`, `snapshot`). A `#!args --usb launchpad` line gives a
+`cv`, `sing`, `lp`, `xl`, `pad`, `expect led|lp|xl|ring|ringchanged|pan|
+lpmoves|lpstill|rms|tone|cv|cvrange|screen|booted|alive|finite`, `snapshot`).
+`make FW=mark SAN=thread` builds a ThreadSanitizer variant (build/mark-thread/). A `#!args --usb launchpad` line gives a
 script its command-line options.
 
 ## Not modelled

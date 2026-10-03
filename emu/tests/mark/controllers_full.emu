@@ -1,0 +1,194 @@
+# Mark: every controller function (Launchpad Mini MK3, Launch Control XL,
+# Haute42), checked against what mark_alchemy.cpp documents.
+#  Launchpad rows 1-5 = tracks: pad 1 REC/PLAY (tap; hold 0.6 s undo/redo;
+#  2 s clear), pad 2 STOP, pads 3-8 playhead; top 1 ALL, top 2 UNDO/REDO.
+#  XL faders 1-5 levels, 6 master; knob row 3 = pan; upper 1-5 REC/PLAY,
+#  6 ALL; lower 1-5 STOP, 6 UNDO/REDO.
+#!args --usb launchpad
+wait 4500
+xl fader 1 110
+xl fader 2 110
+xl fader 3 110
+xl fader 6 110             # MASTER
+wait 300
+expect lp 1 1 7            # track 1 empty: dim red
+expect lp 2 1 off
+expect xl button 1 1 0x0C
+# -- track 1 from the Launchpad: record, play
+sing 220
+wait 500
+lp tap 1 1
+wait 300
+expect lp 1 1 5            # recording: red
+expect xl button 1 1 0x0F
+wait 1500
+lp tap 1 1                 # play (the first loop's length is the bar)
+wait 400
+expect lp 1 1 21           # playing: green
+expect xl button 1 1 0x3C
+expect lp 2 1 7            # STOP pad lit: the track has content
+expect xl button 2 1 0x0D
+expect lpmoves 1           # the playhead
+silence
+wait 600
+mark
+wait 400
+expect rms > 0.02
+# -- overdub, then undo / redo
+sing 330
+lp tap 1 1                 # play -> overdub
+wait 2000                  # a bar, so the change lands
+expect lp 1 1 13           # overdubbing: amber
+expect xl button 1 1 0x3F
+lp tap 1 1                 # overdub -> play
+wait 2000
+silence
+expect lp 1 1 21
+expect lp top 2 13         # undo available: amber
+expect xl button 2 6 0x3F
+lp press 1 1               # hold 0.6 s: undo
+wait 900
+lp release 1 1
+wait 2000
+expect lp top 2 21         # now redo: green
+lp top 2                   # top 2: redo
+wait 2000
+expect lp top 2 13
+# -- STOP from the Launchpad, ALL from top 1
+lp tap 2 1
+wait 2000
+expect lp 1 1 23           # stopped: dim green
+expect lpstill 1
+expect xl button 1 1 0x1C
+mark
+wait 400
+expect rms < 0.003
+lp top 1                   # ALL start
+wait 2000
+expect lp 1 1 21
+lp top 1                   # ALL stop
+wait 2000
+expect lp 1 1 23
+# -- track 2 from the XL: upper button 2 records / plays, lower 2 stops
+sing 262
+xl button 1 2
+wait 2000                  # waits for the bar, then records
+expect xl button 1 2 0x0F
+expect lp 1 2 5
+wait 1600
+xl button 1 2
+wait 2000
+silence
+expect xl button 1 2 0x3C
+expect lp 1 2 21
+expect lpmoves 2
+mark
+wait 400
+expect rms > 0.02
+xl button 2 2              # STOP track 2
+wait 2000
+expect xl button 1 2 0x1C
+expect lp 1 2 23
+# -- XL upper 6 = ALL, lower 6 = UNDO/REDO
+xl button 1 6
+wait 2000
+expect lp 1 1 21
+expect lp 1 2 21
+# -- XL faders: a track's level, the master
+xl fader 1 0
+xl fader 2 0
+wait 600
+mark
+wait 400
+expect rms < 0.003
+xl fader 1 110
+wait 600
+mark
+wait 400
+expect rms > 0.02
+xl fader 6 0               # MASTER down
+wait 600
+mark
+wait 400
+expect rms < 0.003
+xl fader 6 110
+wait 300
+# -- XL knob row 3 = PAN, per track (track 1 alone)
+xl knob 3 1 0
+wait 800
+expect pan left
+xl knob 3 1 127
+wait 800
+expect pan right
+xl knob 3 1 64
+wait 800
+expect pan centre
+# -- Haute42: every punch button (output stays finite, the loop survives)
+pad x press
+wait 300
+pad x release
+wait 150
+pad y press
+wait 300
+pad y release
+wait 150
+pad rb press
+wait 300
+pad rb release
+wait 150
+pad lb press
+wait 300
+pad lb release
+wait 150
+pad a press
+wait 300
+pad a release
+wait 150
+pad b press
+wait 300
+pad b release
+wait 150
+pad rt press
+wait 300
+pad rt release
+wait 150
+pad lt press
+wait 300
+pad lt release
+wait 150
+pad left press
+wait 300
+pad left release
+wait 150
+pad down press
+wait 300
+pad down release
+wait 150
+pad right press
+wait 300
+pad right release
+wait 150
+pad up press
+wait 300
+pad up release
+wait 150
+pad l3 press
+wait 300
+pad l3 release
+wait 150
+pad r3 press
+wait 300
+pad r3 release
+wait 150
+wait 1500
+mark
+wait 400
+expect rms > 0.02
+expect finite
+# -- clear: hold pad 1 two seconds
+lp press 1 2
+wait 2400
+lp release 1 2
+wait 600
+expect lp 1 2 7            # empty again
+expect lp 2 2 off

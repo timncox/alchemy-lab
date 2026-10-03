@@ -59,6 +59,7 @@ static double             g_synth_ph = 0.0;
 static std::atomic<float> g_out_rms_acc{0.f};
 /* the last 16384 output samples (mono), for pitch checks */
 static float              g_tap[16384];
+static float              g_tap_l[16384], g_tap_r[16384];
 static std::atomic<size_t> g_tap_w{0};
 static std::atomic<uint32_t> g_out_rms_n{0};
 static std::atomic<uint32_t> g_bad{0};        /* NaN / inf output samples */
@@ -86,6 +87,20 @@ float ToneLevel(float hz)
 void OutputHealth(uint32_t* bad, uint32_t* pinned, uint64_t* frames)
 {
     *bad = g_bad.load(); *pinned = g_pinned.load(); *frames = g_frames.load();
+}
+
+/* RMS of the left and right outputs over the last 8192 samples. */
+void LrRms(float* l, float* r)
+{
+    const size_t n = 8192, end = g_tap_w.load();
+    double a = 0, b = 0;
+    for (size_t i = 0; i < n; i++)
+    {
+        const float x = g_tap_l[(end - n + i) & 16383u], y = g_tap_r[(end - n + i) & 16383u];
+        a += x * x; b += y * y;
+    }
+    *l = (float)std::sqrt(a / n);
+    *r = (float)std::sqrt(b / n);
 }
 
 float InLevel()  { return g_in_level.load(); }
@@ -167,6 +182,8 @@ void Render(float* out, size_t frames)
             acc += m * m;
             const size_t w = g_tap_w.load();
             g_tap[w & 16383u] = m;
+            g_tap_l[w & 16383u] = ol[i];
+            g_tap_r[w & 16383u] = orr[i];
             g_tap_w = w + 1;
         }
         done += n;

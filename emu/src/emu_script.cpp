@@ -29,6 +29,12 @@
  *   xl button <row 1-2> <col> [press|release]
  *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
  *   expect lp <col> <row> <colour> | expect lp top <n> <colour>
+ *                                    (<colour> a number = that palette index)
+ *   expect ring <pot> > | < <n>      lit LEDs on that pot's ring
+ *   ringsave <pot> / expect ringchanged <pot>   the ring's LEDs moved
+ *   expect pan left|right|centre     the output's L/R balance (last 8192)
+ *   expect lpmoves <row>             the Launchpad row animates (playhead)
+ *   expect lpstill <row>             pads 3-8 of that row are dark
  *   expect xl button|knob <row> <col> <colour>
  *   print leds                       the three button pairs, raw
  *   print tones                      A3..C5 amplitudes in the output
@@ -220,7 +226,9 @@ int emu_script_run(const char* path)
             else { idx = emu::ctl::LpGrid(std::atoi(b) - 1, std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "pad %s,%s", b, c); }
             emu::LpRgb(idx, &r, &g, &bl);
             const char* got = classify(r, g, bl);
-            const bool ok = !std::strcmp(got, want);
+            /* a number = that exact palette index (bright vs dim) */
+            const bool ok = (want[0] >= '0' && want[0] <= '9') ? idx == (uint8_t)std::strtol(want, nullptr, 0)
+                                                              : !std::strcmp(got, want);
             std::printf("%s line %d: Launchpad %s is %s (palette %u), want %s\n", ok ? "PASS" : "FAIL", line_no, where, got, idx, want);
             if (!ok) fails++;
         }
@@ -232,8 +240,87 @@ int emu_script_run(const char* path)
             uint8_t r, g, bl;
             emu::XlRgb(col, &r, &g, &bl);
             const char* got = classify(r, g, bl);
-            const bool ok = !std::strcmp(got, e);
+            /* a number (0x..) = that exact LED byte: launchpad.h xl::Col(red, green) */
+            const bool ok = (e[0] >= '0' && e[0] <= '9') ? col == (uint8_t)std::strtol(e, nullptr, 0)
+                                                        : !std::strcmp(got, e);
             std::printf("%s line %d: XL %s %d,%d is %s (0x%02X), want %s\n", ok ? "PASS" : "FAIL", line_no, b, r0 + 1, c0 + 1, got, col, e);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "ring"))
+        {
+            /* expect ring <pot 1-6> > | < <n>: lit LEDs on that pot's ring */
+            emu::LedFrame fr;
+            emu::ReadLeds(&fr);
+            const alchemy::LedRingLayout& ring = alchemy::kAlchemyLabV2Layout.rings[std::atoi(b) - 1];
+            int lit = 0;
+            for (int k = 0; k < ring.led_count; k++)
+            {
+                const uint8_t* px = fr.rgb[ring.chain_start + k];
+                if (px[0] | px[1] | px[2]) lit++;
+            }
+            const int want = std::atoi(d);
+            const bool ok = !std::strcmp(c, ">") ? lit > want : lit < want;
+            std::printf("%s line %d: P%s ring has %d lit, want %s %d\n", ok ? "PASS" : "FAIL", line_no, b, lit, c, want);
+            if (!ok) fails++;
+        }
+        else if (C == "ringsave" || (C == "expect" && !std::strcmp(a, "ringchanged")))
+        {
+            /* ringsave <pot>; expect ringchanged <pot>: the ring's LEDs differ */
+            static uint64_t saved[6];
+            const int pot = std::atoi(C == "ringsave" ? a : b) - 1;
+            emu::LedFrame fr;
+            emu::ReadLeds(&fr);
+            const alchemy::LedRingLayout& ring = alchemy::kAlchemyLabV2Layout.rings[pot];
+            uint64_t h = 1469598103934665603ull;
+            for (int k = 0; k < ring.led_count; k++)
+                for (int ch = 0; ch < 3; ch++) h = (h ^ fr.rgb[ring.chain_start + k][ch]) * 1099511628211ull;
+            if (C == "ringsave") saved[pot] = h;
+            else
+            {
+                const bool ok = h != saved[pot];
+                std::printf("%s line %d: P%d ring %s\n", ok ? "PASS" : "FAIL", line_no, pot + 1, ok ? "changed" : "unchanged");
+                if (!ok) fails++;
+            }
+        }
+        else if (C == "expect" && !std::strcmp(a, "pan"))
+        {
+            /* expect pan left|right|centre: the output's L/R balance */
+            float l, r;
+            emu::LrRms(&l, &r);
+            const float ratio = (l + 1e-6f) / (r + 1e-6f);
+            bool ok;
+            if (!std::strcmp(b, "left")) ok = ratio > 2.0f;
+            else if (!std::strcmp(b, "right")) ok = ratio < 0.5f;
+            else ok = ratio > 0.7f && ratio < 1.4f;
+            std::printf("%s line %d: L %.4f R %.4f (L/R %.2f), want %s\n", ok ? "PASS" : "FAIL", line_no, l, r, ratio, b);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "lpmoves"))
+        {
+            /* expect lpmoves <row 1-8>: the row's pattern changes within 1.5 s (a playhead) */
+            const int y = std::atoi(b) - 1;
+            uint64_t first = 0;
+            int changes = 0;
+            for (int k = 0; k < 30; k++)
+            {
+                uint64_t pat = 0;
+                for (int x = 0; x < 8; x++) pat = (pat << 8) | emu::ctl::LpGrid(x, y);
+                if (k == 0) first = pat;
+                else if (pat != first) { changes++; first = pat; }
+                sleep_ms(50);
+            }
+            const bool ok = changes >= 1;
+            std::printf("%s line %d: Launchpad row %s changed %d time(s) in 1.5 s\n", ok ? "PASS" : "FAIL", line_no, b, changes);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "lpstill"))
+        {
+            /* expect lpstill <row>: the row is dark (no playhead) */
+            const int y = std::atoi(b) - 1;
+            int lit = 0;
+            for (int x = 2; x < 8; x++) if (emu::ctl::LpGrid(x, y)) lit++;
+            const bool ok = lit == 0;
+            std::printf("%s line %d: Launchpad row %s pads 3-8 lit: %d, want 0\n", ok ? "PASS" : "FAIL", line_no, b, lit);
             if (!ok) fails++;
         }
         else if (C == "expect" && !std::strcmp(a, "booted"))
