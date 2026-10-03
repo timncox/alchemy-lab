@@ -23,6 +23,13 @@
  *   expect cv <3-10> > | < <volts>   a jack the firmware drives as an output
  *   expect cvrange <3-10> > <volts>  that output swings more than <volts> in 2 s
  *   print rms | cv                   output level since mark / CV outputs
+ *   lp tap|press|release <col> <row>  Launchpad grid, 1-based, rows top-down
+ *   lp top|side <n> [press|release]  its top row / right column (default tap)
+ *   xl knob <row 1-3> <col> <0-127>  Launch Control XL; xl fader <col> <v>;
+ *   xl button <row 1-2> <col> [press|release]
+ *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
+ *   expect lp <col> <row> <colour> | expect lp top <n> <colour>
+ *   expect xl button|knob <row> <col> <colour>
  *   print leds                       the three button pairs, raw
  *   print tones                      A3..C5 amplitudes in the output
  *   print screen                     the OLED's two lines
@@ -98,6 +105,17 @@ const char* classify(int r, int g, int b)
     return "mixed";
 }
 
+uint32_t pad_bit(const char* n)
+{
+    static const struct { const char* n; uint32_t b; } k[] = {
+        {"up", 1u << 0}, {"down", 1u << 1}, {"left", 1u << 2}, {"right", 1u << 3},
+        {"start", 1u << 4}, {"back", 1u << 5}, {"l3", 1u << 6}, {"r3", 1u << 7},
+        {"lb", 1u << 8}, {"rb", 1u << 9}, {"guide", 1u << 10}, {"a", 1u << 12},
+        {"b", 1u << 13}, {"x", 1u << 14}, {"y", 1u << 15}, {"lt", 1u << 16}, {"rt", 1u << 17}};
+    for (const auto& e : k) if (!std::strcmp(n, e.n)) return e.b;
+    return 0;
+}
+
 } // namespace
 
 int emu_ui_snapshot(const char* path);
@@ -149,6 +167,74 @@ int emu_script_run(const char* path)
                 button_rgb(i, &r, &g, &bl);
                 std::printf("  b%d = %3d %3d %3d (%s)\n", i + 1, r, g, bl, classify(r, g, bl));
             }
+        }
+        else if (C == "lp")
+        {
+            /* lp tap|press|release <col 1-8> <row 1-8, top-down>; lp top <n> [press|release] */
+            if (!std::strcmp(a, "top") || !std::strcmp(a, "side"))
+            {
+                const int kind = !std::strcmp(a, "top") ? 2 : 1, n = std::atoi(b) - 1;
+                const bool press = !std::strcmp(c, "press"), rel = !std::strcmp(c, "release");
+                if (!rel) emu::ctl::LpEvent(kind, kind == 2 ? n : 0, kind == 1 ? n : 0, true);
+                if (!press && !rel) sleep_ms(80);
+                if (!press) emu::ctl::LpEvent(kind, kind == 2 ? n : 0, kind == 1 ? n : 0, false);
+            }
+            else
+            {
+                const int x = std::atoi(b) - 1, y = std::atoi(c) - 1;
+                if (std::strcmp(a, "release")) emu::ctl::LpEvent(0, x, y, true);
+                if (!std::strcmp(a, "tap")) sleep_ms(80);
+                if (std::strcmp(a, "press")) emu::ctl::LpEvent(0, x, y, false);
+            }
+        }
+        else if (C == "xl")
+        {
+            /* xl knob <row 1-3> <col 1-8> <0-127> | xl fader <col> <v> | xl button <row 1-2> <col> [press|release] */
+            if (!std::strcmp(a, "knob")) emu::ctl::XlKnob(std::atoi(b) - 1, std::atoi(c) - 1, std::atoi(d));
+            else if (!std::strcmp(a, "fader")) emu::ctl::XlFader(std::atoi(b) - 1, std::atoi(c));
+            else if (!std::strcmp(a, "button"))
+            {
+                const int r = std::atoi(b) - 1, cl = std::atoi(c) - 1;
+                const bool press = !std::strcmp(d, "press"), rel = !std::strcmp(d, "release");
+                if (!rel) emu::ctl::XlButton(r, cl, true);
+                if (!press && !rel) sleep_ms(80);
+                if (!press) emu::ctl::XlButton(r, cl, false);
+            }
+        }
+        else if (C == "pad")
+        {
+            /* pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release] */
+            const uint32_t bit = pad_bit(a);
+            if (!bit) { std::printf("?? line %d: pad button %s\n", line_no, a); fails++; }
+            else if (!std::strcmp(b, "press")) emu::ctl::PadSet(bit, true);
+            else if (!std::strcmp(b, "release")) emu::ctl::PadSet(bit, false);
+            else { emu::ctl::PadSet(bit, true); sleep_ms(80); emu::ctl::PadSet(bit, false); }
+        }
+        else if (C == "expect" && !std::strcmp(a, "lp"))
+        {
+            /* expect lp <col> <row> <colour> | expect lp top <n> <colour> */
+            uint8_t idx, r, g, bl;
+            const char* want;
+            char where[32];
+            if (!std::strcmp(b, "top")) { idx = emu::ctl::LpTop(std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "top %s", c); }
+            else { idx = emu::ctl::LpGrid(std::atoi(b) - 1, std::atoi(c) - 1); want = d; std::snprintf(where, sizeof where, "pad %s,%s", b, c); }
+            emu::LpRgb(idx, &r, &g, &bl);
+            const char* got = classify(r, g, bl);
+            const bool ok = !std::strcmp(got, want);
+            std::printf("%s line %d: Launchpad %s is %s (palette %u), want %s\n", ok ? "PASS" : "FAIL", line_no, where, got, idx, want);
+            if (!ok) fails++;
+        }
+        else if (C == "expect" && !std::strcmp(a, "xl"))
+        {
+            /* expect xl button <row> <col> <colour> | expect xl knob <row> <col> <colour> */
+            const int r0 = std::atoi(c) - 1, c0 = std::atoi(d) - 1;
+            const uint8_t col = !std::strcmp(b, "button") ? emu::ctl::XlButtonLed(r0, c0) : emu::ctl::XlKnobLed(r0, c0);
+            uint8_t r, g, bl;
+            emu::XlRgb(col, &r, &g, &bl);
+            const char* got = classify(r, g, bl);
+            const bool ok = !std::strcmp(got, e);
+            std::printf("%s line %d: XL %s %d,%d is %s (0x%02X), want %s\n", ok ? "PASS" : "FAIL", line_no, b, r0 + 1, c0 + 1, got, col, e);
+            if (!ok) fails++;
         }
         else if (C == "expect" && !std::strcmp(a, "booted"))
         {

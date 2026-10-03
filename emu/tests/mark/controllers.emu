@@ -1,0 +1,37 @@
+# Mark with the emulated controllers (--usb launchpad): Launchpad row 1 is
+# track 1 (pad 1 REC/PLAY, pad 2 STOP), XL fader 1 its level, the XL upper
+# button 1 its REC/PLAY too.
+#!args --usb launchpad
+wait 4500
+pot 6 0.0                  # TRACK SELECT 1
+xl fader 1 110             # TRACK 1 level from the XL
+sing 220
+wait 500
+lp tap 1 1                 # record track 1
+wait 300
+expect lp 1 1 red
+wait 1700
+lp tap 1 1                 # play
+wait 300
+expect lp 1 1 green
+expect xl button 1 1 green
+silence
+wait 1000
+mark
+wait 500
+expect rms > 0.02
+xl fader 1 0               # level down from the XL
+wait 600
+mark
+wait 400
+expect rms < 0.003
+xl fader 1 110
+wait 600
+mark
+wait 400
+expect rms > 0.02
+lp tap 2 1                 # STOP track 1
+wait 600
+mark
+wait 400
+expect rms < 0.003

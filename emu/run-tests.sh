@@ -18,7 +18,10 @@ run_fw() {
     [ -f "$t" ] || continue
     local log="build/logs/$f-$(basename "$t" .emu).txt"
     # a hung firmware would stall forever: cap each script at 3 minutes
-    ( "build/$f/emu" --headless --flash none ${card[@]+"${card[@]}"} --script "$t" > "$log" 2>&1 ) &
+    local extra=()
+    local argline; argline=$(grep -m1 '^#!args ' "$t" | sed 's/^#!args //')
+    [ -n "$argline" ] && read -r -a extra <<< "$argline"
+    ( "build/$f/emu" --headless --flash none ${card[@]+"${card[@]}"} ${extra[@]+"${extra[@]}"} --script "$t" > "$log" 2>&1 ) &
     local pid=$! waited=0
     while kill -0 $pid 2>/dev/null; do
       sleep 1; waited=$((waited + 1))

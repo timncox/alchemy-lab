@@ -11,7 +11,8 @@ core) are compiled **as they are**; only the board is replaced:
 | QSPI flash at 0x90760000 | `~/.alchemy-emu/<Firmware>-flash.bin` (presets survive restarts; `--flash none` = RAM) |
 | SD card | a formatted 8 MB RAM disk under the real FatFS; `--card dir` copies a folder onto it |
 | Smack's 1U OLED | drawn on the panel; scripts read it (`expect screen`) |
-| SD picker, USB host (Launchpad / XL / gamepad), USB audio, HostLink's USB | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
+| Launchpad Mini MK3, Launch Control XL, Haute42 | `src/emu_ctl.cpp` — emulated devices behind the firmware's own `lp::` / `xl::` / `pad::` API (`--usb launchpad`), drawn beside the panel (`src/emu_ui_ctl.cpp`) |
+| SD picker, USB audio, HostLink's USB | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
 
 ## Firmwares (`fw/*.mk` says where each one's source comes from)
 
@@ -34,6 +35,16 @@ Elements' ELF asm-labelled sample arrays aliased for Mach-O; Elements'
     build/plaits/emu                # Mac mic in, default output out -- HEADPHONES
     build/elements/emu --card build/elements/card     # Elements needs its samples
     build/belt/emu --in voice.wav --record out.wav
+    build/belt/emu --usb launchpad      # Launchpad mode, with the three controllers plugged in
+
+`--usb launchpad` writes `usb.cfg` onto the card, so the firmware boots in
+Launchpad mode as the module does, and plugs in the emulated Launchpad Mini
+MK3, Launch Control XL and Haute42 (Belt, Mark and Smack only; the MI ports
+have no controller support). Click the Launchpad's pads, top row and side
+column; drag the XL's knobs and faders and click its buttons; click and hold
+the Haute42's buttons. Their LEDs are what the firmware sets. What runs is
+each firmware's own controller code (layouts, LED painting, the XL map, the
+gamepad punches); what's replaced is the USB-MIDI / XInput driver under it.
 
 Knobs: drag or scroll (double-click = centre). B1–B3: click and hold, or keys
 **1 2 3** (B2+B3 2 s = Settings). CV: drag a jack for volts, click GATE for
@@ -50,9 +61,9 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 
 | FW | Functional test |
 |---|---|
-| belt | HOLD Freeze (B2 0.6 s, sustains in silence, ignores a new note, fades), HOLD Lock via Settings + J8 gate, B2 mute |
-| mark | record → play a loop, plays in silence; **Settings closed with B2 doesn't stop it** (75196d5 fix); B2 stops |
-| smack | capture loops in silence; OLED follows FX; **Settings closed with B2 doesn't punch** |
+| belt | HOLD Freeze (B2 0.6 s, sustains in silence, ignores a new note, fades), HOLD Lock via Settings + J8 gate, B2 mute; **controllers**: HOLD from Launchpad top 4 / XL upper 3 / Haute42 L3, the Launchpad KEY keyboard really changes key (C♯4 for A's +3rd in D), XL HARMONY fader |
+| mark | record → play a loop, plays in silence; **Settings closed with B2 doesn't stop it** (75196d5 fix); B2 stops; **controllers**: Launchpad row 1 records / plays / stops track 1, XL fader 1 is its level, XL button 1 lit in its state |
+| smack | capture loops in silence; OLED follows FX; **Settings closed with B2 doesn't punch**; **controllers**: Launchpad top 1 captures, a held row-1 pad punches (green, B1 white), a held Haute42 button punches (B2 white) |
 | clouds | FREEZE holds the buffer in silence, B1 white; unfrozen it fades |
 | elements | STRIKE up: B1 and a J3 gate ring the resonator, it decays |
 | marbles | X1, X2 (J3, J4) wander and T3 (J7) gates on the internal clock |
@@ -60,11 +71,12 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 | plaits | drones from boot (Auto), strike decays, a J3 trigger plays |
 
 Script language: top of `src/emu_script.cpp` (`pot`, `press`/`hold`/`tap`,
-`cv`, `sing`, `expect led|rms|tone|cv|cvrange|screen|booted|alive|finite`,
-`snapshot`).
+`cv`, `sing`, `lp`, `xl`, `pad`, `expect led|lp|xl|rms|tone|cv|cvrange|screen|
+booted|alive|finite`, `snapshot`). A `#!args --usb launchpad` line gives a
+script its command-line options.
 
 ## Not modelled
 
 The M7's speed (CPU readings are the Mac's — check load on the module), the
-SD picker, Launchpad / Launch Control XL / Haute42 (next: CoreMIDI), USB
-audio mode, HostLink.
+SD picker, the controllers' USB drivers themselves (and real controllers
+plugged into the Mac — next: CoreMIDI), USB audio mode, HostLink.

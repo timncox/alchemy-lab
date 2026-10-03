@@ -2,15 +2,15 @@
 # turned; leaving Settings with B2 must not punch (Settings-exit fix).
 wait 3500
 sing 220
-wait 3000
+wait 8000                  # longer than LENGTH steps, so the loop is all voice
 hold b1 900                # hold > 0.6 s: capture the last LENGTH steps
 wait 600
 print leds
 expect led b1 green        # looping
 silence
-wait 1500
-mark
 wait 500
+mark
+wait 3000
 expect rms > 0.005         # the captured loop plays with silence coming in
 pot 1 0.3                  # turn FX
 wait 400

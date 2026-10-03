@@ -99,9 +99,12 @@ void LoadFlash()
 
 void FormatCard()
 {
-    ramdisk::Reset(16384u);   /* 8 MB */
+    /* FAT32 like the cards the firmwares expect; FAT32 needs >= 65,525
+     * clusters, so 64 MB of 512-byte clusters */
+    ramdisk::Reset(131072u);
     static uint8_t work[4096];
-    f_mkfs("0:", FM_FAT32 | FM_SFD, 512u, work, sizeof work);
+    const FRESULT fr = f_mkfs("0:", FM_FAT32 | FM_SFD, 512u, work, sizeof work);
+    if (fr != FR_OK) std::fprintf(stderr, "[emu] card format failed (%d)\n", (int)fr);
 }
 
 /* Copy a host directory onto the emulated card (recursively), e.g. the
@@ -145,7 +148,8 @@ static int copy_tree(const std::string& host, const std::string& card)
 void FillCard(const std::string& host_dir)
 {
     static FATFS fs;
-    if (f_mount(&fs, "0:", 1) != FR_OK) return;
+    const FRESULT fr = f_mount(&fs, "0:", 1);
+    if (fr != FR_OK) { std::fprintf(stderr, "[emu] card mount failed (%d)\n", (int)fr); return; }
     const int n = copy_tree(host_dir, "0:");
     f_mount(nullptr, "0:", 0);
     std::fprintf(stderr, "[emu] card: %d file(s) from %s\n", n, host_dir.c_str());
@@ -229,3 +233,22 @@ void AlchemyLabV2::StartAudio(daisy::AudioHandle::AudioCallback cb) { g_cb = cb;
 } // namespace alchemy
 
 uint32_t emu::ShowCount() { return alchemy::g_shows.load(); }
+
+void emu::WriteCardFile(const char* dir, const char* path, const char* text)
+{
+    static FATFS fs;
+    FRESULT fr = f_mount(&fs, "0:", 1);
+    if (fr != FR_OK) { std::fprintf(stderr, "[emu] card mount failed (%d)\n", (int)fr); return; }
+    f_mkdir(dir);
+    FIL f;
+    fr = f_open(&f, path, FA_WRITE | FA_CREATE_ALWAYS);
+    if (fr == FR_OK)
+    {
+        UINT w = 0;
+        f_write(&f, text, (UINT)std::strlen(text), &w);
+        f_close(&f);
+        std::fprintf(stderr, "[emu] card: wrote %s\n", path);
+    }
+    else std::fprintf(stderr, "[emu] card: cannot write %s (%d)\n", path, (int)fr);
+    f_mount(nullptr, "0:", 0);
+}

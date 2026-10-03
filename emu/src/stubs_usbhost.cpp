@@ -1,7 +1,6 @@
 /*
- * The USB host (Launchpad Mini MK3 / Launch Control XL / gamepad) and the USB
- * audio interface of Belt, Mark and Smack: not connected / never started.
- * The gamepad's buttons can be held from a script (emu::PadSetButtons).
+ * The USB audio interface of Belt, Mark and Smack: never started. (Their USB
+ * host controllers are emulated in emu_ctl.cpp.)
  */
 #include <atomic>
 #include <cstdio>
@@ -11,45 +10,7 @@
 #include "usb_audio.h"
 #include "emu.h"
 
-/* ---- Launchpad Mini MK3: not connected ---- */
-namespace lp {
-void    Init() {}
-void    Poll(uint32_t) {}
-bool    Connected() { return false; }
-bool    PopEvent(Event*) { return false; }
-void    SetGrid(uint8_t, uint8_t, uint8_t) {}
-void    SetSide(uint8_t, uint8_t) {}
-void    SetTop(uint8_t, uint8_t) {}
-void    SetLogo(uint8_t) {}
-void    ClearAll() {}
-uint8_t Stage() { return 3; }   /* "running" */
-int     Report(char* buf, int cap) { return cap > 0 ? std::snprintf(buf, (size_t)cap, "emulator\n") : 0; }
-uint32_t RxCount() { return 0; }
-Diag     Diagnostics() { return Diag{}; }
-uint32_t TxCount() { return 0; }
-} // namespace lp
-
-/* ---- Launch Control XL: not connected ---- */
-namespace xl {
-bool    Connected() { return false; }
-bool    Knob(uint8_t, uint8_t, uint8_t*) { return false; }
-bool    Fader(uint8_t, uint8_t*) { return false; }
-uint8_t KnobValue(uint8_t, uint8_t) { return 0; }
-bool    PopButton(Button*) { return false; }
-void    SetKnobLed(uint8_t, uint8_t, uint8_t) {}
-void    SetButtonLed(uint8_t, uint8_t, uint8_t) {}
-} // namespace xl
-
-/* ---- Gamepad: the emulator panel holds its buttons ---- */
-namespace {
-std::atomic<uint32_t> g_pad{0};
-}
-void emu::PadSetButtons(uint32_t mask) { g_pad = mask; }
-namespace pad {
-bool     Connected() { return true; }
-uint32_t Buttons() { return g_pad.load(); }
-uint32_t ReportCount() { return 0; }
-} // namespace pad
+/* Launchpad / Launch Control XL / gamepad: emu_ctl.cpp (emulated devices). */
 
 /* ---- USB audio interface: never started ---- */
 extern "C" {

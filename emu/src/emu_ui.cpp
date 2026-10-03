@@ -22,6 +22,11 @@
 
 void emu_text(SDL_Renderer* r, int x, int y, int s, const char* t, SDL_Color c);
 int  emu_text_width(const char* t, int s);
+int  emu_ctl_width();                                  /* emu_ui_ctl.cpp */
+void emu_ctl_draw(SDL_Renderer* r, int x0, int h);
+bool emu_ctl_mouse_down(int x, int y);
+void emu_ctl_mouse_motion(int x, int y);
+void emu_ctl_mouse_up();
 
 namespace {
 
@@ -259,6 +264,7 @@ void draw(Ui& u)
     emu_text(r, kW - 40 - emu_text_width(st, 2), 40, 2, st, kInk);
     emu_text(r, 40, kH - 34, 1, "DRAG KNOBS (DOUBLE-CLICK = CENTRE)   CLICK/HOLD B1-B3 OR KEYS 1 2 3   ESC = QUIT", kDim);
 
+    emu_ctl_draw(r, kW, kH);
     SDL_RenderPresent(r);
 }
 
@@ -276,10 +282,10 @@ int emu_ui_run(bool want_mic)
     if (!emu::StartSoundCard(want_mic)) std::fprintf(stderr, "[emu] running without sound\n");
     Ui u;
     u.win = SDL_CreateWindow(EMU_FW_NAME " - Alchemy Lab emulator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                             kW, kH, SDL_WINDOW_ALLOW_HIGHDPI);
+                             kW + emu_ctl_width(), kH, SDL_WINDOW_ALLOW_HIGHDPI);
     u.ren = SDL_CreateRenderer(u.win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!u.win || !u.ren) { std::fprintf(stderr, "[emu] window: %s\n", SDL_GetError()); return 1; }
-    SDL_RenderSetLogicalSize(u.ren, kW, kH);
+    SDL_RenderSetLogicalSize(u.ren, kW + emu_ctl_width(), kH);
 
     auto& P = emu::Panel();
     for (bool run = true; run;)
@@ -305,6 +311,7 @@ int emu_ui_run(bool want_mic)
             case SDL_MOUSEBUTTONDOWN:
             {
                 const int x = e.button.x, y = e.button.y;
+                if (emu_ctl_mouse_down(x, y)) break;
                 const int p = pot_at(x, y);
                 bool gate = false;
                 const int j = jack_at(x, y, &gate);
@@ -321,10 +328,12 @@ int emu_ui_run(bool want_mic)
                 break;
             }
             case SDL_MOUSEBUTTONUP:
+                emu_ctl_mouse_up();
                 u.drag_pot = -1; u.drag_jack = -1;
                 if (u.mouse_btn >= 0) { u.mouse_btn = -1; apply_buttons(u); }
                 break;
             case SDL_MOUSEMOTION:
+                emu_ctl_mouse_motion(e.motion.x, e.motion.y);
                 if (u.drag_pot >= 0)
                 {
                     float v = u.drag_v0 + (float)(u.drag_y - e.motion.y) / 240.0f;
@@ -359,7 +368,7 @@ int emu_ui_run(bool want_mic)
  * scripts: `snapshot file.bmp`). */
 int emu_ui_snapshot(const char* path)
 {
-    SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, kW, kH, 32, SDL_PIXELFORMAT_RGBA32);
+    SDL_Surface* s = SDL_CreateRGBSurfaceWithFormat(0, kW + emu_ctl_width(), kH, 32, SDL_PIXELFORMAT_RGBA32);
     if (!s) return 1;
     Ui u;
     u.ren = SDL_CreateSoftwareRenderer(s);

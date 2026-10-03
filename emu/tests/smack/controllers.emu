@@ -1,0 +1,30 @@
+# Smack with the emulated controllers (--usb launchpad): Launchpad top 1
+# CAPTURE, a held pad on rows 1-4 punches (green while held), a held
+# Haute42 button punches too (B2 white).
+#!args --usb launchpad
+wait 4500
+sing 220
+wait 8000                  # longer than LENGTH steps, so the loop is all voice
+lp top 1 press             # CAPTURE (hold, like B1's > 0.6 s)
+wait 900
+lp top 1 release
+wait 600
+print leds
+expect led b1 green        # looping
+lp press 2 1               # hold a punch effect pad
+wait 300
+expect lp 2 1 green
+expect led b1 white        # punching
+lp release 2 1
+wait 300
+expect led b1 green
+pad a press                # a Haute42 button
+wait 300
+expect led b2 white
+pad a release
+wait 300
+silence
+wait 500
+mark
+wait 3000
+expect rms > 0.005         # the captured loop, over 3 s

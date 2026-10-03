@@ -1,0 +1,44 @@
+# Belt with the emulated Launchpad Mini MK3, Launch Control XL and Haute42
+# (--usb launchpad): every HOLD trigger, the KEY keyboard, the XL faders.
+#!args --usb launchpad
+wait 4500                  # Launchpad mode: the host starts 2 s after boot
+pot 1 0.04
+pot 2 0.17
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 220
+wait 1500
+expect lp top 1 red        # HARD (dim)
+expect lp top 4 blue       # HOLD (dim)
+expect lp 1 7 cyan         # voice 1 set (+3rd)
+expect lp 3 7 off          # voice 3 off
+lp top 4                   # HOLD from the Launchpad
+wait 300
+expect led b2 blue
+lp top 4
+wait 300
+expect led b2 purple
+xl button 1 3              # HOLD from the XL
+wait 300
+expect led b2 blue
+expect xl button 1 3 green
+xl button 1 3
+wait 300
+expect led b2 purple
+pad l3                     # HOLD from the Haute42 (L3)
+wait 300
+expect led b2 blue
+pad l3
+wait 300
+expect led b2 purple
+lp tap 2 2                 # KEY keyboard, naturals row: D
+wait 300
+expect lp 2 2 blue         # the key's root
+xl fader 3 0               # HARMONY fader down
+wait 600
+expect tone 329.63 < 0.005 # the harmonies gone
+xl fader 3 115
+wait 800
+expect tone 277.18 > 0.01  # back, now in D major: A's +3rd is C#4 ...
+expect tone 261.63 < 0.005 # ... not C4 (C major's)

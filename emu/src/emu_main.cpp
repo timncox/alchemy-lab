@@ -7,6 +7,8 @@
  *   belt-emu --headless --script t.emu [--in x.wav] [--record y.wav]
  *                                  no window, no sound card: run a script of
  *                                  panel actions and checks, exit 0 / 1
+ *   belt-emu --usb launchpad      boot in Launchpad mode with the emulated Launchpad
+ *                                 Mini MK3, Launch Control XL and Haute42 plugged in
  *   belt-emu --card dir           copy a host folder onto the emulated SD card
  *   belt-emu --flash path.bin      where presets persist (default
  *                                  ~/.alchemy-emu/belt-flash.bin; "none" = RAM)
@@ -315,6 +317,7 @@ int main(int argc, char** argv)
     const char* in_wav = nullptr;
     const char* rec = nullptr;
     const char* card = nullptr;
+    const char* usb  = nullptr;
     std::string flash = std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.alchemy-emu/" + std::string(EMU_FW_NAME) + "-flash.bin";
     for (int i = 1; i < argc; i++)
     {
@@ -325,6 +328,7 @@ int main(int argc, char** argv)
         else if (a == "--record" && i + 1 < argc) rec = argv[++i];
         else if (a == "--flash" && i + 1 < argc) flash = argv[++i];
         else if (a == "--card" && i + 1 < argc) card = argv[++i];
+        else if (a == "--usb" && i + 1 < argc) usb = argv[++i];
         else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none]\n", argv[0]); return 2; }
     }
     if (flash == "none") flash.clear();
@@ -338,6 +342,13 @@ int main(int argc, char** argv)
     emu::LoadFlash();
     emu::FormatCard();
     if (card) emu::FillCard(card);
+    if (usb)
+    {
+        /* the card's shared USB setting, as the module reads it at boot;
+         * launchpad also plugs in the emulated controllers */
+        emu::WriteCardFile("0:/alchemy", "0:/alchemy/usb.cfg", (std::string(usb) + "\n").c_str());
+        emu::ctl::Enable(usb[0] == 'l');
+    }
 
     auto& P = emu::Panel();
     for (int i = 0; i < alchemy::kNumPots; i++) P.pot[i] = 0.5f;
