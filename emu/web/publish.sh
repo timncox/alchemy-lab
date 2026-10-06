@@ -13,7 +13,9 @@ FWS=(belt mark smack clouds elements marbles meld plaits warps)
 mkdir -p "$DEST/fw" "$DEST/demo"
 python3 web/make_demos.py "$DEST/demo"
 manifest="{"
+# BELT_ROOT=<belt-alchemy worktree>: publish that Belt instead of fw/belt.mk's default
 for f in "${FWS[@]}"; do
+  if [ "$f" = belt ] && [ -n "${BELT_ROOT:-}" ]; then export FW_ROOT="$BELT_ROOT"; else unset FW_ROOT; fi
   make --no-print-directory WEB=1 FW="$f" -j8 >/dev/null
   mkdir -p "$DEST/fw/$f"
   rm -f "$DEST/fw/$f"/emu.*
