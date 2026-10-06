@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The browser emulator's demo inputs, synthesised so nothing here needs a
-licence: voice.wav (a sung "ah-oh-ee" phrase, for Belt and the effects) and
-beat.wav (two bars of drums, for Smack and Mark). 48 kHz mono 16-bit, each a
+licence: voice.wav (a sung "ah-oh-ee" phrase, for Belt and the effects),
+beat.wav (two bars of drums, for Smack and Mark) and pad.wav (four held
+chords, for Stencil to cut into rhythm). 48 kHz mono 16-bit, each a
 seamless loop.  python3 web/make_demos.py <outdir>"""
 import math, random, struct, sys, wave
 
@@ -91,7 +92,42 @@ def beat():
     return out
 
 
+def pad():
+    # Am F C G, two seconds each (one bar at 120 BPM): detuned saws through a
+    # gentle one-pole lowpass, so there's a held sound for a gate to cut.
+    chords = [(57, 60, 64, 69), (53, 57, 60, 65), (48, 55, 60, 64), (55, 59, 62, 67)]
+    seg = 2 * SR
+    n = seg * len(chords)
+    out = [0.0] * n
+    ph = {}
+    lp = 0.0
+    for ci, ch in enumerate(chords):
+        for k in range(seg):
+            i = ci * seg + k
+            v = 0.0
+            for m in ch:
+                for det in (-0.08, 0.0, 0.08):
+                    f = 440 * 2 ** ((m - 69 + det) / 12)
+                    key = (ci, m, det)
+                    p = ph.get(key, random.random()) + f / SR
+                    p -= int(p)
+                    ph[key] = p
+                    v += 2 * p - 1
+            lp += 0.08 * (v - lp)
+            out[i] = lp
+    # 30 ms fades at each chord change and at the loop point: no clicks
+    fade = int(0.03 * SR)
+    for ci in range(len(chords)):
+        a = ci * seg
+        for k in range(fade):
+            g = k / fade
+            out[a + k] *= g
+            out[a + seg - 1 - k] *= g
+    return out
+
+
 if __name__ == "__main__":
     d = sys.argv[1] if len(sys.argv) > 1 else "."
     write(f"{d}/voice.wav", voice())
     write(f"{d}/beat.wav", beat())
+    write(f"{d}/pad.wav", pad())
