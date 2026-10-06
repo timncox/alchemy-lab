@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Operation manual for Stencil, a rhythmic gate effect for the Hermetic Modular Alchemy Lab and the Daisy Patch: trance gates, sidechain pumping, filter gates and Morse-code words.">
+<title>Stencil for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/*
+  Stencil for Alchemy Lab — operation manual.
+
+  The family's dark world (Mark, Smack, Belt, Seq): the rack with the room
+  lights off. Ring and button colours are the firmware's own constants
+  (alchemy/src/stencil_alchemy.cpp). The accent pair is two of B1's source
+  colours: Morse cyan and bank amber. Single-theme, like the rest of the family.
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0c0d0e; --panel:#141618; --panel2:#1b1e21; --panel3:#24282c;
+  --ink:#ebeef0; --dim:#8f979e; --soft:#c7cdd2;
+  --line:rgba(235,238,240,.12); --line2:rgba(235,238,240,.06);
+  --acc:#20d0ff; --acc-soft:rgba(32,208,255,.13); --amber:#ffa020; --amber-soft:rgba(255,160,32,.13);
+  --euclid:#20ff40; --duck:#ff5000; --warn:#ff4a4a; --ok:#3ce07a;
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid rgba(32,208,255,.35)}
+a:hover{border-bottom-color:var(--acc)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(12,13,14,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{color:var(--acc);font-style:normal}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:44px;align-items:center}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.hero .heroplate{max-width:280px;margin:0 auto}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(64px,12vw,148px);line-height:.86;letter-spacing:-.03em;margin:0}
+h1.title em{font-style:normal;display:block;font-size:.3em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.5em}
+.tagline{font-family:var(--disp);font-weight:500;font-size:clamp(18px,2.5vw,24px);color:var(--soft);margin-top:22px;text-wrap:balance;max-width:34ch}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--soft);background:var(--panel)}
+.chip.ok{border-color:rgba(60,224,122,.4);color:var(--ok)}
+.chip.no{border-color:rgba(255,160,32,.45);color:var(--amber)}
+.heroplate svg{width:100%;height:auto;display:block;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-align:center;margin-top:12px}
+
+/* the tape strip in the hero */
+.tape{margin-top:28px;background:#2b2618;border-radius:3px;height:46px;position:relative;overflow:hidden}
+.tape canvas{display:block;width:100%;height:46px}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(32px,5vw,50px);letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 22px}
+.lede{font-size:18px;color:var(--soft);max-width:66ch}
+.prose{display:grid;gap:14px;max-width:70ch;color:var(--soft)}
+.prose b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+.cols.three{grid-template-columns:repeat(3,1fr)}
+@media(max-width:820px){.cols,.cols.three{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px;min-width:0}
+.card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.card.amber .k{color:var(--amber)} .card.green .k{color:var(--euclid)} .card.duck .k{color:var(--duck)}
+.card h4{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;line-height:1.15}
+.card p{color:var(--soft);font-size:15px}
+.card p + p{margin-top:8px}
+
+/* panel */
+.paneltool{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:36px;align-items:start;margin-top:28px}
+@media(max-width:820px){.paneltool{grid-template-columns:1fr}.paneltool .plate{max-width:300px;margin:0 auto}}
+.plate svg{width:100%;height:auto;display:block}
+.toggles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.tg{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;padding:7px 12px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--soft);cursor:pointer}
+.tg[aria-pressed="true"]{border-color:var(--acc);color:var(--ink);background:var(--acc-soft)}
+.kv{display:grid;gap:0;border-top:1px solid var(--line)}
+.kv div{display:grid;grid-template-columns:7.5em 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:15px}
+.kv dt,.kv .n{font-family:var(--mono);font-size:12px;color:var(--acc);letter-spacing:.04em;padding-top:2px}
+.kv dd{margin:0;color:var(--soft)}
+
+.tablewrap{overflow-x:auto;margin-top:22px;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:400;background:var(--panel)}
+td:first-child{font-family:var(--mono);font-size:12.5px;color:var(--acc);white-space:nowrap}
+td{color:var(--soft)}
+tr:last-child td{border-bottom:none}
+
+/* bank */
+.bank{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:22px}
+.pat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px;display:grid;gap:5px}
+.pat .cells{display:grid;grid-template-columns:repeat(16,1fr);gap:2px}
+.pat .cells i{height:10px;border-radius:1px;background:var(--panel3)}
+.pat .cells i.on{background:var(--amber)}
+.pat small{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+
+/* envelope lab */
+.envtool{display:grid;grid-template-columns:1fr 280px;gap:28px;margin-top:28px;align-items:start}
+@media(max-width:820px){.envtool{grid-template-columns:1fr}}
+.envtool svg{width:100%;height:auto;display:block;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.sliders{display:grid;gap:12px}
+.sl{display:grid;gap:2px}
+.sl label{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:flex;justify-content:space-between}
+.sl output{color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+
+/* morse demo */
+.morse{display:grid;gap:14px;margin-top:26px}
+.morse input{font-family:var(--disp);font-weight:800;font-size:clamp(28px,5vw,44px);letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--ink);border:0;border-bottom:2px solid var(--line);padding:4px 0;width:100%}
+.morse input:focus{outline:none;border-bottom-color:var(--acc)}
+.fitrow{display:flex;flex-wrap:wrap;gap:6px}
+.bars{font-family:var(--mono);font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.bars b{color:var(--ink);font-weight:600}
+.strip{overflow-x:auto;background:#2b2618;border-radius:3px}
+.strip canvas{display:block;height:58px}
+
+.cta{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;padding:11px 16px;border-radius:4px;background:var(--acc);color:#04161c;border:none;font-weight:600}
+.cta:hover{background:#6fe2ff}
+.note{font-size:14px;color:var(--dim);max-width:70ch}
+ol.steps{margin:0;padding-left:1.3em;display:grid;gap:10px;color:var(--soft);max-width:70ch}
+ol.steps b{color:var(--ink)}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:8px;color:var(--soft);max-width:72ch}
+footer{padding-block:40px 64px;color:var(--dim);font-size:14px}
+footer .wrap{display:grid;gap:8px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#top">Sten<em>cil</em></a>
+  <a class="s" href="#idea">Idea</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#patterns">Patterns</a>
+  <a class="s" href="#slice">The slice</a>
+  <a class="s" href="#morse">Morse</a>
+  <a class="s" href="#words">Words page</a>
+  <a class="s" href="#clock">Clock</a>
+  <a class="s" href="#patch">Daisy Patch</a>
+  <a class="s" href="#setup">Setup</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="https://timncox.github.io/alchemy-lab/">All instruments</a>
+</div></nav>
+
+<header id="top"><div class="wrap hero">
+  <div>
+    <div class="eyebrow">Alchemy Lab · Daisy Patch · rhythmic gate</div>
+    <h1 class="title">Stencil<em>cuts held sound into rhythm</em></h1>
+    <p class="tagline">Trance gates, sidechain pumping, filter gaps, and words spelled in Morse code over your pads and drones.</p>
+    <div class="status">
+      <span class="chip ok">Built and tested on a computer</span>
+      <span class="chip no">Not yet played on a module</span>
+      <span class="chip">Alchemy Lab + Daisy Patch</span>
+    </div>
+    <div class="tape" aria-hidden="true"><canvas id="heroTape"></canvas></div>
+  </div>
+  <div class="heroplate"><svg id="heroPlate" viewBox="-4 -2 69 133" role="img" aria-label="The Alchemy Lab panel running Stencil"></svg>
+    <div class="cap">PATTERN's ring draws the pattern itself</div></div>
+</div></header>
+
+<section id="idea"><div class="wrap">
+  <h2 class="sh">The idea</h2>
+  <p class="sub">A stencil for sound</p>
+  <div class="prose">
+    <p>Feed Stencil something that holds still: a pad, a string section, a drone, a noise wash. It opens and closes a gate in a repeating pattern, so the held sound comes out as rhythm. Where the pattern says open, you hear the sound. Where it says closed, you hear the gap.</p>
+    <p>Every opening has a shape, the <b>slice envelope</b>: how fast it opens (ATTACK), how long it stays open (GATE), how slowly it closes (RELEASE). Short, hard slices give the staccato trance gate. A long release that spills into the next step gives the loose, breathing pump of sidechain compression. Turn on <b>DUCK</b> and the level dips on each step instead of rising.</p>
+    <p>The gate doesn't have to be a volume control. Turn up <b>FILTER</b> and the gaps become a lowpass filter closing down, carving the highs away rather than muting, so the rhythm is in the brightness.</p>
+    <p>The pattern can come from a bank of sixteen, from an even <b>Euclidean</b> spread, or from a <b>word</b>. Type a word on the web page and Stencil spells it in Morse code: a dit is a short opening, a dah a long one. <b>FIT</b> sets it on the bar, so a name loops as a one-bar or two-bar phrase.</p>
+  </div>
+  <div class="cols three">
+    <div class="card amber"><div class="k">Bank</div><h4>Sixteen gates and yours</h4><p>The classic shapes: sixteenths, eighths, off-beats, 3-3-2, plus one pattern you draw on the web page.</p></div>
+    <div class="card green"><div class="k">Euclid</div><h4>Even spreads</h4><p>So many hits spread as evenly as possible over so many steps. Five over sixteen is a rhythm you already know.</p></div>
+    <div class="card"><div class="k">Morse</div><h4>Spell it</h4><p>Eight stored words, sent from your browser. Each one becomes its own rhythm, padded or stretched to fit the bar.</p></div>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <p class="sub">Two pages of six knobs, three buttons, ten jacks</p>
+  <div class="paneltool">
+    <div class="plate">
+      <div class="toggles" role="group" aria-label="Page">
+        <button class="tg" type="button" data-page="play" aria-pressed="true">Play</button>
+        <button class="tg" type="button" data-page="shift" aria-pressed="false">Shift (hold B3)</button>
+      </div>
+      <svg id="plate" viewBox="-4 -2 69 133" role="img" aria-label="Alchemy Lab panel with Stencil's controls"></svg>
+    </div>
+    <div>
+      <dl class="kv" id="knobList"></dl>
+      <p class="note" style="margin-top:14px">Hold <b>B3</b> for the Shift page; let go to come back. The knobs catch: after a page change a knob does nothing until you turn it past where that page left it, so values never jump.</p>
+    </div>
+  </div>
+
+  <div class="cols three">
+    <div class="card amber"><div class="k">B1 · source</div><h4>Tap: next source</h4><p>Bank, then Euclid, then Morse. B1 glows the source's colour: amber, green, cyan. It flashes white when it changes.</p><p><b>Hold</b> for GATE ↔ DUCK.</p></div>
+    <div class="card"><div class="k">B2 · tempo</div><h4>Tap: tap tempo</h4><p>Grey when free-running, blue when locked to a clock on J3, a white blink on each beat. Red if the processor is running hot.</p><p><b>Hold</b> to bypass: the gate holds open while you hold it.</p></div>
+    <div class="card duck"><div class="k">B3 · shift</div><h4>Hold: Shift page</h4><p>Dim violet in GATE, orange in DUCK, pulsing with the envelope so you can see the rhythm.</p></div>
+  </div>
+
+  <div class="tablewrap"><table>
+    <thead><tr><th>Jack</th><th>Does</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>J1 · J2</td><td>Audio in, left and right</td><td>Settings → Input <b>Mono L</b> feeds J1 to both sides, so a mono source still gets the stereo offset.</td></tr>
+      <tr><td>J3</td><td>Clock in</td><td>1, 2, 4 or 24 pulses per quarter note (Settings → Clock In). Locks the tempo and the step position; free-runs at TEMPO two seconds after the clock stops.</td></tr>
+      <tr><td>J4</td><td>Reset in</td><td>Back to step 1. See <a href="#clock">Clock</a> for how it lines up with J3.</td></tr>
+      <tr><td>J5</td><td>CV → PATTERN</td><td>Sweep through the bank, the hit count or the stored words.</td></tr>
+      <tr><td>J6</td><td>CV → DEPTH</td><td>Open the gaps up from a slow LFO or an envelope.</td></tr>
+      <tr><td>J7</td><td>Envelope out</td><td>0 to 5 V, the left channel's slice envelope. Patch it to a filter or a VCA elsewhere and it follows the same rhythm.</td></tr>
+      <tr><td>J8</td><td>Step trigger out</td><td>A 10 ms pulse at the start of every open step (left channel).</td></tr>
+      <tr><td>J9 · J10</td><td>Audio out, left and right</td><td></td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="patterns"><div class="wrap">
+  <h2 class="sh">Patterns</h2>
+  <p class="sub">What PATTERN means depends on B1</p>
+  <div class="prose">
+    <p><b>Bank (amber).</b> PATTERN picks one of sixteen factory patterns or the user pattern at the far right. STEPS on the Shift page sets the loop length from 1 to 32; patterns repeat to fill it. The user pattern keeps its own length, set on the web page.</p>
+    <p><b>Euclid (green).</b> PATTERN is the number of hits, from none to STEPS. The hits spread as evenly as they can and always start on the one.</p>
+    <p><b>Morse (cyan).</b> PATTERN picks one of the eight stored words, and STEPS becomes <b>FIT</b>. See <a href="#morse">Morse</a>.</p>
+    <p><b>R OFFSET</b> (Shift) delays the right channel's pattern by up to eight steps either way, so the two sides answer each other. At zero they match.</p>
+    <p>PATTERN's ring shows the pattern: one LED per step, open steps lit in the source's colour, the playhead white. A pattern longer than the ring is shown a ring's length at a time.</p>
+  </div>
+  <div class="bank" id="bank" aria-label="The sixteen factory patterns"></div>
+</div></section>
+
+<section id="slice"><div class="wrap">
+  <h2 class="sh">The slice</h2>
+  <p class="sub">Attack, gate, release, depth, and the gate's two flavours</p>
+  <div class="prose">
+    <p>Every open step starts the same shape. The level rises for <b>ATTACK</b>, holds until <b>GATE</b> of the way through the step, then falls for <b>RELEASE</b>. All three are fractions of one step, so they scale with RATE and tempo. RELEASE runs to 400%: a slice can take four steps to fade, overlapping the next ones. That overlap is what makes the pumping feel loose instead of chopped.</p>
+    <p><b>DEPTH</b> is how far the closed parts close: 100% is silence, 50% halves the level. <b>CURVE</b> (Settings) bends the slope: Snappy rises fast and falls slow, Slow the other way.</p>
+    <p><b>DUCK</b> turns the shape upside down: each open step pulls the level down, and RELEASE is how it climbs back. Pattern 4 (quarter notes) with a short GATE and a long RELEASE is four-on-the-floor sidechain.</p>
+    <p><b>FILTER</b> (Shift) moves the gate from volume (0%) to a 12 dB-per-octave lowpass that sweeps between 30 Hz and 18 kHz with the envelope (100%). Halfway, each does half the work.</p>
+  </div>
+  <div class="envtool">
+    <div>
+      <svg id="env" viewBox="0 0 640 220" role="img" aria-label="The level over one bar with these settings"></svg>
+      <p class="note" style="margin-top:8px">One bar of pattern 1 at 1/16: the line is the level that reaches J9. The drawing uses the same rules as the firmware.</p>
+    </div>
+    <div class="sliders" id="sliders"></div>
+  </div>
+</div></section>
+
+<section id="morse"><div class="wrap">
+  <h2 class="sh">Morse</h2>
+  <p class="sub">Words as rhythm, and FIT to put them on the bar</p>
+  <div class="prose">
+    <p>In Morse, every letter is short and long openings: a dit is one step open, a dah three. There's one step closed between the parts of a letter, three between letters, and seven between words and at the end of the loop. A run of open steps (a dah) holds open as one slice, even with a short GATE.</p>
+    <p>A word spells to whatever length it spells. PARIS is 50 steps, twelve and a half beats, so on its own it would drift against the bar. <b>FIT</b> fixes that. In Morse, the STEPS knob on the Shift page is FIT, and its ring shows six zones:</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>FIT</th><th>What happens</th><th>PARIS at 1/16, 120 BPM</th></tr></thead>
+    <tbody>
+      <tr><td>Free</td><td>One step per unit. The loop is as long as the word.</td><td>50 steps · 12½ beats · drifts</td></tr>
+      <tr><td>Pad</td><td>One step per unit; the gap at the end grows to the next bar line. The default.</td><td>64 steps · 4 bars</td></tr>
+      <tr><td>1 bar</td><td>The whole word, end gap included, stretched to loop in exactly one bar. Units leave the step grid, so RATE and SWING stop applying.</td><td>50 units of 40 ms</td></tr>
+      <tr><td>2 · 4 · 8 bars</td><td>The same, over two, four or eight bars.</td><td>2 bars: 80 ms units</td></tr>
+    </tbody>
+  </table></div>
+  <div class="morse">
+    <input id="mword" type="text" maxlength="48" value="PARIS" aria-label="Try a word" spellcheck="false" autocomplete="off">
+    <div class="fitrow" id="fitrow" role="group" aria-label="Fit"></div>
+    <div class="strip"><canvas id="mstrip"></canvas></div>
+    <div class="bars" id="mbars"></div>
+  </div>
+</div></section>
+
+<section id="words"><div class="wrap">
+  <h2 class="sh">The words page</h2>
+  <p class="sub">Type, listen, send</p>
+  <div class="prose">
+    <p>The words page is how words get onto the module. Type into one of eight slots and it shows the spelling, the tape and the loop length. Pick a FIT and press Play to hear it gate a pad in the browser. Then send it.</p>
+  </div>
+  <p style="margin-top:22px"><a class="cta" href="words/">Open the words page →</a></p>
+  <ol class="steps" style="margin-top:26px">
+    <li><b>Alchemy Lab:</b> plug the front USB-C into the computer and open the page in Chrome or Edge. Press <b>Alchemy Lab · USB</b> and pick the Daisy port. The page checks that the module is running Stencil and reads its eight words back. Close the Hermetic web programmer first: only one tab can hold the port.</li>
+    <li><b>Daisy Patch:</b> plug in the Seed's micro-USB, press <b>Daisy Patch · MIDI</b> and allow SysEx when Chrome asks. A MIDI interface into the Patch's MIDI jack works too.</li>
+    <li><b>Send word to slot</b> stores the word. <b>Send and play it</b> also sends the FIT and switches the module to Morse on that word. <b>Send user pattern</b> stores the pattern you drew for the bank's last slot.</li>
+  </ol>
+  <p class="note" style="margin-top:18px">Words are kept on the module and survive power-off. Up to 48 characters: letters, digits and <code>. , ? ' ! / ( ) &amp; : ; = + - _ " $ @</code>. Anything else is skipped and shown struck through.</p>
+</div></section>
+
+<section id="clock"><div class="wrap">
+  <h2 class="sh">Clock and reset</h2>
+  <p class="sub">J3 and J4 on the Lab · Gate In 1 and 2 on the Patch</p>
+  <div class="prose">
+    <p>With nothing in J3, Stencil runs at TEMPO (40–240 BPM, Shift page), or at the tempo you tap on B2. A clock in J3 takes over: Stencil measures the tempo from the pulses and lines every step up with them, so it stays on the grid even when the clock wanders. Two seconds without a pulse and it goes back to TEMPO.</p>
+    <p>Tell it how many pulses make a beat in Settings → <b>Clock In</b>: 1 (quarter notes), 2, 4 (sixteenths, what most sequencers send) or 24 (MIDI-rate clock).</p>
+    <p>A pulse into J4 puts the pattern back to step 1. If it arrives within 5 ms after a clock pulse, that clock pulse becomes step 1, because a sequencer's clock and reset rarely land on the same instant. Later than that, the pattern waits at step 1 until the next clock pulse. In Morse with FIT set to bars, reset is what puts the word on the downbeat.</p>
+    <p><b>RATE</b> sets the step length: 1/32, 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4, 1/2 or a whole bar. <b>SWING</b> (Shift) delays every second step by up to half a step.</p>
+  </div>
+</div></section>
+
+<section id="patch"><div class="wrap">
+  <h2 class="sh">On the Daisy Patch</h2>
+  <p class="sub">The same engine, with a screen and four outputs</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Panel</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td>IN 1 · IN 2</td><td>Audio in, left and right (Menu → Input <b>Mono</b> feeds IN 1 to both)</td></tr>
+      <tr><td>OUT 1 · OUT 2</td><td>The gated sound</td></tr>
+      <tr><td>OUT 3 · OUT 4</td><td>The holes: everything the gate took away. Mix them back in elsewhere, or send them to an effect so the gaps get reverb and the hits stay dry.</td></tr>
+      <tr><td>CTRL 1</td><td>PATTERN (plus CV 1)</td></tr>
+      <tr><td>CTRL 2</td><td>GATE (plus CV 2)</td></tr>
+      <tr><td>CTRL 3</td><td>RELEASE (plus CV 3)</td></tr>
+      <tr><td>CTRL 4</td><td>DEPTH (plus CV 4)</td></tr>
+      <tr><td>GATE IN 1 · 2</td><td>Clock · reset</td></tr>
+      <tr><td>GATE OUT</td><td>A trigger on each open step</td></tr>
+      <tr><td>CV OUT 1 · 2</td><td>The left and right envelopes, 0–5 V</td></tr>
+      <tr><td>MIDI · USB</td><td>MIDI clock and Start from the TRS jack or the Seed's USB (clock overrides GATE IN 1 while it runs), and words from the words page</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose" style="margin-top:22px">
+    <p>The screen shows the source and its pattern, the tempo (<code>bpm</code> free, <code>clk</code> locked), the pattern as a strip of cells with the playhead, the word in Morse mode, and two envelope bars. Under that is the menu: turn the encoder to move, push and turn to change. The rows are Source, Word, Fit, Rate, Steps, Attack, Curve, Filter, Reso, Mode (Gate/Duck), Swing, R Off, Mix, Tempo, ClkIn, Input and Mods.</p>
+    <p><b>Typing a word on the Patch.</b> Click (push and let go) on the Word row. Turn to change the letter under the cursor, click to move to the next letter, push and turn to move the cursor back, hold for a second to finish. Its Morse shows under it as you go.</p>
+    <p>Settings and words save themselves two seconds after the last change. <b>Mods</b> (push and turn) opens the module picker to switch to another firmware on the card.</p>
+  </div>
+</div></section>
+
+<section id="setup"><div class="wrap">
+  <h2 class="sh">Setup and saving</h2>
+  <p class="sub">Settings, presets and the SD card</p>
+  <div class="prose">
+    <p><b>Settings</b>: hold B2 and B3 together for two seconds. P1 is brightness, P2 <b>Curve</b>, P3 and P4 the preset slot and save/load, P5 <b>Clock In</b>, P6 <b>Input</b> (Stereo / Mono L). B1 moves to the next settings page, the SD firmware picker.</p>
+    <p>Stencil saves itself: five seconds after you stop changing things (sooner if you keep going for half a minute) everything goes into its own preset slot, <b>slot 4</b> on the module (3 counting from zero). That covers both pages, the settings, the eight words, the user pattern, the source, Gate/Duck and the tempo. Switching to another firmware on the card and back brings it all back.</p>
+    <p>To install, put <code>stencil_alchemy.bin</code> in the card's <code>/alchemy</code> folder and pick it with the SD picker of whatever firmware is running. See <a href="https://timncox.github.io/alchemy-lab/#install">Get it on your module</a>. On the Patch, <code>stencil_patch.bin</code> goes in <code>/modules</code>.</p>
+  </div>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <p class="sub">Written and tested on a computer · 2026-10-06</p>
+  <div class="prose">
+    <p>Stencil has been written and tested on a computer: hundreds of automatic checks on the timing, the Morse spelling, FIT, the clock, reset and the filter, and a test that the words page spells every word exactly as the module will. It has <b>not yet been played on a module</b>. Until it has, these are the things most likely to need a fix:</p>
+  </div>
+  <ul class="plain" style="margin-top:16px">
+    <li>Sending words to the Lab over USB (a new kind of message for this board) and to the Patch as MIDI SysEx from Chrome.</li>
+    <li>The clock and reset inputs are read once a millisecond, so a pulse shorter than that can be missed.</li>
+    <li>Input levels on the Lab's J1/J2 for line-level sources.</li>
+    <li>How much of the processor the filter gate uses (estimated light, not measured).</li>
+  </ul>
+  <p class="note" style="margin-top:18px">Stencil was inspired by two effects: Bram Bos's <i>Perforator</i> (rhythmic gate masks with slice envelopes and a lowpass gate) and Audio Spices' <i>Ginger</i> (a Morse-code gate). It is its own instrument, not a copy of either.</p>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Stencil is firmware by Tim Cox for the <a href="https://www.hermeticmodular.com/">Hermetic Modular Alchemy Lab</a> and the Electrosmith Daisy Patch.</p>
+  <p><a href="https://timncox.github.io/alchemy-lab/">All the Alchemy Lab instruments</a> · <a href="words/">The words page</a></p>
+</div></footer>
+
+<script>
+(() => {
+'use strict';
+/* == PANEL GEOMETRY (from the alchemy-lab homepage; generated from the board files) == */
+const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
+
+const SRC_COL = ["#ffa020", "#20ff40", "#20d0ff"];
+const PAGES = {
+  play: [
+    ["Rate", "#40c0ff", "Step length: 1/32 to a whole bar, with triplets."],
+    ["Pattern", "#ffa020", "Bank pattern, Euclid hits, or which word. Its ring is the pattern."],
+    ["Gate", "#40ff80", "How long each open step holds open, 5–100% of the step."],
+    ["Attack", "#ff60c0", "How fast each slice opens, 0–100% of a step."],
+    ["Release", "#c060ff", "How slowly it closes, up to 400%: spills into the next steps."],
+    ["Depth", "#ff4020", "How far closed steps close. 100% is silence."],
+  ],
+  shift: [
+    ["Filter", "#2060ff", "0% = volume gate, 100% = lowpass gate, between = both."],
+    ["Steps / Fit", "#40ffc0", "Loop length 1–32. In Morse: FIT — Free, Pad, 1, 2, 4, 8 bars."],
+    ["R Offset", "#ff40c0", "Delays the right channel's pattern ±8 steps."],
+    ["Swing", "#ffc040", "Delays every second step, up to half a step."],
+    ["Mix", "#40ff80", "Dry to gated."],
+    ["Tempo", "#ffc040", "40–240 BPM when no clock is patched. B2 taps it."],
+  ],
+};
+const JACKS = {J1:"IN L", J2:"IN R", J3:"CLK", J4:"RST", J5:"PAT", J6:"DEP", J7:"ENV", J8:"TRIG", J9:"OUT L", J10:"OUT R"};
+const BANK = ['xxxxxxxxxxxxxxxx','x.x.x.x.x.x.x.x.','.x.x.x.x.x.x.x.x','x...x...x...x...','..x...x...x...x.','x..x..x.x..x..x.','xx.xx.xx.xx.x.x.','x.xx.xx.x.xx.x.x','xxx.xxx.xxx.xx.x','x.x..x.x.x..x.x.','xx..xx..xx..x.x.','x..x.x..x..x.x..','xxxx..xx..xxxx.x','x.xxx.x.xxx.x.xx','x......x......x.','xx.x.xx.xx.x.x.x'];
+const BANK_NAME = ['sixteenths','eighths','off-sixteenths','quarters','off-beats','3-3-2'];
+
+/* Morse, the same table and timing as the firmware */
+const L = ['.-','-...','-.-.','-..','.','..-.','--.','....','..','.---','-.-','.-..','--','-.','---','.--.','--.-','.-.','...','-','..-','...-','.--','-..-','-.--','--..'];
+const D = ['-----','.----','..---','...--','....-','.....','-....','--...','---..','----.'];
+const P = {'.':'.-.-.-',',':'--..--','?':'..--..',"'":'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':'-.--.-','&':'.-...',':':'---...',';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'};
+function mc(c){const u=c.toUpperCase();if(u>='A'&&u<='Z'&&u.length===1)return L[u.charCodeAt(0)-65];if(c>='0'&&c<='9')return D[+c];return P[c]||null;}
+function morse(t){const b=[];let any=false,sp=false;const put=(n,v)=>{for(let i=0;i<n;i++)b.push(v);};for(const ch of t){if(ch===' '){sp=true;continue;}const m=mc(ch);if(!m)continue;if(any)put(sp?7:3,0);sp=false;[...m].forEach((e,i)=>{if(i)put(1,0);put(e==='-'?3:1,1);});any=true;}if(!any)return[];put(7,0);return b.slice(0,1024);}
+
+const NS = "http://www.w3.org/2000/svg";
+function el(n,a,p){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+function hourXY(cx,cy,r,h){const a=h/12*Math.PI*2;return[cx+r*Math.sin(a),cy-r*Math.cos(a)];}
+
+/* ---- the panel drawing ---- */
+function drawPanel(svg, page, pattern, playhead) {
+  svg.textContent = "";
+  const G = PANEL, g = el("g", {}, svg);
+  el("rect",{x:0,y:0,width:G.plate.w,height:G.plate.h,rx:1.2,fill:"#15171b"},g);
+  for (const m of G.mount) el("rect",{x:m.x-m.w/2,y:m.y-m.h/2,width:m.w,height:m.h,rx:m.r,fill:"#0b0c0e"},g);
+  el("text",{x:G.plate.w/2,y:8.2,"text-anchor":"middle","font-family":"JetBrains Mono, monospace","font-size":2.2,fill:"#8b929b","letter-spacing":.6},g).textContent = "STENCIL";
+  const knobs = PAGES[page];
+  G.pots.forEach((p, i) => {
+    const R = G.ring, col = knobs[i][1];
+    for (let k = 0; k < R.arc_leds; k++) {
+      const [x,y] = hourXY(p.x,p.y,R.r,R.start_hour+R.step_hours*k);
+      let fill = "#26292d";
+      if (i === 1 && page === "play" && pattern) {
+        if (k < pattern.length) fill = pattern[k] ? SRC_COL[2] : "#3a3f44";
+        if (k === playhead) fill = "#ffffff";
+      } else if (k <= Math.round((R.arc_leds-1)*[.25,.5,.5,.05,.12,1, 0,.4,.5,0,1,.4][i + (page==="shift"?6:0)])) fill = col;
+      el("circle",{cx:x,cy:y,r:.75,fill},g);
+    }
+    el("circle",{cx:p.x,cy:p.y,r:6.2,fill:"#2a2d31",stroke:"#3a3e43","stroke-width":.3},g);
+    el("circle",{cx:p.x,cy:p.y,r:4.6,fill:"#1d2023"},g);
+    el("text",{x:p.x,y:p.y+G.labels.knob_dy,"text-anchor":"middle","font-family":"JetBrains Mono, monospace","font-size":2.3,fill:"#c7cdd2"},g).textContent = knobs[i][0].toUpperCase();
+  });
+  const bcol = [SRC_COL[2], "#3a3f44", page === "shift" ? "#ffffff" : "#4a2a5c"];
+  G.buttons.forEach((b, i) => {
+    el("circle",{cx:b.x,cy:b.y,r:b.halo,fill:bcol[i],opacity:.35},g);
+    el("circle",{cx:b.x,cy:b.y,r:b.hole/2+.6,fill:bcol[i]},g);
+    el("text",{x:b.x,y:b.y+6.4,"text-anchor":"middle","font-family":"JetBrains Mono, monospace","font-size":2,fill:"#8b929b"},g).textContent = b.id;
+  });
+  G.jacks.forEach(j => {
+    el("circle",{cx:j.x,cy:j.y,r:j.hole,fill:"#0b0c0e",stroke:"#3a3e43","stroke-width":.5},g);
+    el("text",{x:j.x,y:j.y-4.6,"text-anchor":"middle","font-family":"JetBrains Mono, monospace","font-size":1.7,fill:"#8f979e"},g).textContent = JACKS[j.id];
+  });
+}
+
+/* ---- hero: the tape and the plate run PARIS ---- */
+const heroBits = morse("STENCIL");
+let heroStep = 0;
+function heroTape(){
+  const c = document.getElementById("heroTape"), w = c.clientWidth || 600, dpr = window.devicePixelRatio || 1;
+  c.width = w * dpr; c.height = 46 * dpr;
+  const g = c.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,w,46);
+  const cell = 10, n = Math.ceil(w / cell) + 1, off = (heroStep * cell) % (heroBits.length * cell);
+  for (let i = 0; i < n + heroBits.length; i++) {
+    const x = i * cell - off + cell / 2; if (x < -cell || x > w + cell) continue;
+    const b = heroBits[i % heroBits.length];
+    g.fillStyle = "rgba(0,0,0,.45)"; g.beginPath(); g.arc(x, 10, 1.6, 0, 7); g.fill();
+    if (b) { g.fillStyle = "#06090a"; g.beginPath(); g.arc(x, 28, 4, 0, 7); g.fill(); if (heroBits[(i+1) % heroBits.length]) g.fillRect(x, 25, cell, 6); }
+  }
+  g.fillStyle = "rgba(32,208,255,.9)"; g.fillRect(w * .5, 0, 2, 46);
+}
+const heroSvg = document.getElementById("heroPlate");
+function heroFrame(){
+  const window13 = 13, base = Math.floor(heroStep / window13) * window13;
+  const pat = []; for (let k = 0; k < window13; k++) pat.push(base + k < heroBits.length ? heroBits[base + k] : 0);
+  drawPanel(heroSvg, "play", pat, heroStep % window13);
+  heroTape();
+}
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+heroFrame();
+if (!reduce) setInterval(() => { heroStep = (heroStep + 1) % heroBits.length; heroFrame(); }, 125);
+
+/* ---- the panel section ---- */
+const plate = document.getElementById("plate"), list = document.getElementById("knobList");
+function showPage(page){
+  drawPanel(plate, page, page === "play" ? [1,1,1,1,1,1,1,1,1,1,1,1,1] : null, -1);
+  list.textContent = "";
+  PAGES[page].forEach((k, i) => { const d = document.createElement("div"); d.innerHTML = `<dt>P${i+1} · ${k[0]}</dt><dd></dd>`; d.querySelector("dd").textContent = k[2]; list.appendChild(d); });
+  document.querySelectorAll(".tg[data-page]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.page === page)));
+}
+document.querySelectorAll(".tg[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page)));
+showPage("play");
+
+/* ---- bank ---- */
+const bank = document.getElementById("bank");
+BANK.forEach((p, i) => {
+  const d = document.createElement("div"); d.className = "pat";
+  const c = document.createElement("div"); c.className = "cells";
+  for (const ch of p) { const e = document.createElement("i"); if (ch === "x") e.className = "on"; c.appendChild(e); }
+  const s = document.createElement("small"); s.textContent = (i + 1) + (BANK_NAME[i] ? " · " + BANK_NAME[i] : "");
+  d.append(c, s); bank.appendChild(d);
+});
+
+/* ---- envelope lab: the firmware's rules, sampled ---- */
+const S = { gate:{l:"Gate",min:5,max:100,v:50,u:"%"}, attack:{l:"Attack",min:0,max:100,v:2,u:"%"}, release:{l:"Release",min:0,max:400,v:15,u:"%"}, depth:{l:"Depth",min:0,max:100,v:100,u:"%"}, curve:{l:"Curve",min:-1,max:1,v:0,u:"",step:1} };
+let duck = false, bankIx = 0;
+const box = document.getElementById("sliders");
+for (const [k, s] of Object.entries(S)) {
+  const d = document.createElement("div"); d.className = "sl";
+  d.innerHTML = `<label for="s-${k}"><span>${s.l}</span><output></output></label><input id="s-${k}" type="range" min="${s.min}" max="${s.max}" step="${s.step||1}" value="${s.v}">`;
+  const r = d.querySelector("input"), o = d.querySelector("output");
+  const fmt = () => o.textContent = k === "curve" ? ["Snappy","Linear","Slow"][s.v + 1] : s.v + s.u;
+  fmt(); r.addEventListener("input", () => { s.v = +r.value; fmt(); drawEnv(); });
+  box.appendChild(d);
+}
+const pr = document.createElement("div"); pr.className = "presets";
+[["Trance gate",{gate:50,attack:2,release:15,depth:100,curve:0},false,0],["Staccato",{gate:15,attack:0,release:5,depth:100,curve:-1},false,0],["Sidechain pump",{gate:8,attack:0,release:300,depth:90,curve:-1},true,3],["Soft swell",{gate:60,attack:60,release:120,depth:80,curve:1},false,1]]
+.forEach(([name, v, dk, b]) => { const btn = document.createElement("button"); btn.type = "button"; btn.className = "tg"; btn.textContent = name;
+  btn.addEventListener("click", () => { for (const k in v) { S[k].v = v[k]; const inp = document.getElementById("s-" + k); inp.value = v[k]; inp.dispatchEvent(new Event("input")); } duck = dk; bankIx = b; drawEnv(); });
+  pr.appendChild(btn); });
+box.appendChild(pr);
+function drawEnv(){
+  const svg = document.getElementById("env"); svg.textContent = "";
+  const W = 640, H = 220, padL = 10, padT = 18, plotH = H - 48, pat = BANK[bankIx];
+  for (let i = 0; i < 16; i++) {
+    const x = padL + i * (W - 2*padL) / 16;
+    el("rect",{x:x+1,y:H-22,width:(W-2*padL)/16-2,height:8,rx:1,fill:pat[i]==="x"?(duck?"#ff5000":"#ffa020"):"#2a2e32"},svg);
+    if (i % 4 === 0) el("line",{x1:x,y1:padT,x2:x,y2:padT+plotH,stroke:"rgba(235,238,240,.1)","stroke-width":1},svg);
+  }
+  const fps = 400, N = 16 * fps, att = Math.max(S.attack.v/100*fps, 2), rel = Math.max(S.release.v/100*fps, 2);
+  const shape = e => { const c = S.curve.v; if (c > 0) return e + (e*e*e - e)*c; if (c < 0) { const u = 1-e; return e + ((1-u*u*u) - e) * -c; } return e; };
+  let env = 0; const pts = [];
+  for (let pass = 0; pass < 2; pass++) for (let f = 0; f < N; f++) {   /* second pass: settled */
+    const step = Math.floor(f / fps), phi = (f % fps) / fps, open = pat[step % 16] === "x";
+    const high = open && phi < S.gate.v / 100;
+    env = high ? Math.min(1, env + 1/att) : Math.max(0, env - 1/rel);
+    if (pass === 1 && f % 4 === 0) { const s = shape(env), d = S.depth.v/100, o = duck ? 1 - d*s : 1 - d*(1-s); pts.push([padL + f/N*(W-2*padL), padT + (1-o)*plotH]); }
+  }
+  el("path",{d:"M"+padL+","+(padT+plotH)+" L"+pts.map(p=>p.join(",")).join(" L")+" L"+(W-padL)+","+(padT+plotH)+" Z",fill:"rgba(32,208,255,.14)"},svg);
+  el("path",{d:"M"+pts.map(p=>p.join(",")).join(" L"),fill:"none",stroke:"#20d0ff","stroke-width":2},svg);
+  el("text",{x:W-padL,y:12,"text-anchor":"end","font-family":"JetBrains Mono, monospace","font-size":11,fill:"#8f979e"},svg).textContent = (duck ? "DUCK" : "GATE") + " · pattern " + (bankIx+1) + " · level";
+}
+drawEnv();
+
+/* ---- Morse + FIT demo ---- */
+const FITS = ["Free","Pad","1 bar","2 bars","4 bars","8 bars"];
+let fit = 1;
+const fr = document.getElementById("fitrow");
+FITS.forEach((n, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "tg"; b.textContent = n; b.setAttribute("aria-pressed", String(i === fit));
+  b.addEventListener("click", () => { fit = i; fr.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", String(j === fit))); drawMorse(); }); fr.appendChild(b); });
+function drawMorse(){
+  const word = document.getElementById("mword").value;
+  let bits = morse(word), beats = 0;
+  if (!bits.length) bits = [1];
+  else if (fit === 1) { const len = Math.ceil(bits.length / 16) * 16; while (bits.length < Math.min(len, 1024)) bits.push(0); }
+  else if (fit >= 2) beats = 4 << (fit - 2);
+  const n = bits.length, c = document.getElementById("mstrip"), dpr = window.devicePixelRatio || 1;
+  const wrapW = c.parentElement.clientWidth, barW = beats ? wrapW : Math.max(wrapW, n * 9 + 10);
+  c.style.width = barW + "px"; c.width = barW * dpr; c.height = 58 * dpr;
+  const g = c.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,barW,58);
+  const unitW = beats ? (barW - 10) / n : 9, stepsPerBar = 16;
+  const totalBeats = beats || n / 4;
+  for (let b = 0; b <= totalBeats; b += 4) { const x = 5 + (beats ? b / beats * (barW - 10) : b * 4 * 9); g.fillStyle = "rgba(32,208,255,.5)"; g.fillRect(x, 0, 1, 58); }
+  for (let i = 0; i < n; i++) {
+    const x = 5 + i * unitW + unitW / 2;
+    if (bits[i]) { g.fillStyle = "#06090a"; const r = Math.max(1.4, Math.min(3.6, unitW * .4)); g.beginPath(); g.arc(x, 30, r, 0, 7); g.fill(); if (bits[i+1]) g.fillRect(x, 30 - r * .7, unitW, r * 1.4); }
+  }
+  const secs = totalBeats * 60 / 120;
+  const bars = totalBeats / 4;
+  document.getElementById("mbars").innerHTML = `<b>${n}</b> ${beats ? "units" : "steps"} · <b>${Number.isInteger(bars) ? bars + (bars === 1 ? " bar" : " bars") : totalBeats + " beats, not whole bars"}</b> at 1/16 · ${secs.toFixed(2)} s at 120 BPM${beats ? " · units " + (secs / n * 1000).toFixed(0) + " ms" : ""}`;
+}
+document.getElementById("mword").addEventListener("input", drawMorse);
+window.addEventListener("resize", () => { drawMorse(); heroTape(); });
+drawMorse();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stencil Word Tape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one column of instrument strips -- word, tape, audition, patterns, send -- each a labelled panel like a module faceplate. */
+:root {
+  --bg: #f1efe8;          /* tape stock */
+  --panel: #fbfaf5;
+  --ink: #1d1c19;
+  --muted: #6b675d;
+  --line: #d6d1c3;
+  --hole: #1d1c19;        /* a punched hole shows the dark behind */
+  --tape: #e6dcc0;
+  --accent: #0a8fb0;      /* Morse cyan, darkened for paper */
+  --amber: #b86a00;
+  --good: #1f8a4c;
+  --bad: #b3261e;
+  --display: "Big Shoulders Stencil Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #100f0d; --panel: #1a1916; --ink: #efe9dc; --muted: #9a9384; --line: #34312b;
+    --hole: #050504; --tape: #3a3527; --accent: #3fd4f5; --amber: #ffa020; --good: #4cd286; --bad: #ff6b5e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #100f0d; --panel: #1a1916; --ink: #efe9dc; --muted: #9a9384; --line: #34312b;
+  --hole: #050504; --tape: #3a3527; --accent: #3fd4f5; --amber: #ffa020; --good: #4cd286; --bad: #ff6b5e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: grid; gap: 20px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+h1 { font: 800 clamp(48px, 9vw, 88px)/0.9 var(--display); letter-spacing: 0.02em; margin: 0; text-transform: uppercase; }
+.tag { color: var(--muted); max-width: 46ch; margin: 6px 0 0; }
+.conn { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; font: 600 13px var(--mono); color: var(--ink); cursor: pointer; }
+a.chip { text-decoration: none; }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.chip.on .dot { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); }
+.chip:disabled { opacity: 0.55; cursor: not-allowed; }
+.chip:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+h2 { font: 800 22px/1 var(--display); letter-spacing: 0.06em; text-transform: uppercase; margin: 0; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+h2 small { font: 400 12px var(--mono); color: var(--muted); letter-spacing: 0; text-transform: none; }
+label, .lbl { font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; }
+.slot { font: 600 13px var(--mono); border: 1px solid var(--line); background: transparent; color: var(--ink); padding: 6px 10px; border-radius: 4px; cursor: pointer; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+#word { width: 100%; font: 800 clamp(28px, 6vw, 44px)/1.1 var(--display); letter-spacing: 0.08em; text-transform: uppercase; background: transparent; color: var(--ink); border: 0; border-bottom: 2px solid var(--line); padding: 4px 0; }
+#word:focus { outline: none; border-bottom-color: var(--accent); }
+.letters { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--mono); min-height: 2.6em; }
+.letter { display: grid; justify-items: center; }
+.letter b { font-weight: 600; font-size: 15px; }
+.letter span { color: var(--accent); font-size: 13px; letter-spacing: 0.1em; }
+.letter.skip b { color: var(--bad); text-decoration: line-through; }
+.letter.gap { width: 18px; }
+.tapebox { overflow-x: auto; border-radius: 3px; }
+canvas#tape { display: block; height: 64px; background: var(--tape); }
+.stats { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.act { font: 600 14px var(--body); border-radius: 4px; padding: 8px 14px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); cursor: pointer; }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button.act:disabled { opacity: 0.45; cursor: not-allowed; }
+.knobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 16px; }
+.knob { display: grid; gap: 2px; min-width: 0; }
+.knob output { font: 600 13px var(--mono); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+select { font: 14px var(--body); padding: 4px 6px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; max-width: 100%; }
+.bank { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.pat { border: 1px solid var(--line); background: transparent; border-radius: 4px; padding: 6px; cursor: pointer; display: grid; gap: 4px; color: var(--ink); text-align: left; }
+.pat[aria-pressed="true"] { border-color: var(--amber); box-shadow: inset 0 0 0 1px var(--amber); }
+.pat .cells { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; }
+.pat .cells i { height: 10px; border-radius: 2px; background: var(--line); }
+.pat .cells i.on { background: var(--amber); }
+.pat small { font: 11px var(--mono); color: var(--muted); }
+.steps { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 4px; max-width: 560px; }
+.steps button { aspect-ratio: 1; max-width: 100%; border: 1px solid var(--line); background: transparent; border-radius: 3px; cursor: pointer; padding: 0; }
+.steps button.on { background: var(--amber); border-color: var(--amber); }
+.steps button.off { opacity: 0.25; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.note { font-size: 14px; color: var(--muted); max-width: 70ch; }
+.note code, .stats code { font-family: var(--mono); font-size: 0.92em; }
+#log { font: 12px/1.5 var(--mono); color: var(--muted); white-space: pre-wrap; max-height: 9em; overflow: auto; margin: 0; }
+#log .ok { color: var(--good); } #log .err { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Stencil</h1>
+      <p class="tag">Type a word, hear its Morse as a gate pattern, fit it to 1, 2, 4 or 8 bars, and send it to the Alchemy Lab or the Daisy Patch. Dit is one unit open, dah is three.</p>
+    </div>
+    <div class="conn">
+      <a class="chip" id="manualLink" href="../">Manual</a>
+      <button class="chip" id="connLab" type="button"><span class="dot"></span>Alchemy Lab · USB</button>
+      <button class="chip" id="connPatch" type="button"><span class="dot"></span>Daisy Patch · MIDI</button>
+    </div>
+  </header>
+
+  <section aria-labelledby="h-word">
+    <h2 id="h-word">Word <small>8 slots on the module · PATTERN picks one in Morse mode</small></h2>
+    <div class="slots" id="slots"></div>
+    <input id="word" type="text" maxlength="48" autocomplete="off" spellcheck="false" aria-label="Word to spell">
+    <div class="letters" id="letters" aria-live="polite"></div>
+    <div class="tapebox"><canvas id="tape" height="64" aria-label="Paper tape: punched holes are open steps"></canvas></div>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section aria-labelledby="h-aud">
+    <h2 id="h-aud">Audition <small>an approximation in the browser; the module is the reference</small></h2>
+    <div class="row">
+      <button class="act" id="play" type="button">Play</button>
+      <div class="tabs" role="group" aria-label="Pattern source" id="srcTabs">
+        <button class="slot" type="button" data-src="2" aria-pressed="true">Morse</button>
+        <button class="slot" type="button" data-src="0" aria-pressed="false">Bank</button>
+        <button class="slot" type="button" data-src="1" aria-pressed="false">Euclid</button>
+      </div>
+      <label for="sound">Sound</label>
+      <select id="sound"><option value="pad">Pad chord</option><option value="drone">Saw drone</option><option value="noise">Noise</option></select>
+      <label for="fit">Fit</label>
+      <select id="fit"></select>
+      <label for="mode">Mode</label>
+      <select id="mode"><option value="0">Gate</option><option value="1">Duck</option></select>
+    </div>
+    <div class="knobs" id="knobs"></div>
+  </section>
+
+  <section aria-labelledby="h-pat">
+    <h2 id="h-pat">Patterns <small>16 factory + 1 user · Euclid hits</small></h2>
+    <div class="bank" id="bank"></div>
+    <div class="row"><span class="lbl">User pattern</span><label for="ulen">Length</label><input id="ulen" type="number" min="1" max="32" value="16" style="width:4.5em"></div>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section aria-labelledby="h-send">
+    <h2 id="h-send">Send <small id="target">nothing connected</small></h2>
+    <div class="row">
+      <button class="act" id="sendWord" type="button" disabled>Send word to slot</button>
+      <button class="act" id="sendPlay" type="button" disabled>Send and play it</button>
+      <button class="act ghost" id="sendUser" type="button" disabled>Send user pattern</button>
+      <button class="act ghost" id="sendAll" type="button" disabled>Send all 8 words</button>
+    </div>
+    <p class="note">The Lab listens on its front USB-C (HostLink, the same port the web programmer uses; close that tab first). The Patch listens for SysEx on the Seed's micro-USB or TRS MIDI. Both need Chrome or Edge, opened from a file or <code>localhost</code>. On the Patch the PATTERN knob still chooses the word; a send switches it to Morse.</p>
+    <pre id="log"></pre>
+  </section>
+</div>
+
+<script src="stencil-core.js"></script>
+<script>
+(() => {
+'use strict';
+const SC = window.StencilCore;
+const $ = id => document.getElementById(id);
+
+/* ---------------- state ---------------- */
+const DEFAULT_WORDS = ['STENCIL', 'SOS', 'PARIS', 'CQ', 'HELLO WORLD', 'TIM', 'DAISY', 'LOVE'];
+let words = DEFAULT_WORDS.slice();
+let slot = 0;
+let source = 2;
+let bankIx = 0;
+let user = [1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1];
+let fit = 1;   /* Pad, the module's default */
+try { const s = JSON.parse(localStorage.getItem('stencil.words') || 'null'); if (Array.isArray(s) && s.length === 8) words = s.map(String); } catch (e) {}
+const saveLocal = () => { try { localStorage.setItem('stencil.words', JSON.stringify(words)); } catch (e) {} };
+
+const K = {
+  bpm:     { label: 'Tempo', min: 40, max: 240, step: 1, v: 120, fmt: v => v + ' BPM' },
+  rate:    { label: 'Rate', min: 0, max: 8, step: 1, v: 2, fmt: v => SC.RATES[v][0] },
+  gate:    { label: 'Gate', min: 5, max: 100, step: 1, v: 50, fmt: v => v + '%' },
+  attack:  { label: 'Attack', min: 0, max: 100, step: 1, v: 2, fmt: v => v + '%' },
+  release: { label: 'Release', min: 0, max: 400, step: 5, v: 15, fmt: v => v + '%' },
+  depth:   { label: 'Depth', min: 0, max: 100, step: 1, v: 100, fmt: v => v + '%' },
+  filter:  { label: 'Filter', min: 0, max: 100, step: 5, v: 0, fmt: v => v ? v + '% LPF' : 'VCA' },
+  steps:   { label: 'Steps', min: 1, max: 32, step: 1, v: 16, fmt: v => String(v) },
+  hits:    { label: 'Euclid hits', min: 0, max: 32, step: 1, v: 5, fmt: v => String(v) },
+};
+
+/* ---------------- pattern ---------------- */
+function pattern() {
+  const steps = K.steps.v;
+  if (source === 2) {
+    const f = SC.fitMorse(SC.morseEncode(words[slot]), fit, K.rate.v);
+    return { bits: f.bits, tie: true, beats: f.beats };
+  }
+  if (source === 1) {
+    const k = Math.min(K.hits.v, steps);
+    return { bits: Array.from({ length: steps }, (_, i) => SC.euclidHit(i, k, steps)), tie: false };
+  }
+  if (bankIx === 16) return { bits: user.slice(), tie: false };
+  const p = SC.BANK[bankIx];
+  return { bits: Array.from({ length: steps }, (_, i) => (p[i % 16] === 'x' ? 1 : 0)), tie: false };
+}
+
+/* ---------------- word UI ---------------- */
+function renderSlots() {
+  const el = $('slots'); el.textContent = '';
+  words.forEach((w, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'slot'; b.setAttribute('aria-pressed', String(i === slot));
+    b.textContent = (i + 1) + ' · ' + (w || '—');
+    b.onclick = () => { slot = i; $('word').value = words[i]; renderAll(); };
+    el.appendChild(b);
+  });
+}
+function renderLetters() {
+  const el = $('letters'); el.textContent = '';
+  let sp = false;
+  for (const ch of words[slot]) {
+    if (ch === ' ') { if (!sp) { const g = document.createElement('div'); g.className = 'letter gap'; el.appendChild(g); } sp = true; continue; }
+    sp = false;
+    const m = SC.morseChar(ch);
+    const d = document.createElement('div'); d.className = 'letter' + (m ? '' : ' skip');
+    const b = document.createElement('b'); b.textContent = ch.toUpperCase();
+    const s = document.createElement('span'); s.textContent = m ? m.replace(/\./g, '·').replace(/-/g, '–') : 'skip';
+    d.append(b, s); el.appendChild(d);
+  }
+}
+let playStep = -1;
+function drawTape() {
+  const c = $('tape'), pt = pattern(), n = pt.bits.length;
+  const cell = 14, w = Math.max(n * cell + 16, c.parentElement.clientWidth);
+  const dpr = window.devicePixelRatio || 1;
+  c.style.width = w + 'px'; c.width = w * dpr; c.height = 64 * dpr;
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cs = getComputedStyle(document.documentElement);
+  const hole = cs.getPropertyValue('--hole').trim(), acc = cs.getPropertyValue('--accent').trim(), mut = cs.getPropertyValue('--muted').trim();
+  g.clearRect(0, 0, w, 64);
+  for (let i = 0; i < n; i++) {
+    const x = 8 + i * cell + cell / 2;
+    g.fillStyle = hole; g.globalAlpha = 0.45;            /* the feed track */
+    g.beginPath(); g.arc(x, 14, 2, 0, 7); g.fill(); g.globalAlpha = 1;
+    if (pt.bits[i]) {                                     /* a punched step */
+      g.fillStyle = i === playStep ? acc : hole;
+      g.beginPath(); g.arc(x, 38, 5, 0, 7); g.fill();
+      if (pt.tie && pt.bits[i + 1]) g.fillRect(x, 34, cell, 8);
+    } else if (i === playStep) {
+      g.strokeStyle = acc; g.lineWidth = 1.5; g.beginPath(); g.arc(x, 38, 5, 0, 7); g.stroke();
+    }
+    if (i % 4 === 0) { g.fillStyle = mut; g.font = '9px ' + cs.getPropertyValue('--mono'); g.fillText(String(i + 1), x - 3, 60); }
+  }
+}
+function renderStats() {
+  const pt = pattern(), n = pt.bits.length, spb = SC.RATES[K.rate.v][1];
+  const beats = pt.beats || n / spb, secs = beats * 60 / K.bpm.v;
+  const open = pt.bits.reduce((a, b) => a + b, 0);
+  $('stats').innerHTML = '';
+  const add = (k, v) => { const s = document.createElement('span'); s.innerHTML = k + ' <b></b>'; s.querySelector('b').textContent = v; $('stats').appendChild(s); };
+  add('steps', n); add('open', Math.round(100 * open / n) + '%');
+  add('loop', beats % 4 === 0 ? (beats / 4) + (beats === 4 ? ' bar' : ' bars') : beats.toFixed(beats % 1 ? 2 : 0) + ' beats (not whole bars)');
+  if (pt.beats) add('unit', (secs / n * 1000).toFixed(0) + ' ms, off the step grid'); add('at ' + K.bpm.v + ' BPM', secs.toFixed(2) + ' s');
+  if (source === 2 && n > 1024 - 1) add('note', 'truncated at 1024 steps');
+}
+
+/* ---------------- knobs ---------------- */
+function renderKnobs() {
+  const el = $('knobs');
+  for (const [key, k] of Object.entries(K)) {
+    const d = document.createElement('div'); d.className = 'knob';
+    const id = 'k-' + key;
+    d.innerHTML = `<label for="${id}"></label><input id="${id}" type="range"><output for="${id}"></output>`;
+    d.querySelector('label').textContent = k.label;
+    const r = d.querySelector('input'); r.min = k.min; r.max = k.max; r.step = k.step; r.value = k.v;
+    const o = d.querySelector('output'); o.textContent = k.fmt(k.v);
+    r.oninput = () => { k.v = +r.value; o.textContent = k.fmt(k.v); renderAll(false); };
+    el.appendChild(d);
+  }
+}
+
+/* ---------------- bank + user ---------------- */
+function renderBank() {
+  const el = $('bank'); el.textContent = '';
+  for (let b = 0; b < 17; b++) {
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'pat';
+    btn.setAttribute('aria-pressed', String(source === 0 && b === bankIx));
+    const cells = document.createElement('div'); cells.className = 'cells';
+    const bits = b === 16 ? Array.from({ length: 16 }, (_, i) => user[i % user.length]) : [...SC.BANK[b]].map(c => (c === 'x' ? 1 : 0));
+    bits.forEach(v => { const i = document.createElement('i'); if (v) i.className = 'on'; cells.appendChild(i); });
+    const s = document.createElement('small'); s.textContent = b === 16 ? 'user · ' + user.length + ' steps' : 'bank ' + (b + 1);
+    btn.append(cells, s);
+    btn.onclick = () => { source = 0; bankIx = b; renderAll(); };
+    el.appendChild(btn);
+  }
+}
+function renderSteps() {
+  const el = $('steps'); el.textContent = '';
+  for (let i = 0; i < 32; i++) {
+    const b = document.createElement('button'); b.type = 'button';
+    const inLen = i < user.length;
+    b.className = (inLen && user[i] ? 'on' : '') + (inLen ? '' : ' off');
+    b.setAttribute('aria-label', 'User step ' + (i + 1));
+    b.disabled = !inLen;
+    b.onclick = () => { user[i] = user[i] ? 0 : 1; renderAll(); };
+    el.appendChild(b);
+  }
+}
+$('ulen').oninput = () => {
+  const n = Math.max(1, Math.min(32, +$('ulen').value || 1));
+  while (user.length < n) user.push(0);
+  user.length = n; renderAll();
+};
+
+function renderAll(full = true) {
+  if (full) { renderSlots(); renderLetters(); renderBank(); renderSteps(); }
+  document.querySelectorAll('#srcTabs .slot').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.src === source)));
+  drawTape(); renderStats(); syncButtons();
+}
+document.querySelectorAll('#srcTabs .slot').forEach(b => (b.onclick = () => { source = +b.dataset.src; renderAll(); }));
+$('word').oninput = () => { words[slot] = SC.cleanWord($('word').value); saveLocal(); renderSlots(); renderLetters(); drawTape(); renderStats(); };
+window.addEventListener('resize', () => drawTape());
+
+/* ---------------- audition (WebAudio, look-ahead scheduler) ---------------- */
+let ac = null, src = null, vca = null, lpf = null, timer = 0, nextT = 0, stepN = 0, env = 0, lastT = 0;
+function makeSource() {
+  const kind = $('sound').value, out = ac.createGain(); out.gain.value = 0.18;
+  const nodes = [];
+  if (kind === 'noise') {
+    const buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const n = ac.createBufferSource(); n.buffer = buf; n.loop = true; n.connect(out); n.start(); nodes.push(n);
+  } else {
+    const notes = kind === 'pad' ? [220, 261.63, 329.63, 392] : [55, 55.4, 110.3];
+    for (const f of notes) for (const det of [-7, 7]) {
+      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = det;
+      const g = ac.createGain(); g.gain.value = 1 / (notes.length * 2); o.connect(g).connect(out); o.start(); nodes.push(o);
+    }
+  }
+  return { out, stop: () => nodes.forEach(n => { try { n.stop(); } catch (e) {} }) };
+}
+function schedule() {
+  const pt = pattern(), n = pt.bits.length, spb = SC.RATES[K.rate.v][1];
+  const stepDur = pt.beats ? pt.beats * 60 / K.bpm.v / n : 60 / K.bpm.v / spb, depth = K.depth.v / 100, filt = K.filter.v / 100, duck = $('mode').value === '1';
+  const att = Math.max(K.attack.v / 100 * stepDur, 0.001), rel = Math.max(K.release.v / 100 * stepDur, 0.001), gate = K.gate.v / 100;
+  const level = e => { const o = duck ? 1 - depth * e : 1 - depth * (1 - e); return { ga: 1 - (1 - o) * (1 - filt), fc: 30 * Math.pow(600, 1 - (1 - o) * filt) }; };
+  /* envelope as linear segments, same rules as the engine: rise while the
+   * step is "high", fall otherwise, each at its own slope */
+  const seg = (t, target) => {
+    const dt = t - lastT; if (dt <= 0) return;
+    const rate = target > env ? 1 / att : 1 / rel;
+    const reach = Math.abs(target - env) / rate;
+    if (reach < dt) { const tm = lastT + reach; env = target; const L = level(env); vca.gain.linearRampToValueAtTime(L.ga, tm); lpf.frequency.exponentialRampToValueAtTime(L.fc, tm); vca.gain.setValueAtTime(L.ga, t); lpf.frequency.setValueAtTime(L.fc, t); }
+    else { env += Math.sign(target - env) * rate * dt; const L = level(env); vca.gain.linearRampToValueAtTime(L.ga, t); lpf.frequency.exponentialRampToValueAtTime(L.fc, t); }
+    lastT = t;
+  };
+  while (nextT < ac.currentTime + 0.12) {
+    const i = stepN % n, open = pt.bits[i], next = pt.bits[(i + 1) % n];
+    const high = open ? (pt.tie && next ? 1 : gate) : 0;
+    if (high >= 1) seg(nextT + stepDur, 1);
+    else if (high > 0) { seg(nextT + high * stepDur, 1); seg(nextT + stepDur, 0); }
+    else seg(nextT + stepDur, 0);
+    const shown = i, at = nextT;
+    setTimeout(() => { playStep = shown; drawTape(); }, Math.max(0, (at - ac.currentTime) * 1000));
+    nextT += stepDur; stepN++;
+  }
+}
+function start() {
+  ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+  ac.resume();
+  src = makeSource(); lpf = ac.createBiquadFilter(); lpf.type = 'lowpass'; lpf.Q.value = 0.9; lpf.frequency.value = 18000;
+  vca = ac.createGain(); vca.gain.value = 0;
+  src.out.connect(lpf).connect(vca).connect(ac.destination);
+  nextT = lastT = ac.currentTime + 0.05; stepN = 0; env = 0;
+  timer = setInterval(schedule, 25); schedule();
+  $('play').textContent = 'Stop';
+}
+function stop() {
+  clearInterval(timer); timer = 0;
+  if (vca) { vca.gain.cancelScheduledValues(0); vca.gain.setTargetAtTime(0, ac.currentTime, 0.01); }
+  const s = src; setTimeout(() => s && s.stop(), 100);
+  playStep = -1; drawTape(); $('play').textContent = 'Play';
+}
+$('play').onclick = () => (timer ? stop() : start());
+$('sound').onchange = () => { if (timer) { stop(); setTimeout(start, 120); } };
+
+/* ---------------- devices ---------------- */
+const log = (msg, cls) => { const s = document.createElement('span'); if (cls) s.className = cls; s.textContent = msg + '\n'; $('log').prepend(s); };
+let lab = null, patchOut = null;
+
+/* Alchemy Lab: HostLink over WebSerial */
+async function connectLab() {
+  if (!('serial' in navigator)) { log('This browser has no WebSerial. Use Chrome or Edge, from a file or localhost.', 'err'); return; }
+  try {
+    const port = await navigator.serial.requestPort({ filters: [{ usbVendorId: 0x0483, usbProductId: 0x5740 }] });
+    await port.open({ baudRate: 115200 });
+    const writer = port.writable.getWriter(), reader = port.readable.getReader();
+    const pending = new Map(); let seq = 1, buf = [];
+    (async () => {
+      try {
+        for (;;) {
+          const { value, done } = await reader.read(); if (done) break;
+          for (const b of value) {
+            if (b !== 0) { buf.push(b); continue; }
+            const f = SC.hostlinkParse(buf); buf = [];
+            if (f && pending.has(f.seq)) { pending.get(f.seq)(f); pending.delete(f.seq); }
+          }
+        }
+      } catch (e) { log('Lab disconnected: ' + e.message, 'err'); lab = null; syncButtons(); }
+    })();
+    const req = (type, body = [], ms = 2000) => new Promise((res, rej) => {
+      const s = seq++ & 0xffff; pending.set(s, res);
+      writer.write(new Uint8Array(SC.hostlinkFrame(type, s, body)));
+      setTimeout(() => { if (pending.delete(s)) rej(new Error('no answer from the module')); }, ms);
+    });
+    const hello = await req(0x01);
+    const b = hello.body, idLen = b[37], id = String.fromCharCode(...b.slice(38, 38 + idLen));
+    if (id !== 'stencil_alchemy') { log(`The Lab answered as "${id}". Switch it to Stencil in the SD picker, then connect again.`, 'err'); await reader.cancel(); writer.releaseLock(); await port.close(); return; }
+    lab = { req };
+    log('Alchemy Lab connected (Stencil).', 'ok');
+    try {
+      const r = (await req(0x61)).body; let o = 2;
+      if (r[0] === 0) { for (let i = 0; i < r[1]; i++) { const n = r[o++]; words[i] = String.fromCharCode(...r.slice(o, o + n)); o += n; } saveLocal();
+        if (r.length >= o + 8) { fit = r[o + 7]; $('fit').value = fit; } log('Read the 8 words stored on the Lab.'); }
+    } catch (e) { log('Could not read the words back: ' + e.message, 'err'); }
+    $('word').value = words[slot]; renderAll();
+  } catch (e) { if (e.name !== 'NotFoundError') log('Lab: ' + e.message, 'err'); }
+}
+
+/* Daisy Patch: SysEx over WebMIDI */
+async function connectPatch() {
+  if (!navigator.requestMIDIAccess) { log('This browser has no WebMIDI. Use Chrome or Edge, from a file or localhost.', 'err'); return; }
+  try {
+    const m = await navigator.requestMIDIAccess({ sysex: true });
+    const outs = [...m.outputs.values()];
+    if (!outs.length) { log('No MIDI outputs. Plug the Patch into USB (the Seed micro-USB) or a MIDI interface wired to its TRS input.', 'err'); return; }
+    patchOut = outs.find(o => /daisy|seed|patch/i.test(o.name)) || outs[0];
+    log(`MIDI out: ${patchOut.name}${outs.length > 1 ? ' (of ' + outs.length + '; the first that looks like a Daisy)' : ''}.`, 'ok');
+    syncButtons();
+  } catch (e) { log('MIDI: ' + e.message + ' — allow SysEx when Chrome asks.', 'err'); }
+}
+
+async function send(cmd, what) {
+  let ok = false;
+  if (lab) {
+    try { const r = await lab.req(0x60, cmd); ok = r.body[0] === 0; log(`Lab: ${what} ${ok ? 'stored' : 'refused (status ' + r.body[0] + ')'}`, ok ? 'ok' : 'err'); }
+    catch (e) { log('Lab: ' + e.message, 'err'); }
+  }
+  if (patchOut) { patchOut.send(SC.sysex(cmd)); log('Patch: ' + what + ' sent'); ok = true; }
+  return ok;
+}
+$('sendWord').onclick = () => send(SC.cmdSetWord(slot, words[slot]), `word ${slot + 1} "${words[slot]}"`);
+$('sendPlay').onclick = async () => {
+  await send(SC.cmdSetWord(slot, words[slot]), `word ${slot + 1} "${words[slot]}"`);
+  await send(SC.cmdSetFit(fit), 'fit ' + SC.FITS[fit]);
+  await send(SC.cmdSelect(SC.SRC.MORSE, slot), 'Morse, word ' + (slot + 1));
+};
+$('sendUser').onclick = () => send(SC.cmdSetUser(user), `user pattern (${user.length} steps)`);
+$('sendAll').onclick = async () => { for (let i = 0; i < 8; i++) await send(SC.cmdSetWord(i, words[i]), `word ${i + 1} "${words[i]}"`); };
+$('connLab').onclick = connectLab;
+$('connPatch').onclick = connectPatch;
+
+function syncButtons() {
+  const any = !!(lab || patchOut);
+  ['sendWord', 'sendPlay', 'sendUser', 'sendAll'].forEach(id => ($(id).disabled = !any));
+  $('connLab').classList.toggle('on', !!lab); $('connPatch').classList.toggle('on', !!patchOut);
+  $('target').textContent = any ? [lab && 'Alchemy Lab', patchOut && 'Daisy Patch'].filter(Boolean).join(' + ') : 'nothing connected';
+  $('sendWord').textContent = 'Send word to slot ' + (slot + 1);
+  if (!('serial' in navigator)) $('connLab').title = 'Needs WebSerial (Chrome or Edge)';
+  if (!navigator.requestMIDIAccess) $('connPatch').title = 'Needs WebMIDI (Chrome or Edge)';
+}
+
+SC.FITS.forEach((name, i) => { const o = document.createElement('option'); o.value = i; o.textContent = name; $('fit').appendChild(o); });
+$('fit').value = fit;
+$('fit').onchange = () => { fit = +$('fit').value; renderAll(false); };
+renderKnobs();
+$('word').value = words[slot];
+renderAll();
+log('Ready. Example words are loaded; connect a module to send them.');
+})();
+</script>
+</body>
+</html>
