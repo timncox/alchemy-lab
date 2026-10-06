@@ -373,7 +373,7 @@ function buildPages() {
       for (let p = 0; p < n; p++) {
         const fs = c.fields.filter((f) => (f.page ?? 0) === p);
         const gs = (c.gestures ?? []).filter((g) => g.page === p);
-        if (!fs.length && !gs.length) continue;
+        if (!fs.filter((f) => !severs(f)).length && !gs.length) continue;   // nothing left to show
         const named = c.pageNames?.[p];
         const name = named || (c.kind === "settings" ? `Settings ${p + 1}` : `Page ${p + 1}`);
         pages.push({ name, color: c.pageColors?.[p], help: c.pageHelp?.[p], fields: fs, gestures: gs, grid: true });
