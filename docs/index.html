@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tim's Alchemy Lab</title>
-<meta name="description" content="One Eurorack module, ten instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
+<meta name="description" content="One Eurorack module, eleven instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -171,7 +171,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 <header class="hero">
   <div>
     <div class="label">Tim Cox · Hermetic Modular Alchemy Lab</div>
-    <h1>One box,<br><em id="accentWord">ten</em> instruments.</h1>
+    <h1>One box,<br><em id="accentWord">eleven</em> instruments.</h1>
     <p class="lede">The Alchemy Lab is a small synthesizer module whose personality is software. I write the
     software. Each program turns the same six knobs and three buttons into a different instrument.</p>
     <div class="picker">
@@ -211,9 +211,9 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="instruments">
   <h2>The instruments</h2>
-  <p class="group-note">The first four are my own designs. Mark, Belt and Smack have been played on the
-  module; Seq, a sequencer that writes parts for the rest of the synth, is built and tested on a computer and
-  goes on the module next. The other six bring classic open-source instruments by Mutable Instruments to the
+  <p class="group-note">The first five are my own designs. Mark, Belt and Smack have been played on the
+  module. Seq, a sequencer that writes parts for the rest of the synth, and Break, which mangles drum breaks
+  from the memory card, are built and tested on a computer and go on the module next. The other six bring classic open-source instruments by Mutable Instruments to the
   Lab. They're built and tested on a computer too, and the first listen on the module is next.</p>
   <div class="inst" id="inst"></div>
 </section>
@@ -320,7 +320,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
 /* == END GENERATED GEOMETRY == */
 
-/* The ten instruments. `knobs` are each firmware's real PLAY-page names
+/* The eleven instruments. `knobs` are each firmware's real PLAY-page names
    (from its source); `v` is a resting position per knob for the drawing;
    `heard` is true only for what has actually made sound on a module
    (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
@@ -350,6 +350,11 @@ const I = [
     say:"It plays a bass line, a lead line and four drum parts on the rest of the synth, and the lines follow a chord progression. You shape them with a few knobs instead of writing every note, and keep the ones you like. A Launchpad plays it too.",
     knobs:["Density","Length","Slide","Jump","Tones","Octave"], v:[.6,.4,.2,.15,.1,.5],
     url:"https://timncox.github.io/alchemy-lab/seq/" },
+  { id:"break", name:"Break", c:"#a8321c", ring:"#ff4020", heard:false,
+    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+    what:"A drum-break mangler.",
+    say:"It plays chopped-up drum breaks from the memory card and mangles them as they go: stutters, reverses, tape stops, filter sweeps. One knob sets how much happens, another reshuffles the hits into new patterns, and it keeps time with the rest of the synth. It reads cards made for the Ectocore, a module built for exactly this.",
+    knobs:["Break","Amen","Sample","Amen Random","Grimoire","DJ Filter"], v:[.45,.3,.2,.5,.15,.5] },
   { id:"clouds", mi:true, name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
     what:"Turns sound into clouds.",
     say:"It records what you feed it and plays it back as thousands of tiny grains, so you can freeze a moment, smear it, stretch it or pitch it.",
