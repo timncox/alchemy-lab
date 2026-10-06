@@ -43,6 +43,7 @@
   --rule: #28302b; --track: #2c3530; --link: #8cc4ff; --focus: #8cb4ff; --warn: #f0c260; --warn-bg: #2f2512; --ok: #5fd08f;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { background: var(--wall); }
 body {
   margin: 0; background: var(--wall); color: var(--ink);
@@ -136,6 +137,21 @@ h1 em { font-style: normal; color: var(--accent-ink); }
 
 .gesture { font-size: 14px; color: var(--ink-2); }
 
+/* ---- chord progression (Belt) ---- */
+.prog { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; max-width: 760px; }
+.col { display: grid; gap: 5px; align-content: start; }
+.col .cname { font: 700 15px/1.2 var(--display); text-align: center; min-height: 2.5em; display: grid; place-items: center; overflow-wrap: anywhere; }
+.col .cname small { display: block; font: 500 11px/1.2 var(--mono); color: var(--ink-3); }
+.col button {
+  appearance: none; cursor: pointer; border-radius: 8px; border: 1.5px solid var(--rule); background: transparent;
+  color: var(--ink-2); font: 600 13px/1 var(--mono); padding: 8px 0;
+}
+.col button[aria-pressed="true"] { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+.col .bars { margin-top: 4px; border-style: dashed; }
+.col.off .cname { color: var(--ink-3); font-weight: 500; }
+.col.off button { opacity: .45; }
+.col.off button[aria-pressed="true"] { background: transparent; color: var(--ink-3); border-color: var(--ink-3); }
+
 /* ---- presets ---- */
 .slots { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; max-width: 760px; }
 .slot {
@@ -166,6 +182,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
   .lede { font-size: 17px; }
   .knobs { grid-template-columns: 1fr; }
   .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .prog { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .stage { padding: 8px; border-radius: 10px; }
 }
 </style>
@@ -213,6 +230,23 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
     <div class="knobs" id="knobs" role="tabpanel"></div>
     <p class="hint">Drag a dial up or down, use the arrow keys, or scroll on it; double-click for its default. Moving
       a knob on the module shows up here too. Changes are live but not saved: save them to a preset below.</p>
+  </section>
+
+  <section aria-labelledby="chordsTitle" id="chordSection" hidden>
+    <h3 id="chordsTitle">Chord progression</h3>
+    <p class="pagehelp" id="chordCtx"></p>
+    <div class="go" id="chordSrcRow" hidden>
+      <button type="button" class="ghost small" id="chordUseSeq">Play these chords</button>
+      <span class="hint">Belt sings held notes from somewhere else right now (<b id="chordSrcName"></b>). This
+        switches Settings, Sources, Chords from to Seq.</span>
+    </div>
+    <div class="prog" id="prog" role="group" aria-labelledby="chordsTitle"></div>
+    <div class="slotbar">
+      <button type="button" class="ghost small" id="chordFewer">One chord fewer</button>
+      <button type="button" class="ghost small" id="chordMore">One chord more</button>
+      <span class="what">Pick each chord's scale degree, and tap its length to step 1, 2, 4, 8 bars. Same as the
+        Launchpad's CHORDS page, and saved with a preset the same way.</span>
+    </div>
   </section>
 
   <section aria-labelledby="presetsTitle">
@@ -344,6 +378,7 @@ async function start(transport, how) {
   fields = fieldsOf(desc);
   buildIdent(how);
   buildPages();
+  setupChords();
   buildRef();
   await refreshSlots();
   $("module").classList.add("on");
@@ -538,42 +573,173 @@ function set(f, v) {
   dirty[f.id] = v;
   lastEdit = performance.now();
   widgets.get(f.id)?.update(v);
+  renderChords();
   flush();
 }
 
 // One write at a time; edits made meanwhile ride the next one. Each write is
 // the last state read from the module with every pending edit applied.
 async function flush() {
-  if (writing || !Object.keys(dirty).length) return;
+  if (writing || (!Object.keys(dirty).length && !progDirty)) return;
   writing = true;
   const changes = dirty; dirty = {};
+  const withProg = progDirty; progDirty = false;
   try {
     live = encodeState(desc, live, changes);
+    if (withProg) writeProg(live);
     await link.setLive(live);
   } catch (e) {
     status(`write failed: ${e.message}`);
   } finally {
     writing = false;
-    if (Object.keys(dirty).length) flush();
+    if (Object.keys(dirty).length || progDirty) flush();
   }
 }
 
 // Follow the module: knobs turned on the panel, a preset loaded on it.
 let polling = false;
 async function poll() {
-  if (polling || writing || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;
+  if (polling || writing || progDirty || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;
   polling = true;
   try {
     const b = await link.getLive();
-    if (writing || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;   // an edit raced the read
+    if (writing || progDirty || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;   // an edit raced the read
     live = b;
     const v = decodeState(desc, b);
     for (const [id, x] of Object.entries(v)) {
       if (x !== values[id] && id !== dragging) { values[id] = x; widgets.get(id)?.update(x); }
     }
+    if (ex) { prog = readProg(b); renderChords(); }
   } catch (e) {
     status(`lost the module: ${e.message}`);
   } finally { polling = false; }
+}
+
+// ---- chord progression (Belt) -------------------------------------------------------
+//
+// Belt keeps its chord sequencer's progression in an opaque component (its
+// "extras", belt-alchemy src/extras.h). Layout 'BLT' 3 -- the component's
+// hash -- is: count at +8, int8 degree[8] at +9, uint8 bars[8] at +17. Any
+// other hash and the editor stays hidden rather than guess.
+const BELT_PROG = 0x424c5403;
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+const NOTE = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+// seq-alchemy's scales (vendor/seq.c kScales), and Belt's SCALE -> seq's (chord_src.c cs_seq_scale)
+const SEQ_SCALES = [[0, 2, 4, 5, 7, 9, 11], [0, 2, 3, 5, 7, 8, 10], [0, 2, 3, 5, 7, 9, 10], [0, 1, 3, 5, 7, 8, 10],
+  [0, 2, 4, 6, 7, 9, 11], [0, 2, 4, 5, 7, 9, 10], [0, 2, 3, 5, 7, 8, 11], [0, 3, 5, 7, 10], [0, 2, 4, 7, 9]];
+const BELT_TO_SEQ = [0, 0, 1, 6, 2, 5, 8, 7, 7];
+const BARS = [1, 2, 4, 8];
+let ex = null, prog = null, progDirty = false, progShown = "";
+
+function semis(scale, d) {
+  const s = SEQ_SCALES[scale], n = s.length;
+  const oct = d >= 0 ? Math.floor(d / n) : -Math.floor((-d + n - 1) / n);
+  return oct * 12 + s[d - oct * n];
+}
+const note = (n) => NOTE[((n % 12) + 12) % 12];
+const fieldLabel = (id) => { const f = fields.find((x) => x.id === id); return f && show(f, values[id]); };
+
+function chordCtx() {
+  const key = Math.round((values.key ?? 0) * 11);
+  const beltScale = Math.round((values.scale ?? 0.125) * 8);
+  return { key, scale: BELT_TO_SEQ[beltScale] ?? 0, tones: 3 + (values.chord_tones ?? 0) };
+}
+
+// The chord on degree d: tone i is scale degree d + 2i (chord_src.c cs_degree_notes).
+function chordName(d) {
+  const { key, scale, tones } = chordCtx();
+  const ns = Array.from({ length: tones }, (_, i) => key + semis(scale, d + 2 * i));
+  const iv = ns.map((n) => n - ns[0]);
+  let q = { "4,7": "", "3,7": "m", "3,6": "°", "4,8": "+" }[`${iv[1]},${iv[2]}`];
+  const r = ROMAN[((d % 7) + 7) % 7];
+  if (q === undefined) return { name: ns.map(note).join(" "), roman: r };   // pentatonic stacks
+  if (tones === 4) {
+    q = { ",11": "maj7", ",10": "7", "m,10": "m7", "m,11": "m(maj7)", "°,10": "ø7", "°,9": "°7", "+,11": "+maj7" }[`${q},${iv[3]}`]
+      ?? `${q}(+${iv[3]})`;
+  }
+  const minor = q.startsWith("m") && !q.startsWith("maj") || q.startsWith("°") || q.startsWith("ø");
+  return { name: note(ns[0]) + q, roman: (minor ? r.toLowerCase() : r) + (q.startsWith("°") ? "°" : q.startsWith("ø") ? "ø" : q.startsWith("+") ? "+" : "") };
+}
+
+function readProg(b) {
+  const o = ex.off;
+  return { count: Math.min(8, Math.max(1, b[o + 8])),
+           deg: [...new Int8Array(b.buffer, b.byteOffset + o + 9, 8)],
+           bars: [...b.subarray(o + 17, o + 25)] };
+}
+function writeProg(b) {
+  const o = ex.off;
+  b[o + 8] = prog.count;
+  for (let i = 0; i < 8; i++) { b[o + 9 + i] = prog.deg[i] & 0xff; b[o + 17 + i] = prog.bars[i]; }
+}
+
+function setupChords() {
+  ex = hello.moduleId === "belt_alchemy" ? desc.components.find((c) => c.hash === BELT_PROG && c.size >= 25) : null;
+  $("chordSection").hidden = !ex;
+  if (!ex) return;
+  prog = readProg(live);
+  $("chordFewer").addEventListener("click", () => editProg(() => { prog.count = Math.max(1, prog.count - 1); }));
+  $("chordMore").addEventListener("click", () => editProg(() => { prog.count = Math.min(8, prog.count + 1); }));
+  $("chordUseSeq").addEventListener("click", () => {
+    const f = fields.find((x) => x.id === "chord_src");
+    if (f) set(f, 1);
+  });
+  renderChords(true);
+}
+
+function editProg(fn) {
+  fn();
+  progDirty = true;
+  lastEdit = performance.now();
+  renderChords(true);
+  flush();
+}
+
+function renderChords(force) {
+  if (!ex) return;
+  const { key } = chordCtx();
+  const sig = JSON.stringify([prog, values.key, values.scale, values.chord_tones, values.chord_src, values.chord_oct, values.chord_bpm, values.j3_mode]);
+  if (!force && sig === progShown) return;
+  progShown = sig;
+
+  const clock = values.j3_mode === 1;
+  $("chordCtx").innerHTML = `In <b>${esc(NOTE[key])} ${esc(fieldLabel("scale") ?? "")}</b>, as
+    <b>${values.chord_tones === 1 ? "sevenths" : "triads"}</b> rooted in <b>${esc(fieldLabel("chord_oct") ?? "C3")}</b>,
+    ${clock ? "a chord per rising edge on <b>J3</b> (Chord clock)" : `at <b>${Math.round(40 + 200 * (values.chord_bpm ?? 0.4))} BPM</b>`}.
+    Key and scale are the KEY and SCALE knobs; the rest is on the Chord and Sources settings pages.`;
+  const seq = values.chord_src === 1;
+  $("chordSrcRow").hidden = seq || values.chord_src === undefined;
+  $("chordSrcName").textContent = fieldLabel("chord_src") ?? "";
+
+  const box = $("prog");
+  box.innerHTML = "";
+  for (let i = 0; i < 8; i++) {
+    const on = i < prog.count;
+    const col = document.createElement("div");
+    col.className = "col" + (on ? "" : " off");
+    const c = chordName(prog.deg[i]);
+    col.innerHTML = `<div class="cname">${on ? `<span>${esc(c.name)}<small>${esc(c.roman)}</small></span>` : `<span>+<small>chord ${i + 1}</small></span>`}</div>`;
+    for (let r = 6; r >= 0; r--) {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = ROMAN[r];
+      b.setAttribute("aria-pressed", prog.deg[i] === r);
+      b.setAttribute("aria-label", `Chord ${i + 1}: degree ${ROMAN[r]} (${chordName(r).name})`);
+      // like the Launchpad: a column past the end lengthens the progression to it
+      b.addEventListener("click", () => editProg(() => { prog.deg[i] = r; if (i >= prog.count) prog.count = i + 1; }));
+      col.appendChild(b);
+    }
+    const bars = document.createElement("button");
+    bars.type = "button"; bars.className = "bars";
+    const n = prog.bars[i];
+    bars.textContent = `${n} bar${n === 1 ? "" : "s"}`;
+    bars.setAttribute("aria-label", `Chord ${i + 1}: ${n} bar${n === 1 ? "" : "s"}; tap for the next length`);
+    bars.addEventListener("click", () => editProg(() => {
+      prog.bars[i] = BARS[(BARS.indexOf(prog.bars[i]) + 1) % BARS.length];
+      if (i >= prog.count) prog.count = i + 1;
+    }));
+    col.appendChild(bars);
+    box.appendChild(col);
+  }
 }
 
 // ---- presets ----------------------------------------------------------------------
@@ -628,6 +794,7 @@ async function forceRead() {
   live = await link.getLive();
   values = decodeState(desc, live);
   for (const [id, w] of widgets) w.update(values[id]);
+  if (ex) { prog = readProg(live); renderChords(true); }
 }
 
 $("slotLoad").addEventListener("click", () => slotAct(`loading slot ${slotSel + 1}`, () => link.loadFromSlot(slotSel)));
