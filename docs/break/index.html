@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Operation manual for Break, a drum-break mangler for the Hermetic Modular Alchemy Lab: sliced breaks from an ectocore.rocks SD card, reordered and glitched in time with your rack.">
+<title>Break for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+  Break for Alchemy Lab — operation manual.
+
+  The family's dark world (Mark, Smack, Belt, Seq). Ring and button colours
+  are the firmware's own constants (src/break_alchemy.cpp). Accent pair:
+  BREAK red-orange (kColBreak) and AMEN amber (kColAmen).
+  Single-theme, like the rest of the family.
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0e0c0b; --panel:#16130f; --panel2:#1d1914; --panel3:#262019;
+  --ink:#efe9e2; --dim:#9a9088; --soft:#cfc6bc;
+  --line:rgba(239,233,226,.12); --line2:rgba(239,233,226,.06);
+  --acc:#ff5a2a; --acc-soft:rgba(255,90,42,.14); --lead:#ffa020; --lead-soft:rgba(255,160,32,.14);
+  --warn:#ff4a4a; --ok:#3ce07a;
+
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;position:relative}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid rgba(255,138,42,.35)}
+a:hover{border-bottom-color:var(--acc)}
+a:focus-visible,button:focus-visible,input:focus-visible,.pad:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(14,12,11,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{color:var(--acc);font-style:normal}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:44px;align-items:center}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.hero .heroplate{max-width:280px;margin:0 auto}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(64px,12vw,148px);line-height:.86;letter-spacing:-.03em;margin:0;text-wrap:balance}
+h1.title em{font-style:normal;display:block;font-size:.3em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.5em}
+.tagline{font-family:var(--disp);font-weight:500;font-size:clamp(18px,2.5vw,24px);color:var(--soft);margin-top:22px;text-wrap:balance;max-width:34ch}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--soft);background:var(--panel)}
+.chip.ok{border-color:rgba(60,224,122,.4);color:var(--ok)}
+.chip.no{border-color:rgba(255,138,42,.45);color:var(--acc)}
+.heroplate svg{width:100%;height:auto;display:block;overflow:visible;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-align:center;margin-top:12px}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(32px,5vw,50px);letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 22px}
+.lede{font-size:18px;color:var(--soft);max-width:66ch}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px}
+.card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.card h4{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;line-height:1.15}
+.card p{color:var(--soft);font-size:15px}
+
+/* panel drawing */
+.toggles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.tg{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;padding:7px 12px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--soft);cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--ink)}
+.tg.lead[aria-pressed="true"]{background:var(--lead-soft);border-color:var(--lead)}
+.tgcap{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.drawing{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:36px;align-items:start}
+@media(max-width:760px){.drawing{grid-template-columns:1fr}.drawing .plate{max-width:300px;margin:0 auto}}
+.plate svg{width:100%;height:auto;display:block;overflow:visible}
+.hole{cursor:pointer}
+.hole .hit{fill:transparent;stroke:transparent;stroke-width:1.2;transition:stroke .15s}
+.hole:hover .hit,.hole.sel .hit{stroke:var(--acc)}
+.plabel{font-family:var(--mono);font-size:2.05px;fill:var(--dim);letter-spacing:.04em;text-anchor:middle;pointer-events:none}
+.plabel.lit{fill:var(--ink)}
+.jlabel{font-family:var(--mono);font-size:1.75px;fill:var(--dim);letter-spacing:.03em;text-anchor:middle;pointer-events:none}
+.legend{font-family:var(--mono);font-size:2.2px;fill:var(--soft);letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px;position:sticky;top:70px}
+.readout .rk{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.readout h3{font-family:var(--disp);font-weight:800;font-size:28px;margin:6px 0 2px;line-height:1.1}
+.readout .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+.readout .rd{color:var(--soft)}
+.readout .rm{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.readout .rm b{color:var(--ink);font-weight:500}
+
+/* jack table */
+.tbl{overflow-x:auto;margin-top:28px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500}
+td:first-child{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+td .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+
+/* generator */
+.gen{display:grid;grid-template-columns:260px 1fr;gap:28px;margin-top:28px;align-items:start}
+@media(max-width:760px){.gen{grid-template-columns:1fr}}
+.knobs{display:grid;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.vsel{display:flex;gap:6px}
+.knob label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.knob label span{color:var(--dim);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--acc)}
+body.leadv input[type=range]{accent-color:var(--lead)}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.lanewrap{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto}
+.lane{display:block;width:100%;min-width:520px;height:auto}
+.lanecap{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px}
+
+/* drum editor */
+.dgrid{display:grid;grid-template-columns:52px repeat(16,minmax(0,1fr));gap:4px;min-width:520px;align-items:center}
+.dgrid .dn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.dgrid .st{aspect-ratio:1/1;border:none;border-radius:3px;background:#262019;cursor:pointer;padding:0}
+.dgrid .st.q{box-shadow:inset 3px 0 0 rgba(239,233,226,.12)}
+.dgrid .hd{font-family:var(--mono);font-size:9.5px;color:var(--dim);text-align:center}
+.filebox{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.filehead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--dim)}
+.filehead select{font-family:var(--mono);font-size:11px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:3px}
+#dText{margin:0;padding:12px 14px;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink);overflow-x:auto;white-space:pre}
+
+/* launchpad */
+.lpbox{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:36px;align-items:start;margin-top:10px}
+@media(max-width:820px){.lpbox{grid-template-columns:1fr}}
+.lp{background:#141414;border-radius:14px;padding:14px;box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.06);display:grid;grid-template-columns:repeat(9,1fr);gap:5px;aspect-ratio:1/1;max-width:100%}
+.pad{border:none;padding:0;border-radius:4px;background:#232323;cursor:pointer;position:relative;aspect-ratio:1/1;transition:background .08s}
+.pad.round{border-radius:50%;transform:scale(.72)}
+.pad.logo{border-radius:3px;transform:scale(.55)}
+.pad.lit{box-shadow:0 0 10px var(--g,transparent)}
+.pad:hover{outline:1px solid rgba(255,255,255,.5)}
+.lpinfo h3{font-family:var(--disp);font-weight:800;font-size:26px;margin:0 0 4px}
+.lpinfo .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+.lpinfo .rd{color:var(--soft);min-height:4.8em}
+.keylist{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:18px;font-size:14px;color:var(--soft)}
+.keylist i{display:inline-block;width:14px;height:14px;border-radius:3px;margin-top:4px}
+
+/* XL + gamepad */
+.xl{background:#1a1a1c;border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px 6px;margin-top:10px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.xl .kn{aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3e,#1e1e20 70%);position:relative;max-width:46px;justify-self:center;width:100%}
+.xl .kn::after{content:"";position:absolute;left:50%;top:10%;width:2px;height:34%;background:#ddd;transform:translateX(-50%) rotate(var(--r,0deg));transform-origin:50% 118%}
+.xl .kn.b{box-shadow:0 0 0 2px var(--acc)}
+.xl .kn.l{box-shadow:0 0 0 2px var(--lead)}
+.xl .kn.off{opacity:.35}
+.xl .kn.d{box-shadow:0 0 0 2px #ff3050}
+.xl .fd{height:64px;width:10px;justify-self:center;border-radius:5px;background:#101012;position:relative;opacity:.4}
+.xl .fd::after{content:"";position:absolute;left:-7px;width:24px;height:10px;top:60%;border-radius:2px;background:#555}
+.xl .bt{height:22px;border-radius:3px;background:#2a2a2c;font-family:var(--mono);font-size:8.5px;letter-spacing:.02em;color:#111;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;padding:0 2px;overflow:hidden}
+.xl .rl{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:4px}
+.klab{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;font-family:var(--mono);font-size:9.5px;color:var(--dim);text-align:center;margin-top:8px;padding-inline:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.two h3{font-family:var(--disp);font-weight:800;font-size:26px;margin:0 0 6px}
+.two .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:14px}
+.pad42{background:#16161a;border-radius:14px;padding:18px;box-shadow:0 18px 40px rgba(0,0,0,.45);overflow-x:auto}
+.pad42 svg{display:block;width:100%;min-width:400px;height:auto}
+.gb text{font-family:var(--mono);text-anchor:middle}
+
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:760px){.rules{grid-template-columns:1fr}}
+.rule{border-left:2px solid var(--acc);padding:4px 0 4px 16px}
+.rule h4{font-family:var(--disp);font-weight:800;font-size:19px;margin:0 0 4px}
+.rule p{color:var(--soft);font-size:15px}
+.steps{display:grid;gap:12px;margin-top:24px;max-width:72ch}
+.steps li{color:var(--soft)}
+ol.steps{padding-left:22px}
+.list{display:grid;gap:8px;margin-top:14px;color:var(--soft);padding-left:20px}
+footer{padding-block:40px;color:var(--dim);font-family:var(--mono);font-size:11px}
+/* Break: let the demo shrink to the screen (the lane scrolls inside its box) */
+.gen > *{min-width:0}
+</style>
+</head>
+<body>
+
+
+<nav><div class="wrap">
+  <a class="logo" href="#top">break<em>.</em></a>
+  <a class="s" href="#idea">The idea</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#amen">Amen + Break</a>
+  <a class="s" href="#card">The card</a>
+  <a class="s" href="#clock">Clock</a>
+  <a class="s" href="#setup">Setup</a>
+  <a class="s" href="#ecto">vs Ectocore</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="../" style="margin-left:auto;color:var(--acc)">All instruments ↗</a>
+</div></nav>
+
+<header id="top"><div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Hermetic Modular Alchemy Lab V2 · firmware 0.1.0</div>
+      <h1 class="title">break<em>a drum-break mangler for the Alchemy Lab</em></h1>
+      <p class="tagline">Sliced breaks from the memory card, chopped, reordered and glitched in time with your rack.</p>
+      <div class="status">
+        <span class="chip ok">tested on a computer</span>
+        <span class="chip no">not yet on a module</span>
+      </div>
+    </div>
+    <div class="heroplate">
+      <svg id="heroSvg" viewBox="-4 -4 69 137" role="img" aria-label="Break on the Alchemy Lab panel: the Play page"></svg>
+      <div class="cap">12 HP · drawn at true scale · Play page</div>
+    </div>
+  </div>
+</div></header>
+
+<section id="idea"><div class="wrap">
+  <h2 class="sh">The idea</h2>
+  <div class="sub">What it does</div>
+  <p class="lede">Break plays drum breaks from the SD card, cut into slices, and messes with them as they
+    go: slices repeat, reverse, stutter, slow to a stop or get crushed, and the order of the hits
+    reshuffles. It reads cards made with <b>ectocore.rocks</b>, the free sample-prep site for the Ectocore,
+    so a card you already made for one works here.</p>
+  <div class="cols">
+    <div class="card"><div class="k">The card</div><h4>Sixteen banks of sixteen breaks</h4>
+      <p>Each break comes with its tempo, its slices and where its kicks and snares are. SAMPLE picks a
+        break, BANK (on the Shift page) picks a bank. The next one loads in the background while the
+        current one keeps playing, and swaps in without losing the bar.</p></div>
+    <div class="card"><div class="k">Break + grimoire</div><h4>How much happens, and what</h4>
+      <p>BREAK is how many slices get an effect. GRIMOIRE picks one of seven "runes", each a set of
+        effects BREAK is allowed to use: just stutters, just tape tricks, just dirt, and so on. A card
+        can bring its own seven.</p></div>
+    <div class="card"><div class="k">Amen</div><h4>Reorder the hits</h4>
+      <p>AMEN loops a short random run of slices, from one slice repeated up to 32, or at full turn
+        throws out random three-slice phrases. AMEN RANDOM makes it jump around; left of centre it
+        carries on from where it jumped, right of centre it snaps back to the beat.</p></div>
+    <div class="card"><div class="k">Keeps time</div><h4>Clock in, clock out, kick out</h4>
+      <p>It runs at the break's own tempo until a clock arrives on J1, then follows it. J7 sends an
+        eighth-note clock, and J8 fires on the kicks (or snares, or any hit) of the slice that's playing,
+        to drive the rest of the rack.</p></div>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <div class="sub">Two pages · click any control</div>
+  <p class="lede" style="margin-bottom:24px">Play is what's under your hands. Hold B3 for Shift, with the
+    set-and-forget controls. Pots catch: after switching page or firmware, a pot does nothing until it
+    passes the value it had, so nothing jumps.</p>
+  <div class="toggles">
+    <button class="tg" id="tgPlay" aria-pressed="true">Play</button>
+    <button class="tg" id="tgShift" aria-pressed="false">Shift · hold B3</button>
+  </div>
+  <div class="drawing">
+    <div class="plate"><svg id="panelSvg" viewBox="-4 -4 69 137" role="img" aria-label="Interactive Alchemy Lab panel diagram"></svg></div>
+    <div class="readout" id="ro">
+      <div class="rk" id="roK">Select a control</div>
+      <h3 id="roT">The panel</h3>
+      <div class="rs" id="roS">6 pots × 2 pages · 3 buttons · 10 jacks</div>
+      <div class="rd" id="roD">Hover or tap a pot, a button or a jack. B2 and B3 held together for two seconds open Settings: brightness, the Trig Out mode, presets, Evolve, and the SD-card firmware picker.</div>
+      <div class="rm" id="roM"></div>
+    </div>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Jack</th><th>Does</th><th>Signal</th><th>Driven by</th></tr></thead>
+    <tbody>
+      <tr><td>J1</td><td>Clock in</td><td>rising edge; 2 per beat at Clock Ratio x2</td><td>codec in, AC-coupled</td></tr>
+      <tr><td>J2</td><td>Reset: back to the top of the break</td><td>rising edge</td><td>codec in, AC-coupled</td></tr>
+      <tr><td>J3</td><td><span class="sw" style="background:#ffa020"></span>AMEN CV</td><td>±5 V, adds to the knob</td><td>CV in</td></tr>
+      <tr><td>J4</td><td><span class="sw" style="background:#ff4020"></span>BREAK CV</td><td>±5 V, adds to the knob</td><td>CV in</td></tr>
+      <tr><td>J5</td><td><span class="sw" style="background:#40c0ff"></span>SAMPLE CV</td><td>±5 V, adds to the knob</td><td>CV in</td></tr>
+      <tr><td>J6</td><td><span class="sw" style="background:#ff40c0"></span>AMEN RANDOM CV</td><td>±5 V, adds to the knob</td><td>CV in</td></tr>
+      <tr><td>J7</td><td>Clock out, eighth notes</td><td>10 ms, 5 V</td><td>STM32 DAC</td></tr>
+      <tr><td>J8</td><td>Trig out: kick / snare / any hit / random</td><td>10 ms, 5 V</td><td>STM32 DAC</td></tr>
+      <tr><td>J9</td><td>Out L</td><td>audio</td><td>codec</td></tr>
+      <tr><td>J10</td><td>Out R</td><td>audio</td><td>codec</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="amen"><div class="wrap">
+  <h2 class="sh">Amen and Break</h2>
+  <div class="sub">The firmware's rules, running in this page</div>
+  <p class="lede">Sixteen slices of a one-bar break. Each box is a position in the bar: the number is the
+    slice that plays there, the colour is the effect it gets. Turn AMEN and AMEN RANDOM to see the order
+    change; turn BREAK and pick a rune to see effects land. ROLL is B1: a fresh roll with the same knobs.
+    (The rules are the firmware's; the dice are this page's, so your module rolls different patterns.)</p>
+  <div class="gen">
+    <div class="knobs">
+      <div class="knob"><label for="dAmen">Amen <span id="dAmenV"></span></label><input type="range" id="dAmen" min="0" max="1" step="0.005" value="0"></div>
+      <div class="knob"><label for="dJump">Amen random <span id="dJumpV"></span></label><input type="range" id="dJump" min="-1" max="1" step="0.01" value="0"></div>
+      <div class="knob"><label for="dBreak">Break <span id="dBreakV"></span></label><input type="range" id="dBreak" min="0" max="1" step="0.01" value="0.4"></div>
+      <div class="knob"><label for="dRune">Grimoire <span id="dRuneV"></span></label><input type="range" id="dRune" min="0" max="6" step="1" value="0"></div>
+      <div class="btnrow"><button class="tg" id="dRoll">Roll (B1)</button></div>
+    </div>
+    <div>
+      <div class="lanewrap"><svg class="lane" id="lane" viewBox="0 0 640 170" role="img" aria-label="16 positions of the bar and the slice each plays"></svg></div>
+      <div class="lanecap" id="laneCap"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="card"><div class="wrap">
+  <h2 class="sh">The card</h2>
+  <div class="sub">Made with ectocore.rocks</div>
+  <div class="rules">
+    <div class="rule"><h4>Making one</h4><p>On <b>ectocore.rocks</b>, drop breaks into banks, slice them, mark kicks and snares if you like, then export. Copy what the export gives you onto a FAT32 card (32 GB or smaller), either the folder's contents at the root or the folder itself. The firmware bins in <code>/alchemy</code> can share the card.</p></div>
+    <div class="rule"><h4>What it reads</h4><p><code>bank1</code> … <code>bank16</code>, each with up to 16 breaks named <code>0.0.wav</code> … <code>15.0.wav</code>, each with its <code>.wav.info</code> beside it (tempo, slices, kick and snare marks). A break without its .info is skipped. Banks and samples you haven't filled are skipped too, so SAMPLE and BANK only ever land on something.</p></div>
+    <div class="rule"><h4>The grimoire</h4><p>If the card has <code>settings/grimoire/rune1</code> … <code>rune7</code>, those are your seven runes, for every bank. Without them, Break uses its own: 1 stutter, 2 tape, 3 dirt, 4 space, 5 filter, 6 glitch, 7 everything.</p></div>
+    <div class="rule"><h4>Fitting the break</h4><p>A break plays as a whole number of beats, up to 16 bars. The slices become an even grid, the count nearest the card's (8, 16, 32 …), and the card's kick and snare marks go with them. A break longer than about 80 seconds is cut to the longest whole half that fits.</p></div>
+    <div class="rule"><h4>Loading</h4><p>B1 glows amber while a break loads and green once it plays. The current break keeps going while the next one loads, and the new one comes in at the same place in the bar. Red means no card, or a break it couldn't read.</p></div>
+    <div class="rule"><h4>Ignored for now</h4><p>The extra saturated versions (<code>S.2/4/6.wav</code>), one-shot and stop-at-end play modes (everything loops), the other settings files (CV modes, MIDI channel, start tempo, brightness).</p></div>
+  </div>
+</div></section>
+
+<section id="clock"><div class="wrap">
+  <h2 class="sh">Clock and transport</h2>
+  <div class="sub">The break's own tempo until something clocks J1</div>
+  <div class="rules">
+    <div class="rule"><h4>Free-running</h4><p>With nothing on J1, Break plays at TEMPO (Shift page), and loading a break sets TEMPO to that break's own BPM. Tap B2 a few times to tap a tempo instead. B2 flashes white on the beat.</p></div>
+    <div class="rule"><h4>Following a clock</h4><p>Pulses on J1 take over; B2 turns blue. CLOCK RATIO says what one pulse is worth: x2 (the default) is two pulses per beat, the Ectocore's clock; =1 is one per beat; /2 is one per two beats. The break speeds up or slows down to stay on the grid, so its pitch follows the tempo.</p></div>
+    <div class="rule"><h4>Reset</h4><p>A rising edge on J2 sends the break back to its top right away. J1 and J2 are AC-coupled, so only edges count, never a held level.</p></div>
+    <div class="rule"><h4>Stop and play</h4><p>Hold B1 to stop: silence, no clock out, B1 grey. Hold it again to play from the top.</p></div>
+    <div class="rule"><h4>Clock out and trig out</h4><p>J7 pulses every eighth note (10 ms). J8 pulses at the start of each slice that holds what Trig Out (Settings) asks for: a kick, a snare, any marked hit, or one slice in four at random.</p></div>
+    <div class="rule"><h4>Evolve</h4><p>With Evolve on (Settings, the default), every time the break comes round it rolls a fresh pattern while BREAK, AMEN RANDOM or full AMEN is up, so effects come and go. Off, one pattern plays until you tap B1.</p></div>
+  </div>
+</div></section>
+
+<section id="setup"><div class="wrap">
+  <h2 class="sh">Setup, saving and flashing</h2>
+  <div class="sub">What to know before the first power-up</div>
+  <div class="rules">
+    <div class="rule"><h4>It saves itself</h4><p>Your knobs, both pages, the settings and the tempo save to preset slot 4 five seconds after the last change, with your hands off the buttons and nothing loading.</p></div>
+    <div class="rule"><h4>Other firmware on the same card</h4><p>The SD picker in Settings (page 2) swaps firmware. Each one keeps its own preset slot (Break 4, Seq 5, Meld 6, Warps 7, Clouds 8, Elements 9, Marbles 10, Plaits 11, Smack 12, Mark 13, Belt 14, Relay 15), so switching away and back loses nothing.</p></div>
+    <div class="rule"><h4>The front USB-C</h4><p>Always the web programmer's port (HostLink), for presets, files on the card and flashing. Break doesn't host a Launchpad or act as an audio interface.</p></div>
+    <div class="rule"><h4>Where it came from</h4><p>Break is Smack (the loop glitcher) fed from the card instead of a live input: the same slicing and effects engine, with the Ectocore's ideas mapped onto it.</p></div>
+  </div>
+  <h3 style="font-family:var(--disp);font-weight:800;font-size:24px;margin:40px 0 0">Getting it</h3>
+  <p style="color:var(--soft);max-width:66ch;margin-top:12px">Break isn't released yet. It has been built and tested on a
+    computer, and its first run on a module is next. When it's out, it installs like every other instrument on
+    <a href="../#install">the Alchemy Lab page</a>: flash the first one with Hermetic's web programmer, then carry it
+    on the card and switch to it from the picker.</p>
+</div></section>
+
+<section id="ecto"><div class="wrap">
+  <h2 class="sh">Coming from an Ectocore</h2>
+  <div class="sub">Same card, same ideas, different engine</div>
+  <p class="lede">Break isn't a port. It's a new firmware that reads the same cards and borrows the panel's
+    ideas, running them on Smack's engine. So some things work differently.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Ectocore</th><th>Break</th></tr></thead>
+    <tbody>
+      <tr><td>Slices exactly where you put them</td><td>An even grid, the count nearest yours; kick and snare marks move to the nearest slice</td></tr>
+      <tr><td>BREAK rolls the dice every beat; an effect runs for a few beats</td><td>BREAK sets the share of slices with an effect; Evolve re-rolls each time round</td></tr>
+      <tr><td>The 16 grimoire effects</td><td>Each played by the nearest Smack effect or two (e.g. loss → crush and ring mod, time stretch → half speed and freeze); pitch up and down both become a pitch effect whose direction is rolled</td></tr>
+      <tr><td>A missing rune is random</td><td>A missing rune is one of Break's own seven</td></tr>
+      <tr><td>Trig out on the exact transient</td><td>Trig out at the start of the slice that holds it</td></tr>
+      <tr><td>CV modes for AMEN (jump, repeat, split), 1 V/oct sample select, MIDI</td><td>Not yet: the CV inputs add to their knobs</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <div class="sub">Firmware 0.1.0 · not yet released</div>
+  <div class="two" style="margin-top:0">
+    <div>
+      <h3 style="color:var(--ok)">Checked</h3>
+      <ul class="list">
+        <li>Thousands of automatic tests on a computer: reading the card's .info and WAV files (including the exact layouts the Ectocore's own reader is tested against), the slice grid and its kick and snare marks, AMEN and AMEN RANDOM, the runes, and the engine playing a loaded break.</li>
+        <li>The whole firmware runs, unchanged, in an Alchemy Lab emulator with a test card: it loads and plays, J7 clocks at the break's tempo, J8 fires on kicks, stop and play, switching breaks and banks, following a clock on J1, and BREAK, AMEN and every rune turned all the way up without clipping.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--acc)">Not yet tried</h3>
+      <ul class="list">
+        <li>A card exported from ectocore.rocks itself (the test card is made by a script from the same format notes).</li>
+        <li>Anything on a real module: loading from a real SD card, the CPU with heavy runes, the J7 and J8 outputs, clock and reset through the AC-coupled inputs.</li>
+        <li>Not built yet: the Ectocore's CV modes, the saturated sample versions, one-shot play modes, MIDI.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Break is firmware by Tim Cox for the Hermetic Modular Alchemy Lab, one of <a href="../">the instruments on Tim's Alchemy Lab page</a>. Hermetic Modular didn't write or test it and can't support it. It reads cards made with ectocore.rocks; the Ectocore is a module by infinitedigits, who aren't involved with Break.</div></footer>
+
+
+<script>
+/* == BEGIN GENERATED GEOMETRY -- tools/emit_panel_geometry.py == */
+const PANEL = {
+ "source": "lib/alchemy-sdk/panel/front-panel-template.kicad_pcb",
+ "units": "mm, front view, origin top-left of the plate, y down",
+ "plate": {
+  "w": 60.96,
+  "h": 128.5,
+  "hp": 12.0
+ },
+ "mount": [
+  {
+   "x": 4.537,
+   "y": 1.297,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 51.312,
+   "y": 1.311,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 4.537,
+   "y": 123.8,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  },
+  {
+   "x": 51.323,
+   "y": 123.812,
+   "w": 5.1,
+   "h": 3.4,
+   "r": 1.7
+  }
+ ],
+ "rails": [
+  7.23,
+  122.18
+ ],
+ "pots": [
+  {
+   "id": "P1",
+   "x": 12.758,
+   "y": 21.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P2",
+   "x": 47.758,
+   "y": 21.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P3",
+   "x": 12.758,
+   "y": 49.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P4",
+   "x": 47.758,
+   "y": 49.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P5",
+   "x": 12.758,
+   "y": 77.304,
+   "hole": 3.6
+  },
+  {
+   "id": "P6",
+   "x": 47.758,
+   "y": 77.304,
+   "hole": 3.6
+  }
+ ],
+ "ring": {
+  "r": 10.09,
+  "leds": 16,
+  "start_hour": 7.5,
+  "step_hours": 0.75,
+  "arc_leds": 13
+ },
+ "buttons": [
+  {
+   "id": "B1",
+   "x": 30.257,
+   "y": 21.31,
+   "hole": 3.1,
+   "halo": 4.0
+  },
+  {
+   "id": "B2",
+   "x": 30.257,
+   "y": 49.312,
+   "hole": 3.1,
+   "halo": 4.0
+  },
+  {
+   "id": "B3",
+   "x": 30.257,
+   "y": 77.32,
+   "hole": 3.1,
+   "halo": 4.0
+  }
+ ],
+ "usb": {
+  "x": 25.317,
+  "y": 89.274,
+  "w": 10.034,
+  "h": 4.044,
+  "r": 2.022
+ },
+ "jacks": [
+  {
+   "id": "J1",
+   "x": 6.699,
+   "y": 100.093,
+   "hole": 3.2
+  },
+  {
+   "id": "J2",
+   "x": 6.699,
+   "y": 113.053,
+   "hole": 3.2
+  },
+  {
+   "id": "J3",
+   "x": 18.51,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J4",
+   "x": 30.286,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J5",
+   "x": 42.014,
+   "y": 100.119,
+   "hole": 3.2
+  },
+  {
+   "id": "J6",
+   "x": 18.51,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J7",
+   "x": 30.286,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J8",
+   "x": 42.014,
+   "y": 113.056,
+   "hole": 3.2
+  },
+  {
+   "id": "J9",
+   "x": 53.901,
+   "y": 100.126,
+   "hole": 3.2
+  },
+  {
+   "id": "J10",
+   "x": 53.889,
+   "y": 113.036,
+   "hole": 3.2
+  }
+ ],
+ "jack_order_assumed": "J3..J8 in reading order; the printed panel is the authority",
+ "labels": {
+  "knob_dy": 14.0,
+  "button_dy": 10.63,
+  "in": [
+   5.556,
+   120.642
+  ],
+  "out": [
+   51.53,
+   120.642
+  ]
+ }
+};
+/* == END GENERATED GEOMETRY == */
+
+/* ---------- colours: the firmware's constants (src/break_alchemy.cpp) ---------- */
+const C = {
+  brk:"#ff4020", amen:"#ffa020", samp:"#40c0ff", jumpR:"#ff40c0", jumpL:"#8040ff", rune:"#c060ff",
+  lp:"#2060ff", hp:"#ffa020", notch:"#ffffff", vol:"#40ff80", seed:"#c060ff", bank:"#40ffc0",
+  pitch:"#ff80ff", ratio:"#8080ff", tempo:"#ffc040", shift:"#301040", dim:"#181818",
+  green:"#00ff00", grey:"#606060", blue:"#0050ff", idle:"#000030",
+};
+const PAGES = [
+  { name:"PLAY", color:"#ff6020", pots:[
+    { name:"BREAK", ring:{style:"level", c:C.brk}, v:.45, sub:"0–100 % · how much happens", d:"The share of slices that get an effect, on a squared curve so the first half of the knob is the subtle half. Which effects: GRIMOIRE.", meta:["knob <b>break</b>","CV <b>J4</b>"] },
+    { name:"AMEN", ring:{style:"level", c:C.amen}, v:.3, sub:"straight … sequences … random", d:"Fully left the break plays in order. Through the middle it loops a random run of 1, 2, 3 … 16, 24 or 32 slices. Fully right it throws out random three-slice phrases. Crossing a step re-rolls.", meta:["knob <b>amen</b>","CV <b>J3</b>"] },
+    { name:"SAMPLE", ring:{style:"level", c:C.samp}, v:.2, sub:"the breaks in this bank", d:"Picks among the breaks this bank actually has. The next one loads while this one plays and comes in at the same point in the bar. The ring's white dot is the playhead.", meta:["knob <b>sample</b>","CV <b>J5</b>"] },
+    { name:"AMEN RANDOM", ring:{style:"bi", pos:C.jumpR, neg:C.jumpL, c:C.notch}, v:.5, sub:"left: wander · centre: off · right: snap back", d:"How often a slice jumps somewhere else. Left of centre the break carries on from where it jumped; right of centre the next slice is back on the beat. A dead zone at the centre.", meta:["knob <b>jump</b>","CV <b>J6</b>"] },
+    { name:"GRIMOIRE", ring:{style:"sel", c:C.rune, n:7}, v:.5/7, sub:"rune 1–7", d:"Which effects BREAK may use. The card's settings/grimoire if it has one, else Break's own: 1 stutter, 2 tape, 3 dirt, 4 space, 5 filter, 6 glitch, 7 everything.", meta:["knob <b>rune</b>","ring <b>7 dots</b>"] },
+    { name:"DJ FILTER", ring:{style:"bi", pos:C.hp, neg:C.lp, c:C.notch}, v:.5, sub:"low-pass ← open → high-pass", d:"Left sweeps a low-pass down, right a high-pass up, with a resonant edge. Open at the centre, where it is a true bypass.", meta:["knob <b>djf</b>"] },
+  ]},
+  { name:"SHIFT", color:"#c060ff", pots:[
+    { name:"VOLUME", ring:{style:"level", c:C.vol}, v:.5, sub:"0–200 %", d:"100 % at noon. Past that it pushes into soft saturation rather than clipping.", meta:["knob <b>vol</b>","default <b>100 %</b>"] },
+    { name:"SEED", ring:{style:"level", c:C.seed}, v:0, sub:"0–127", d:"The dice. The same seed and knobs give the same pattern; B1 rolls a new one.", meta:["knob <b>seed</b>","default <b>0</b>"] },
+    { name:"BANK", ring:{style:"level", c:C.bank}, v:0, sub:"the banks on the card", d:"Picks among the banks the card actually has. SAMPLE then picks within it.", meta:["knob <b>bank</b>"] },
+    { name:"PITCH RANGE", ring:{style:"level", c:C.pitch}, v:11/23, sub:"1–24 semitones", d:"How far the pitch effects can shift a slice, up or down.", meta:["knob <b>pitch</b>","default <b>12</b>"] },
+    { name:"CLOCK RATIO", ring:{style:"sel", c:C.ratio, n:3}, v:2.5/3, sub:"/2 · =1 · x2", d:"What one pulse on J1 is worth: a half note, a beat, or an eighth. x2 is two pulses per beat, the Ectocore's clock.", meta:["knob <b>clk.ratio</b>","default <b>x2</b>"] },
+    { name:"TEMPO", ring:{style:"level", c:C.tempo}, v:(120-50)/150, sub:"50–200 BPM", d:"The tempo when nothing clocks J1. Loading a break sets it to the break's own BPM; tapping B2 sets it too. While J1 clocks, it follows the clock.", meta:["knob <b>tempo</b>"] },
+  ]},
+];
+const BUTTONS = [
+  { id:"B1", name:"ROLL", sub:"tap · hold", d:"Tap: roll a fresh pattern with the same knobs. Hold: stop, hold again: play from the top. Green playing, amber loading a break, grey stopped, red no card or a break it couldn't read, white while punching.", meta:["tap <b>re-roll</b>","hold <b>stop / play</b>"] },
+  { id:"B2", name:"TAP", sub:"tap · hold", d:"Tap a few times to set the tempo. Hold: punch, every slice retriggers until you let go. Blue while following J1, grey free-running with a white flash on the beat, red if the audio is running hot.", meta:["tap <b>tap tempo</b>","hold <b>punch</b>"] },
+  { id:"B3", name:"SHIFT", sub:"hold", d:"Shows the Shift page while held, with catch both ways so nothing jumps. B2 + B3 held for 2 s open Settings. Held at power-up it is the bootloader's DFU button.", meta:["page <b>SHIFT</b>","at power-up <b>DFU</b>"] },
+];
+const JACKS = {
+  J1:{ name:"CLOCK IN", sub:"rising edge", d:"Pulses here take over from TEMPO. CLOCK RATIO (Shift) says what one pulse is worth; x2 = two per beat.", meta:["input <b>AC-coupled</b>"] },
+  J2:{ name:"RESET IN", sub:"rising edge", d:"Back to the top of the break, at once.", meta:["input <b>AC-coupled</b>"] },
+  J3:{ name:"AMEN CV", sub:"±5 V", d:"Adds to AMEN.", meta:["to <b>AMEN</b>"] },
+  J4:{ name:"BREAK CV", sub:"±5 V", d:"Adds to BREAK.", meta:["to <b>BREAK</b>"] },
+  J5:{ name:"SAMPLE CV", sub:"±5 V", d:"Adds to SAMPLE, so a voltage can pick the break.", meta:["to <b>SAMPLE</b>"] },
+  J6:{ name:"RANDOM CV", sub:"±5 V", d:"Adds to AMEN RANDOM.", meta:["to <b>AMEN RANDOM</b>"] },
+  J7:{ name:"CLOCK OUT", sub:"10 ms · eighths", d:"An eighth-note clock while playing, at whatever tempo Break is running.", meta:["DAC <b>STM32</b>"] },
+  J8:{ name:"TRIG OUT", sub:"10 ms", d:"Fires at the start of each slice holding what Settings → Trig Out asks for: kick, snare, any hit, or random.", meta:["DAC <b>STM32</b>"] },
+  J9:{ name:"OUT L", sub:"audio", d:"Left output.", meta:["out <b>codec</b>"] },
+  J10:{ name:"OUT R", sub:"audio", d:"Right output.", meta:["out <b>codec</b>"] },
+};
+const USB = { name:"USB-C", sub:"HostLink", d:"The web programmer's port: presets, the card's files, flashing. Break doesn't host a Launchpad or act as an audio interface.", meta:["protocol <b>HostLink</b>"] };
+const JACKLEGEND = { J1:"CLK", J2:"RST", J3:"AMEN", J4:"BREAK", J5:"SAMP", J6:"RAND", J7:"CLK OUT", J8:"TRIG", J9:"OUT L", J10:"OUT R" };
+
+/* ---------- drawing (from the Mark manual) ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(n, a, parent) { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; }
+function hourXY(cx, cy, r, hour) { const a = hour / 12 * Math.PI * 2; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; }
+function ringColours(ring, v) {
+  const g = PANEL.ring, N = g.arc_leds, out = new Array(g.leds).fill(null);
+  if (ring.style === "level") { const n = Math.round(v * N); for (let i = 0; i < N; i++) out[i] = i < n ? ring.c : C.dim; }
+  else if (ring.style === "bi") { const mid = (N - 1) / 2, p = Math.round(v * (N - 1)); for (let i = 0; i < N; i++) out[i] = C.dim; if (p > mid) for (let i = mid + 1; i <= p; i++) out[i] = ring.pos; else if (p < mid) for (let i = p; i < mid; i++) out[i] = ring.neg; out[mid] = ring.c; }
+  else { const z = Math.min(ring.n - 1, Math.floor(v * ring.n)); for (let q = 0; q < ring.n; q++) out[Math.round(q * (N - 1) / (ring.n - 1))] = (q === z) ? ring.c : C.dim; }
+  return out;
+}
+function drawRing(g, cx, cy, ring, v) {
+  const geo = PANEL.ring, cols = ringColours(ring, v);
+  for (let i = 0; i < geo.leds; i++) {
+    const [x, y] = hourXY(cx, cy, geo.r, (geo.start_hour + geo.step_hours * i) % 12);
+    const arc = i < geo.arc_leds, c = cols[i], lit = arc && c && c !== C.dim;
+    if (lit) el("circle", { cx:x, cy:y, r:1.55, fill:c, opacity:.22 }, g);
+    el("circle", { cx:x, cy:y, r:.72, fill: arc ? (c || "#0e0d13") : "#101014", opacity: arc ? 1 : .6 }, g);
+  }
+}
+function drawKnob(g, cx, cy, v) {
+  el("circle", { cx, cy, r:6.2, fill:"#0f0e14", stroke:"rgba(255,255,255,.10)", "stroke-width":.25 }, g);
+  el("circle", { cx, cy, r:5.4, fill:"#1a1822" }, g);
+  const hour = PANEL.ring.start_hour + v * (PANEL.ring.step_hours * (PANEL.ring.arc_leds - 1));
+  const [x1, y1] = hourXY(cx, cy, 2.2, hour), [x2, y2] = hourXY(cx, cy, 5.0, hour);
+  el("line", { x1, y1, x2, y2, stroke:"#e8e2f0", "stroke-width":.7, "stroke-linecap":"round" }, g);
+}
+function drawButton(g, b, halo) {
+  if (halo && halo !== C.idle) el("circle", { cx:b.x, cy:b.y, r:b.halo + 1.6, fill:halo, opacity:.22 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.halo, fill: halo || "#101018", opacity: halo ? .85 : 1 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.hole, fill:"#0d0c12", stroke:"rgba(255,255,255,.14)", "stroke-width":.25 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:2.2, fill:"#1c1a24" }, g);
+}
+function drawJack(g, j) {
+  el("circle", { cx:j.x, cy:j.y, r:3.9, fill:"#0f0e14", stroke:"rgba(255,255,255,.12)", "stroke-width":.25 }, g);
+  el("circle", { cx:j.x, cy:j.y, r:j.hole, fill:"#1b1923" }, g);
+  el("circle", { cx:j.x, cy:j.y, r:1.5, fill:"#050507" }, g);
+}
+function drawPanel(svg, st, onHover) {
+  svg.textContent = "";
+  const P = PANEL, page = PAGES[st.page];
+  const plate = el("g", {}, svg);
+  el("rect", { x:0, y:0, width:P.plate.w, height:P.plate.h, rx:1.2, fill:"#1b1814", stroke:"rgba(239,233,226,.18)", "stroke-width":.3 }, plate);
+  for (const m of P.mount) el("rect", { x:m.x, y:m.y, width:m.w, height:m.h, rx:m.r, fill:"#0e0c0b", stroke:"rgba(255,255,255,.12)", "stroke-width":.2 }, plate);
+  for (const y of P.rails) el("line", { x1:2, y1:y, x2:P.plate.w - 2, y2:y, stroke:"rgba(255,90,42,.25)", "stroke-width":.25 }, plate);
+  el("text", { x:P.plate.w / 2, y:P.rails[0] - 2.2, class:"legend" }, plate).textContent = "BREAK";
+  const mk = (key) => {
+    const g = el("g", { class:"hole" + (st.sel === key ? " sel" : ""), "data-key":key }, svg);
+    if (onHover) { g.addEventListener("mouseenter", () => onHover(key, false)); g.addEventListener("click", (e) => { e.stopPropagation(); onHover(key, true); }); }
+    return g;
+  };
+  P.pots.forEach((p, i) => {
+    const k = page.pots[i], g = mk("P" + (i + 1));
+    drawRing(g, p.x, p.y, k.ring, k.v); drawKnob(g, p.x, p.y, k.v);
+    el("text", { x:p.x, y:p.y + P.labels.knob_dy, class:"plabel lit" }, g).textContent = k.name;
+    el("circle", { cx:p.x, cy:p.y, r:P.ring.r + 2.2, class:"hit" }, g);
+  });
+  const halos = [C.green, C.grey, st.page === 1 ? PAGES[1].color : C.shift];
+  P.buttons.forEach((b, i) => {
+    const g = mk("B" + (i + 1)); drawButton(g, b, halos[i]);
+    el("text", { x:b.x, y:b.y + P.labels.button_dy, class:"plabel" }, g).textContent = BUTTONS[i].name;
+    el("circle", { cx:b.x, cy:b.y, r:b.halo + 2.2, class:"hit" }, g);
+  });
+  { const u = P.usb, g = mk("USB");
+    el("rect", { x:u.x, y:u.y, width:u.w, height:u.h, rx:u.r, fill:"#08080b", stroke:"rgba(255,255,255,.16)", "stroke-width":.25 }, g);
+    el("rect", { x:u.x - 1, y:u.y - 1, width:u.w + 2, height:u.h + 2, rx:u.r + 1, class:"hit" }, g); }
+  const rows = [...new Set(P.jacks.map(j => Math.round(j.y)))].sort((a, b) => a - b);
+  P.jacks.forEach(j => {
+    const g = mk(j.id); drawJack(g, j);
+    const top = Math.round(j.y) === rows[0];
+    el("text", { x:j.x, y:j.y + (top ? 6.9 : 7.6), class:"jlabel" }, g).textContent = JACKLEGEND[j.id];
+    el("circle", { cx:j.x, cy:j.y, r:5.2, class:"hit" }, g);
+  });
+  el("text", { x:P.labels.in[0] + 1.2, y:P.labels.in[1] + 3.2, class:"legend" }, plate).textContent = "IN";
+  el("text", { x:P.labels.out[0] - 1.2, y:P.labels.out[1] + 3.2, class:"legend" }, plate).textContent = "OUT";
+}
+drawPanel(document.getElementById("heroSvg"), { page:0, sel:null });
+
+const iv = { page:0, sel:null };
+const psvg = document.getElementById("panelSvg");
+const ro = { k:roK, t:roT, s:roS, d:roD, m:roM };
+const roDefault = { k:roK.textContent, t:roT.textContent, s:roS.textContent, d:roD.textContent };
+let pinned = null;
+function describe(key) {
+  if (!key) return null;
+  if (key[0] === "P") { const i = +key[1] - 1, k = PAGES[iv.page].pots[i]; return { k:`${key} · ${PAGES[iv.page].name} page`, t:k.name, s:k.sub, d:k.d, m:k.meta }; }
+  if (key[0] === "B") { const b = BUTTONS[+key[1] - 1]; return { k:key, t:b.name, s:b.sub, d:b.d, m:b.meta }; }
+  if (key === "USB") return { k:"front panel", t:USB.name, s:USB.sub, d:USB.d, m:USB.meta };
+  const j = JACKS[key]; return { k:key, t:j.name, s:j.sub, d:j.d, m:j.meta };
+}
+function showReadout(key) {
+  const x = describe(key);
+  if (!x) { ro.k.textContent = roDefault.k; ro.t.textContent = roDefault.t; ro.s.textContent = roDefault.s; ro.d.textContent = roDefault.d; ro.m.innerHTML = ""; return; }
+  ro.k.textContent = x.k; ro.t.textContent = x.t; ro.s.textContent = x.s; ro.d.textContent = x.d;
+  ro.m.innerHTML = x.m.map(s => `<div>${s}</div>`).join("");
+}
+function onHover(key, click) { if (click) { pinned = pinned === key ? null : key; iv.sel = pinned; redraw(); } showReadout(pinned || key); }
+function redraw() { drawPanel(psvg, iv, onHover); }
+psvg.addEventListener("mouseleave", () => showReadout(pinned));
+redraw();
+function setPage(p) {
+  iv.page = p;
+  [tgPlay, tgShift].forEach((b, i) => b.setAttribute("aria-pressed", i === p));
+  redraw(); showReadout(pinned);
+}
+tgPlay.onclick = () => setPage(0); tgShift.onclick = () => setPage(1);
+
+/* ---------- Amen + Break: src/ecto_card.c's rules, in JS ---------- */
+const AMEN_LEN = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 24, 32];
+const AMEN_LO = 57 / 1023, AMEN_HI = 966 / 1023, JUMP_DEAD = 24 / 512;
+let seed = 0x2026;
+const xs = () => { let x = seed || 0x9e3779b9; x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; seed = x >>> 0; return seed; };
+const below = (n) => xs() % n;
+function amenLen(a) {
+  if (a < AMEN_LO) return 0;
+  if (a >= AMEN_HI) return -1;
+  return AMEN_LEN[Math.max(0, Math.min(14, Math.floor((a - AMEN_LO) / (AMEN_HI - AMEN_LO) * 15)))];
+}
+function amenOrder(n, amen, jump) {
+  const o = new Array(n), len = amenLen(amen);
+  if (len === 0) for (let i = 0; i < n; i++) o[i] = i;
+  else if (len > 0) { const sq = []; for (let j = 0; j < len; j++) sq.push(below(n)); for (let i = 0; i < n; i++) o[i] = sq[i % len]; }
+  else for (let i = 0; i < n; i += 3) { const s0 = below(n); for (let k = 0; k < 3 && i + k < n; k++) o[i + k] = (s0 + k) % n; }
+  const a = Math.abs(jump);
+  const jumped = new Array(n).fill(false);
+  if (a > JUMP_DEAD) {
+    let p = (a - JUMP_DEAD) / (1 - JUMP_DEAD); if (jump > 0) p *= .9;
+    let carry = -1;
+    for (let i = 0; i < n; i++) {
+      if ((xs() >>> 8) / 16777216 < p) { const to = below(n); o[i] = to; jumped[i] = true; if (jump < 0) carry = to; }
+      else if (carry >= 0) { carry = (carry + 1) % n; o[i] = carry; }
+    }
+  }
+  return { o, jumped };
+}
+/* Break's built-in runes, as Smack effects (ecto_card.c, ecto_default_runes + k_ecto_to_smack) */
+const RUNES = [
+  ["stutter", ["Retrig", "Repeat", "Reverse", "Rev After"]],
+  ["tape", ["Tape Stop", "Tape Start", "Speed", "Freeze", "Pitch", "P-Shift"]],
+  ["dirt", ["Dist", "Crush", "Ring Mod"]],
+  ["space", ["Delay", "Tonal Delay", "Verb", "Pan", "Comb"]],
+  ["filter", ["Filter", "Vowel", "Comb", "Pan"]],
+  ["glitch", ["Buzz", "Scratch", "Retrig", "Crush", "Reverse", "Rev After"]],
+  ["everything", ["Retrig", "Reverse", "Pitch", "Speed", "Buzz", "Crush", "Repeat", "Rev After", "Tape Stop", "Tape Start", "Scratch", "Pan", "Filter", "Vowel", "Tonal Delay", "Freeze", "Delay", "Dist", "Verb", "P-Shift", "Ring Mod", "Comb"]],
+];
+const FXCOL = {};
+const PALETTE = ["#ff4020", "#ffa020", "#40c0ff", "#ff40c0", "#40ffc0", "#c060ff", "#ffd21f", "#8080ff", "#40ff80", "#ff80ff", "#30e0ff"];
+RUNES[6][1].forEach((f, i) => FXCOL[f] = PALETTE[i % PALETTE.length]);
+let roll = 0;
+function drawDemo() {
+  const amen = +dAmen.value, jump = +dJump.value, brk = +dBreak.value, rune = +dRune.value;
+  const L = amenLen(amen);
+  dAmenV.textContent = L === 0 ? "straight" : L < 0 ? "random phrases" : `loop of ${L}`;
+  dJumpV.textContent = Math.abs(jump) <= JUMP_DEAD ? "off" : (jump < 0 ? "wander " : "snap back ") + Math.round(Math.abs(jump) * 100) + " %";
+  dBreakV.textContent = Math.round(brk * brk * 100) + " % of slices";
+  dRuneV.textContent = `${rune + 1} · ${RUNES[rune][0]}`;
+  seed = (0x2026 + roll * 2654435761) >>> 0;
+  const n = 16, { o, jumped } = amenOrder(n, amen, jump);
+  const dens = brk * brk, fxs = RUNES[rune][1];
+  const fx = o.map(() => ((xs() >>> 8) / 16777216 < dens) ? fxs[below(fxs.length)] : null);
+  lane.textContent = "";
+  const W = 640, pad = 16, cw = (W - pad * 2) / n;
+  for (let i = 0; i < n; i++) {
+    const x = pad + i * cw, f = fx[i];
+    el("rect", { x:x + 2, y:24, width:cw - 4, height:64, rx:4, fill: f ? FXCOL[f] : "#262019", opacity: f ? .9 : 1, stroke: jumped[i] ? "#ffffff" : "none", "stroke-width":1.5 }, lane);
+    el("text", { x:x + cw / 2, y:64, fill: f ? "#120c08" : "#efe9e2", "font-size":20, "font-weight":700, "font-family":"JetBrains Mono, monospace", "text-anchor":"middle" }, lane).textContent = o[i] + 1;
+    el("text", { x:x + cw / 2, y:14, fill:"#9a9088", "font-size":9.5, "font-family":"JetBrains Mono, monospace", "text-anchor":"middle" }, lane).textContent = i % 4 === 0 ? `beat ${i / 4 + 1}` : "·";
+    if (f) {
+      const t = el("text", { x:x + cw / 2, y:104, fill:FXCOL[f], "font-size":9, "font-family":"JetBrains Mono, monospace", "text-anchor":"end", transform:`rotate(-55 ${x + cw / 2} 104)` }, lane);
+      t.textContent = f;
+    }
+  }
+  const nfx = fx.filter(Boolean).length;
+  laneCap.textContent = `${nfx} of 16 slices effected · number = the slice that plays · white outline = AMEN RANDOM jumped here`;
+}
+[dAmen, dJump, dBreak, dRune].forEach(e => e.addEventListener("input", drawDemo));
+dRoll.onclick = () => { roll++; drawDemo(); };
+drawDemo();
+</script>
+
+</body>
+</html>
