@@ -221,7 +221,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="play">
   <h2>Play them in your browser</h2>
-  <p>No module? Nine of them run right here, in the emulator: the real firmware, compiled for the web, on an
+  <p>No module? Eleven of them run right here, in the emulator: the real firmware, compiled for the web, on an
   imitated panel with working knobs, buttons, lights and sound. Sing into Belt, glitch a drum loop with Smack,
   or strike Plaits.</p>
   <div class="dl"><a href="emulator/">Open the emulator →</a></div>
@@ -241,6 +241,11 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       flash the file with Hermetic's <a href="https://hermeticmodular.com/program">web programmer</a>. The module
       stays in the rack the whole time.</p>
       <div class="dl" id="downloads"></div>
+      <p class="fine" style="margin-top:14px">New, not yet played on a module:</p>
+      <div class="dl" id="downloads-new"></div>
+      <p class="fine">Seq, Break and Stencil are early builds: tested on a computer, not yet on a module. Stencil also
+      runs on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-06">Release
+      notes</a>.</p>
       <p class="fine" style="margin-top:14px">The six Mutable Instruments ports, not yet played on a module:</p>
       <div class="dl" id="downloads-mi"></div>
       <p class="fine">These six are an early release: they're built and tested on a computer, but haven't had their
@@ -301,7 +306,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   <p>Each instrument has a full manual: every knob, button and jack, how to install it, and what's still
   untested.</p>
   <div class="links" id="manuals"></div>
-  <p class="group-note">No module? <a href="emulator/">The emulator</a> runs nine of them in your browser: the
+  <p class="group-note">No module? <a href="emulator/">The emulator</a> runs eleven of them in your browser: the
   real firmware, compiled for the web, on an imitated panel.</p>
   <p class="group-note">Source code: <a href="https://github.com/timncox/mark-alchemy">mark-alchemy</a>,
   <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>,
@@ -328,7 +333,7 @@ const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1
    Instruments ports (their download row); `status` / `now` override the
    default chip text; no `url` = no public manual yet. */
 /* the instruments the emulator page runs (emulator/: Seq writes CV, not sound) */
-const EMU = new Set(["mark", "belt", "smack", "clouds", "elements", "marbles", "plaits", "warps", "meld"]);
+const EMU = new Set(["mark", "belt", "smack", "stencil", "break", "clouds", "elements", "marbles", "plaits", "warps", "meld"]);
 const I = [
   { id:"mark", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
     what:"A five-track looper.",
@@ -345,19 +350,19 @@ const I = [
     say:"It grabs what you're playing, chops it into slices and plays them back reordered, stuttered and filtered.",
     knobs:["FX","Order","Length","Slice","Blend","DJ Filter"], v:[.5,.3,.6,.4,.7,.5],
     url:"https://timncox.github.io/smack-alchemy/" },
-  { id:"seq", name:"Seq", c:"#b85a12", ring:"#ff7010", heard:false,
+  { id:"seq", early:true, name:"Seq", c:"#b85a12", ring:"#ff7010", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A sequencer that writes its own parts.",
     say:"It plays a bass line, a lead line and four drum parts on the rest of the synth, and the lines follow a chord progression. You shape them with a few knobs instead of writing every note, and keep the ones you like. A Launchpad plays it too.",
     knobs:["Density","Length","Slide","Jump","Tones","Octave"], v:[.6,.4,.2,.15,.1,.5],
     url:"https://timncox.github.io/alchemy-lab/seq/" },
-  { id:"break", name:"Break", c:"#a8321c", ring:"#ff4020", heard:false,
+  { id:"break", early:true, name:"Break", c:"#a8321c", ring:"#ff4020", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A drum-break mangler.",
     say:"It plays chopped-up drum breaks from the memory card and mangles them as they go: stutters, reverses, tape stops, filter sweeps. One knob sets how much happens, another reshuffles the hits into new patterns, and it keeps time with the rest of the synth. It reads cards made for the Ectocore, a module built for exactly this.",
     knobs:["Break","Amen","Sample","Amen Random","Grimoire","DJ Filter"], v:[.45,.3,.2,.5,.15,.5],
     url:"https://timncox.github.io/alchemy-lab/break/" },
-  { id:"stencil", name:"Stencil", c:"#0e86a8", ring:"#20d0ff", heard:false,
+  { id:"stencil", early:true, name:"Stencil", c:"#0e86a8", ring:"#20d0ff", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A rhythm stencil for held sounds.",
     say:"Feed it a pad or a drone and it chops it into rhythm, from a hard trance gate to the soft pumping you hear under dance music. The pattern can come from a bank, an even spread of hits, or a word: type one on its web page and it plays your word in Morse code, fitted to one, two, four or eight bars. It also runs on the Daisy Patch.",
@@ -528,6 +533,23 @@ I.filter(x => x.heard).forEach(inst => {
   a.innerHTML = `<i aria-hidden="true"></i>Download ${inst.name}`;
   dl.appendChild(a);
 });
+/* Seq, Break, Stencil: one pre-release on this repo (binaries only; the source is private). */
+const dlNew = document.getElementById("downloads-new");
+const NEW_REL = "https://github.com/timncox/alchemy-lab/releases/download/firmware-2026-10-06/";
+I.filter(x => x.early).forEach(inst => {
+  const a = document.createElement("a");
+  a.href = NEW_REL + `${inst.id}_alchemy.bin`;
+  a.style.setProperty("--c", inst.ring);
+  a.innerHTML = `<i aria-hidden="true"></i>${inst.name}`;
+  dlNew.appendChild(a);
+});
+{
+  const a = document.createElement("a");
+  a.href = NEW_REL + "stencil_patch.bin";
+  a.style.setProperty("--c", "#20d0ff");
+  a.innerHTML = `<i aria-hidden="true"></i>Stencil · Daisy Patch`;
+  dlNew.appendChild(a);
+}
 /* The Mutable Instruments ports: mi-alchemy v0.1.0, a pre-release (so a fixed tag, not /latest). */
 const dlMi = document.getElementById("downloads-mi");
 const MI_REL = "https://github.com/timncox/mi-alchemy/releases/download/v0.1.0/";

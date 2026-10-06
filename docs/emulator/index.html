@@ -136,6 +136,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
     <div class="opts" id="inputs" role="radiogroup" aria-labelledby="inLabel">
       <label><input type="radio" name="in" value="voice"> A sung phrase</label>
       <label><input type="radio" name="in" value="beat"> A drum loop</label>
+      <label><input type="radio" name="in" value="pad"> Held chords</label>
       <label><input type="radio" name="in" value="mic"> Your microphone</label>
       <label><input type="radio" name="in" value="none"> Nothing</label>
     </div>
@@ -209,7 +210,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
 </div>
 
 <script type="module">
-/* The nine instruments the emulator builds (Seq writes CV, not sound, so it
+/* The eleven instruments the emulator builds (Seq writes CV, not sound, so it
    isn't here yet). `in` is the input a first-timer hears it best with; `ctl`
    = it has a Launchpad mode. Colours and lines match the homepage. */
 const I = [
@@ -219,6 +220,10 @@ const I = [
     what:"A voice tuner with harmonies.", tip:"The sung phrase comes out pulled into key. Turn HARMONY for extra voices, and try your own voice on the microphone.", url:"https://timncox.github.io/belt-alchemy/" },
   { id:"smack",    name:"Smack",    c:"#c2185b", ring:"#ff4fa0", in:"beat",  ctl:true,
     what:"A loop glitcher.", tip:"Hold B1 to capture a loop of the drums, then turn FX and ORDER. DJ FILTER sweeps either way from the middle.", url:"https://timncox.github.io/smack-alchemy/" },
+  { id:"stencil",  name:"Stencil",  c:"#0e86a8", ring:"#20d0ff", in:"pad",
+    what:"A rhythm stencil for held sounds.", tip:"The held chords come out cut into a sixteenth-note trance gate. Tap B1 (or the key 1) for Euclid, again for Morse: it spells STENCIL. Hold B1 for Duck, the pumping kind. GATE, ATTACK and RELEASE shape every slice.", url:"https://timncox.github.io/alchemy-lab/stencil/" },
+  { id:"break",    name:"Break",    c:"#a8321c", ring:"#ff4020", in:"none", card:true,
+    what:"A drum-break mangler.", tip:"It plays the test breaks on its emulated memory card. Turn BREAK up for stutters and reverses, AMEN to loop a few slices, and DJ FILTER either way from the middle. On the module it reads Ectocore cards.", url:"https://timncox.github.io/alchemy-lab/break/" },
   { id:"clouds",   name:"Clouds",   c:"#2f7fc1", ring:"#40c0ff", in:"voice",
     what:"Turns sound into clouds.", tip:"Turn DENSITY up to fill the cloud, and SIZE and PITCH to reshape the grains.", url:"https://timncox.github.io/mi-alchemy/clouds/" },
   { id:"elements", name:"Elements", c:"#9a6a14", ring:"#e0b25c", in:"none",
@@ -299,11 +304,11 @@ $("power").addEventListener("click", async () => {
 
   const base = `fw/${inst.id}/`;
   const args = [];
-  if (inst.id === "elements") args.push("--card", "/card");
+  if (inst.id === "elements" || inst.card) args.push("--card", "/card");
   if (ctl) args.push("--usb", "launchpad");
   if (input === "none") args.push("--nomic");
   let wav = null;
-  if (input === "voice" || input === "beat") {
+  if (input === "voice" || input === "beat" || input === "pad") {
     wav = new Uint8Array(await (await fetch(`demo/${input}.wav`)).arrayBuffer());
     args.push("--in", "/input.wav");
   }
