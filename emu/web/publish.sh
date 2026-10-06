@@ -37,8 +37,8 @@ for entry in "${CUSTOM[@]}"; do
   f=${entry%%|*}; dir=${entry#*|}
   extra=()
   [ "$f" = break ] && extra=(EMU_ALCHEMY_DIR="$TIMOS/break-alchemy/lib/alchemy-sdk" EMU_LIBDAISY_DIR="$TIMOS/break-alchemy/lib/libDaisy")
-  make --no-print-directory WEB=1 FW=custom FW_DIR="$dir" "${extra[@]}" -j8 >/dev/null
-  out=$(make --no-print-directory -s WEB=1 FW=custom FW_DIR="$dir" "${extra[@]}" print-build)
+  make --no-print-directory WEB=1 FW=custom FW_DIR="$dir" ${extra[@]+"${extra[@]}"} -j8 >/dev/null
+  out=$(make --no-print-directory -s WEB=1 FW=custom FW_DIR="$dir" ${extra[@]+"${extra[@]}"} print-build)
   mkdir -p "$DEST/fw/$f"
   rm -f "$DEST/fw/$f"/emu.*
   cp "$out"/emu.mjs "$out"/emu.wasm "$DEST/fw/$f/"
