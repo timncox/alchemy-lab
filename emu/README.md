@@ -21,7 +21,8 @@ core) are compiled **as they are**; only the board is replaced:
 | SD card | a formatted 64 MB FAT32 RAM disk under the real FatFS; `--card dir` copies a folder onto it |
 | Smack's 1U OLED | drawn on the panel; scripts read it (`expect screen`) |
 | Launchpad Mini MK3, Launch Control XL, Haute42 | `src/emu_ctl.cpp` — emulated devices behind the firmware's own `lp::` / `xl::` / `pad::` API (`--usb launchpad`), drawn beside the panel (`src/emu_ui_ctl.cpp`) |
-| SD picker, USB audio, HostLink's USB | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
+| SD picker, USB audio | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
+| HostLink's USB-CDC transport | `src/emu_hostlink.cpp` — a Unix socket (`--hostlink <path>`) natively, `emu_web_hl_*` in the browser |
 
 ## Firmwares (`fw/*.mk` says where each one's source comes from)
 
@@ -94,7 +95,16 @@ script its command-line options.
 
 The M7's speed (CPU readings are the Mac's — check load on the module), the
 SD picker, the controllers' USB drivers themselves (and real controllers
-plugged into the Mac — next: CoreMIDI), USB audio mode, HostLink.
+plugged into the Mac — next: CoreMIDI), USB audio mode.
+
+## HostLink
+
+The firmware's own `hostlink::Host` answers over `--hostlink <socket>` (native) or the page's
+`emu_web_hl_push/pull` (browser, through a 4 KB exchange buffer at `emu_web_hl_buf()`); the bytes
+are the wire bytes, COBS frames both ways. `web/hostlink.js` is the host side for any transport
+(the emulator, WebSerial to a real module, a socket from Node), and `web/control/` is the page
+built on it: every knob and setting from the descriptor, live, plus presets.
+`node tests/hostlink/hostlink_test.mjs build/<fw>/emu ...` checks the whole round trip.
 
 ## In the browser
 

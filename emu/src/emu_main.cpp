@@ -405,6 +405,7 @@ int main(int argc, char** argv)
     const char* rec = nullptr;
     const char* card = nullptr;
     const char* usb  = nullptr;
+    const char* hostlink = nullptr;
     bool        nomic = false;   /* input is silence: no microphone asked for */
     std::string flash = std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.alchemy-emu/" + std::string(EMU_FW_NAME) + "-flash.bin";
     for (int i = 1; i < argc; i++)
@@ -418,7 +419,8 @@ int main(int argc, char** argv)
         else if (a == "--card" && i + 1 < argc) card = argv[++i];
         else if (a == "--usb" && i + 1 < argc) usb = argv[++i];
         else if (a == "--nomic") nomic = true;
-        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none] [--card dir] [--usb launchpad] [--nomic]\n", argv[0]); return 2; }
+        else if (a == "--hostlink" && i + 1 < argc) hostlink = argv[++i];
+        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none] [--card dir] [--usb launchpad] [--nomic] [--hostlink socket]\n", argv[0]); return 2; }
     }
 #ifdef __EMSCRIPTEN__
     flash.clear();   /* the browser keeps presets in memory only */
@@ -441,6 +443,8 @@ int main(int argc, char** argv)
         emu::WriteCardFile("0:/alchemy", "0:/alchemy/usb.cfg", (std::string(usb) + "\n").c_str());
         emu::ctl::Enable(usb[0] == 'l');
     }
+
+    if (hostlink && !emu::HostLinkListen(hostlink)) { std::fprintf(stderr, "[emu] cannot listen on %s\n", hostlink); return 2; }
 
     auto& P = emu::Panel();
     for (int i = 0; i < alchemy::kNumPots; i++) P.pot[i] = 0.5f;

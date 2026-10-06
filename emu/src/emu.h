@@ -16,6 +16,9 @@ void               FormatCard();
 void               FillCard(const std::string& host_dir);
 void               WriteCardFile(const char* dir, const char* path, const char* text);
 
+/* HostLink on a Unix socket (native only; emu_hostlink.cpp) */
+bool               HostLinkListen(const char* path);
+
 /* The firmware's OLED lines, if it has a screen (stubs_screen.cpp; a weak
  * default in emu_stubs.cpp returns false). */
 bool ScreenLines(std::string* small_line, std::string* big_line);

@@ -180,8 +180,12 @@ Good fixes are worth sending upstream as a pull request to `timncox/alchemy-lab`
   or crackling). Watch for it on hardware.
 - **Analog behaviour.** The codec, the CV input filtering and DAC settling are idealised; the
   calibration is the SDK's design default (`V2CalDesignFallback`).
-- **The bootloader, the USB-C port (HostLink, the web programmer, USB MIDI/audio) and the SD card
-  picker** aren't emulated. HostLink compiles but goes nowhere.
+- **The bootloader, the USB-C port's USB MIDI/audio and the SD card picker** aren't emulated.
+  **HostLink is**, as bytes rather than USB: `--hostlink <socket>` serves the firmware's own
+  `hostlink::Host` on a Unix socket (descriptor, presets, live state, SD files, extension commands);
+  `tests/hostlink/hostlink_test.mjs <emu exe>` drives it end to end with `web/hostlink.js`, and
+  `tests/hostlink/dump_descriptor.mjs <emu exe>` prints its descriptor. A firmware that only serves
+  HostLink in one USB mode needs that mode, e.g. `--usb mac` for Tim's.
 - **Timing.** The firmware's main loop runs on a host thread with real sleeps, and the audio
   callback on the sound card's thread, so the main loop sees roughly the same rates as on the
   module but not cycle-exact ones.
