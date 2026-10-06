@@ -44,4 +44,5 @@ EMU_WEAK uint8_t  XlKnobLed(int, int) { return 0; }
 EMU_WEAK uint8_t  XlButtonLed(int, int) { return 0; }
 EMU_WEAK void     PadSet(uint32_t, bool) {}
 EMU_WEAK uint32_t PadMask() { return 0; }
+EMU_WEAK void     KeysNote(int, int) {}
 }}

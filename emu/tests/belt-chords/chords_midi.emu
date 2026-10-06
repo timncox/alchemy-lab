@@ -1,0 +1,95 @@
+# Belt chord sources: MIDI notes on the rear header's USART1 (Settings,
+# Sources: MIDI). Bytes go in with `uart`; libDaisy's own MidiParser reads
+# them in the control loop: running status, a clock byte inside a message,
+# note-on at velocity 0 as a note-off. Clock / start / stop are ignored.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04                 # KEY C
+pot 2 0.17                 # SCALE Major
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 262
+xl knob 1 1 0              # voices Off
+xl knob 1 2 0
+wait 500
+uart 90 3c 64              # MIDI before the source is MIDI: ignored (the
+wait 400                   # silence after LEAD 0 below proves it)
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 1.0                  # Chord P2 LEAD -> 0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+pot 1 0.0                  # Sources P1 Chords from: MIDI (zone 4)
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.875
+wait 300
+tap b3
+wait 600
+mark
+wait 400
+expect rms < 0.003         # LEAD 0 and the early note-on was dropped
+uart fa 90 3c 64 40 64 43 64   # start, then C4 E4 G4 (running status)
+wait 500
+expect tone 261.63 > 0.01
+expect tone 329.63 > 0.01
+expect tone 392.00 > 0.01
+uart 80 43 00              # note-off G4
+wait 500
+expect tone 392.00 < 0.004
+expect tone 329.63 > 0.01
+uart 90 f8 4a 64 f8        # a clock byte inside a note-on: D5 (0x4a) still on
+wait 500
+expect tone 587.33 > 0.005
+uart 90 4a 00              # note-on velocity 0 = note-off
+wait 500
+expect tone 587.33 < 0.004
+uart 91 41 64              # channel 2: F4 (any channel)
+wait 500
+expect tone 349.23 > 0.01
+uart f8 f8 f8 fc           # clock and stop: ignored, notes stay
+wait 300
+expect tone 349.23 > 0.01
+# leaving MIDI as the source lets go of every MIDI note
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 1 0.875                # (reopens on Sources; catch, then Pads)
+wait 100
+pot 1 0.5
+wait 100
+pot 1 0.0
+wait 300
+tap b3
+wait 600
+mark
+wait 400
+expect rms < 0.003
+uart 90 3c 64              # Pads: rear MIDI read and ignored
+wait 400
+expect tone 261.63 < 0.004
+expect booted
+expect alive
+expect finite

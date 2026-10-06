@@ -58,6 +58,8 @@ uint8_t XlButtonLed(int row, int col);
 /* Haute42: XInput bits (launchpad.h pad::k*) */
 void     PadSet(uint32_t bit, bool down);
 uint32_t PadMask();
+/* A generic USB-MIDI keyboard (keys::): a note on (vel > 0) or off */
+void     KeysNote(int note, int vel);
 } // namespace ctl
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);

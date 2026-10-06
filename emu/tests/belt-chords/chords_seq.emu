@@ -1,0 +1,131 @@
+# Belt chord sources: the internal chord sequencer (Settings, Sources: Seq)
+# sings its progression on the bar lines, edited on the Launchpad CHORDS page.
+# Hide and Seek setup: LEAD 0, Setup voices Off, so only held notes sound.
+# C major, the default progression I - vi - iii - vii (degrees 0 5 2 6),
+# chords rooted at C3: I = C3 E3 G3, vi = A3 C4 E4, iii = E3 G3 B3.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04                 # KEY C
+pot 2 0.17                 # SCALE Major
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 220
+xl knob 1 1 0              # voices 1 and 2 Off (3 and 4 are off already)
+xl knob 1 2 0
+wait 500
+# Settings: B2 + B3 held 2 s; B1 steps Main -> Firmware -> Chord -> Sources
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+# Chord P2 = LEAD: catch it, then 0
+pot 2 1.0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+# Sources P3 = TEMPO: catch, then 240 BPM (a bar = 1 s)
+pot 3 0.0
+wait 100
+pot 3 0.5
+wait 100
+pot 3 1.0
+wait 100
+# Sources P1 = Chords from: catch, then Seq (zone 2 of 4)
+pot 1 0.0
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.375
+wait 300
+tap b3                     # leave Settings
+wait 600
+lp top 5                   # CHORDS page
+wait 300
+expect lp top 5 53       # magenta
+expect lp 1 7 37         # chord 1 = I (row 7), chord 2 = vi (row 2) ...
+expect lp 4 1 37         # ... chord 4 = vii (row 1)
+expect lp 1 8 15           # one bar each (dim amber, palette 15)
+# restart the transport at a known moment: side 1 stop, side 1 run
+lp side 1
+wait 300
+expect lp side 1 23        # stopped: dim green
+mark
+wait 600
+expect rms < 0.003         # stopped: the voices let go, LEAD 0 = silence
+lp side 1                  # run: chord 1 now, a chord a second
+wait 450
+expect lp side 1 21
+expect lp 1 7 21        # chord 1 playing
+expect tone 130.81 > 0.01  # I: C3 E3 G3
+expect tone 164.81 > 0.01
+expect tone 196.00 > 0.01
+expect tone 220.00 < 0.004 # not vi's A3 (C4 would be C3's octave), nor the
+wait 1000                  # sung A3: LEAD 0
+expect lp 2 2 21        # t 1.45 s: chord 2
+expect lp 1 7 37
+expect tone 220.00 > 0.01  # vi: A3 C4 E4
+expect tone 261.63 > 0.01
+expect tone 329.63 > 0.01
+expect tone 130.81 < 0.004 # I's C3 gone
+wait 1000
+expect lp 3 5 21        # t 2.45 s: chord 3, iii: E3 G3 B3
+expect tone 246.94 > 0.01
+expect tone 261.63 < 0.004
+wait 1000
+expect lp 4 1 21        # t 3.45 s: chord 4, vii: B3 D4 F4
+expect tone 293.66 > 0.01
+expect tone 349.23 > 0.01
+wait 1000
+expect lp 1 7 21        # t 4.45 s: round again to chord 1
+expect tone 130.81 > 0.01
+# -- edit, stopped: chord 2 for two bars (row 8 steps 1 -> 2), chord 1 = IV
+lp side 1
+wait 100
+lp tap 2 8
+lp tap 1 4
+wait 200
+expect lp 2 8 13
+expect lp 1 4 37           # chord 1 is IV now (row 4)
+lp side 1                  # run: IV 1 bar, vi 2 bars, iii, vii
+wait 450
+expect lp 1 4 21
+expect tone 174.61 > 0.01  # IV: F3 A3 C4
+expect tone 130.81 < 0.004
+wait 1000
+expect lp 2 2 21        # t 1.45
+wait 1000
+expect lp 2 2 21        # t 2.45: still chord 2, two bars
+wait 1000
+expect lp 3 5 21        # t 3.45: chord 3
+# -- a fifth chord: press column 5 (it lengthens the progression)
+lp tap 5 3                 # chord 5 = V (row 3): G3 B3 D4
+wait 200
+expect lp 5 3 37
+expect lp 5 8 15
+# -- side 2: one chord fewer (back to 4)
+lp side 2
+wait 200
+expect lp 5 3 1            # beyond the end: grey, kept
+expect lp 5 8 0
+# -- top 5 again: back to KEY; leaving the source lets go of the chord
+lp top 5
+wait 300
+expect lp top 5 55         # dim magenta
+expect lp 1 2 45           # the KEY page again (C = root, bright blue)
+expect booted
+expect alive
+expect finite

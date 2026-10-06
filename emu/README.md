@@ -89,7 +89,25 @@ Script language: top of `src/emu_script.cpp` (`pot`, `press`/`hold`/`tap`,
 `cv`, `sing`, `clock`/`pulse` (5 ms pulses on J1 / J2), `lp`, `xl`, `pad`, `expect edges` (rising edges an output made since `mark`), `expect led|lp|xl|ring|ringchanged|pan|
 lpmoves|lpstill|rms|tone|cv|cvrange|screen|booted|alive|finite`, `snapshot`).
 `make FW=mark SAN=thread` builds a ThreadSanitizer variant (build/mark-thread/). A `#!args --usb launchpad` line gives a
-script its command-line options.
+script its command-line options. `uart <hex bytes>` feeds USART1 RX (the
+rear header's pin 7) through `include/per/uart.h`, a shadow of libDaisy's
+UartHandler whose circular-listen callback gets the bytes as the DMA
+interrupt would.
+
+### Belt with the chord sources
+
+    make test-belt-chords       # build/belt-chords from belt-alchemy chord-sources, then tests/belt-chords
+
+`tests/belt-chords` = the chord scripts (`chords_seq`: the internal chord
+sequencer on the bar lines and the Launchpad CHORDS page; `chords_j3clock`:
+J3 edges step the chords, J3 no longer punches HARD, sevenths; `chords_cv`:
+J4-J6 V/oct chords, hysteresis, the calibration Learn against a sender off
+by +30 / -45 / +10 mV, J3 sample and hold, a refused miswired input;
+`chords_midi`: rear-header MIDI with running status, a clock byte inside a
+message, velocity-0 offs, any channel, release on leaving the source) plus
+every `tests/belt` script, symlinked, run against that build. `make test`
+and the default belt build (the `hold` tree) are untouched;
+`BELT_CHORDS_ROOT=` points at another tree.
 
 ## Not modelled
 

@@ -1,0 +1,166 @@
+# Belt chord sources: CV chords on J4-J6 (Settings, Sources: CV, CV ins
+# J4-J6), 1 V/oct, 0 V = C3 (the Chord page's Octave), each input rounded
+# to the nearest semitone; then the calibration step against a sender whose
+# outputs are off by +30 / -45 / +10 mV (the MCP4728's +-50 mV class), and
+# J3 = Chord clock as sample and hold.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04                 # KEY C
+pot 2 0.17                 # SCALE Major
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 196
+xl knob 1 1 0              # voices Off
+xl knob 1 2 0
+cv 4 0.0                   # C3 E3 G3
+cv 5 0.3333
+cv 6 0.5833
+cv 7 1.0                   # (J7 stays HARMONY's CV until the sweep below)
+wait 500
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 1.0                  # Chord P2 LEAD -> 0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+pot 6 0.0                  # Sources P6 CV ins: catch, then J4-J6
+wait 100
+pot 6 0.5
+wait 100
+pot 6 1.0
+wait 100
+pot 6 0.625
+wait 100
+pot 1 0.0                  # Chords from: CV
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.625
+wait 300
+tap b3
+wait 800
+expect tone 130.81 > 0.01  # C3 E3 G3 from the jacks
+expect tone 164.81 > 0.01
+expect tone 196.00 > 0.01
+expect tone 220.00 < 0.004
+cv 6 0.75                  # J6 moves to A3: G3 out, A3 in
+wait 500
+expect tone 220.00 > 0.01
+expect tone 196.00 < 0.004
+expect tone 130.81 > 0.01  # the others stay
+cv 6 0.7083                # 8.5 semitones: between G#3 and A3 -- holds A3
+wait 500
+expect tone 220.00 > 0.01
+expect tone 207.65 < 0.004
+# -- the sender is off: D3 F#3 A3 arrives as +30 / -45 / +10 mV, and the
+# F#3 input (-45 mV, past the +-41.7 mV rounding margin) reads F3
+cv 4 0.1967
+cv 5 0.4550
+cv 6 0.7600
+wait 500
+expect tone 146.83 > 0.01  # D3
+expect tone 174.61 > 0.01  # F3 -- wrong
+expect tone 185.00 < 0.008 # not F#3 (F3 a semitone below leaks ~0.004 into the bin)
+# Learn: the sender plays the reference chord, with the same errors:
+# J4 0 V, J5 +4/12 V, J6 +7/12 V, J7 +1 V
+cv 4 0.0300
+cv 5 0.2883
+cv 6 0.5933
+cv 7 1.0000
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 5 0.0                  # Sources P5 CV cal: catch (On), then Learn
+wait 100
+pot 5 0.5
+wait 100
+pot 5 1.0
+wait 100
+pot 5 0.85                 # Learn
+wait 600
+pot 5 0.5                  # back to On
+wait 300
+tap b3                     # leave Settings: B3 shows the result
+wait 400
+expect led b3 green        # all four learned
+wait 3200
+cv 4 0.1967                # the same off chord again
+cv 5 0.4550
+cv 6 0.7600
+wait 500
+expect tone 146.83 > 0.01  # D3
+expect tone 185.00 > 0.01  # F#3 -- right now
+expect tone 220.00 > 0.01  # A3
+expect tone 174.61 < 0.004 # F3 gone
+# -- J3 = Chord clock: the inputs are read only on a J3 edge
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 2 0.0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 1.0
+wait 100
+pot 2 0.75                 # J3: Chord clock
+wait 300
+tap b3
+wait 600
+cv 6 0.5933                # A3 -> G3 on the jack (with J6 +10 mV)...
+wait 500
+expect tone 220.00 > 0.01  # ...but no edge yet: still A3
+expect tone 196.00 < 0.004
+cv 3 5                     # edge: sampled
+wait 50
+cv 3 0
+wait 500
+expect tone 196.00 > 0.01
+expect tone 220.00 < 0.004
+# -- a miswired input is refused: J7 unpatched (0 V) in a Learn -> amber
+cv 4 0.0300
+cv 5 0.2883
+cv 6 0.5933
+cv 7 0.0
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 5 0.5
+wait 100
+pot 5 0.85
+wait 600
+pot 5 0.5
+wait 300
+tap b3
+wait 400
+expect led b3 amber        # three learned, J7 kept its offset
+expect booted
+expect alive
+expect finite

@@ -1,0 +1,81 @@
+# Belt (chords-all = chord sources + usb-keys): a USB-MIDI keyboard plays
+# like the PLAY pads, ON TOP of whatever Chords from says. Here the source
+# is rear-header MIDI holding C4 E4; the keyboard adds G4; leaving MIDI as the
+# source lets go of C4 E4 but not the key still held.
+#!args --usb launchpad
+wait 4500
+pot 1 0.04
+pot 2 0.17
+pot 3 0.0
+pot 4 1.0
+pot 5 0.9
+sing 262
+xl knob 1 1 0
+xl knob 1 2 0
+wait 500
+keys on 67                 # Pads (default): the keyboard plays
+wait 300
+expect led b2 white        # a key held
+keys off 67
+wait 300
+press b3
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+tap b1
+wait 300
+tap b1
+wait 300
+pot 2 1.0                  # LEAD 0
+wait 100
+pot 2 0.5
+wait 100
+pot 2 0.0
+wait 300
+tap b1
+wait 300
+pot 1 0.0                  # Chords from: MIDI
+wait 100
+pot 1 0.5
+wait 100
+pot 1 1.0
+wait 100
+pot 1 0.875
+wait 300
+tap b3
+wait 600
+uart 90 3c 64 40 64        # the other Lab: C4 E4
+keys on 67                 # the keyboard: G4, on top
+wait 600
+expect tone 261.63 > 0.01
+expect tone 329.63 > 0.01
+expect tone 392.00 > 0.01
+press b3                   # Chords from back to Pads (reopens on Sources)
+wait 50
+press b2
+wait 2300
+release b2
+release b3
+wait 300
+pot 1 0.875
+wait 100
+pot 1 0.5
+wait 100
+pot 1 0.0
+wait 300
+tap b3
+wait 700
+expect tone 392.00 > 0.01  # the key still sounds
+expect tone 261.63 < 0.006 # the rear-MIDI notes were released
+expect tone 329.63 < 0.006
+keys off 67
+wait 500
+mark
+wait 400
+expect rms < 0.003
+expect booted
+expect alive
+expect finite
