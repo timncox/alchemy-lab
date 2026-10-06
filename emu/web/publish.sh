@@ -25,6 +25,29 @@ for f in "${FWS[@]}"; do
   manifest+="\"$f\":{\"commit\":\"$hash\",\"branch\":\"$branch\"},"
   echo "$f  $branch@$hash"
 done
+# Firmwares built as custom (their own repo carries emu.mk): name and FW_DIR.
+# Break's worktree has empty lib/ submodules, so its SDK comes from the main
+# checkout (its emu.mk says so).
+TIMOS=${TIMOS:-$HOME/tim-os}
+CUSTOM=(
+  "stencil|$TIMOS/stencil/.claude/worktrees/firmware/alchemy"
+  "break|$TIMOS/break-alchemy/.claude/worktrees/ecto-mvp"
+)
+for entry in "${CUSTOM[@]}"; do
+  f=${entry%%|*}; dir=${entry#*|}
+  extra=()
+  [ "$f" = break ] && extra=(EMU_ALCHEMY_DIR="$TIMOS/break-alchemy/lib/alchemy-sdk" EMU_LIBDAISY_DIR="$TIMOS/break-alchemy/lib/libDaisy")
+  make --no-print-directory WEB=1 FW=custom FW_DIR="$dir" "${extra[@]}" -j8 >/dev/null
+  out=$(make --no-print-directory -s WEB=1 FW=custom FW_DIR="$dir" "${extra[@]}" print-build)
+  mkdir -p "$DEST/fw/$f"
+  rm -f "$DEST/fw/$f"/emu.*
+  cp "$out"/emu.mjs "$out"/emu.wasm "$DEST/fw/$f/"
+  [ -f "$out"/emu.data ] && cp "$out"/emu.data "$DEST/fw/$f/"
+  hash=$(git -C "$dir" rev-parse --short HEAD)
+  branch=$(git -C "$dir" rev-parse --abbrev-ref HEAD)
+  manifest+="\"$f\":{\"commit\":\"$hash\",\"branch\":\"$branch\"},"
+  echo "$f  $branch@$hash"
+done
 manifest+="\"emu\":{\"commit\":\"$(git rev-parse --short HEAD)\",\"branch\":\"$(git rev-parse --abbrev-ref HEAD)\"}}"
 echo "$manifest" > "$DEST/fw/manifest.json"
 du -sh "$DEST"

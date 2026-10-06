@@ -405,12 +405,23 @@ function showPage(i) {
   const cells = pg.grid ? Array.from({ length: 6 }, (_, pot) =>
     pg.fields.find((f) => f.pot === pot) ?? pg.gestures.find((g) => g.pot === pot) ?? { pot, empty: true })
     : pg.fields;
-  for (const f of cells) box.appendChild(f.id ? knob(f, pg.grid) : placeholder(f));
+  for (const f of cells) box.appendChild(f.id && !severs(f) ? knob(f, pg.grid) : placeholder(f));
 }
+
+// The setting that picks what the USB port is for: changing it from here
+// would take the port away from this page (at the next boot, on Tim's
+// firmwares), so it stays on the module.
+function severs(f) { return f.id === "usb" || /^usb( port)?$/i.test(f.name ?? ""); }
 
 function placeholder(g) {
   const d = document.createElement("div");
   d.className = "knob empty";
+  const pos = g.pot !== undefined ? `<span class="pos">P${g.pot + 1}</span> · ` : "";
+  if (g.type) {
+    d.innerHTML = `${pos}<span class="gesture"><b>${esc(g.name)}</b>: set it on the module. It decides what the USB
+      port does, so changing it from here would cut this page off.</span>`;
+    return d;
+  }
   d.innerHTML = g.empty ? `<span class="pos">P${g.pot + 1}</span> · nothing here`
     : `<span class="pos">P${g.pot + 1}</span> · <span class="gesture"><b>${esc(g.name)}</b>: used on the module itself; the presets section below does the same.</span>`;
   return d;
@@ -677,7 +688,10 @@ $("importFile").addEventListener("change", async (e) => {
       bytes = encodeState(desc, await link.getLive(), keep);
       notice(`That file is from another version of ${esc(hello.moduleName)}; ${Object.keys(keep).length} of its settings carried over.`);
     }
-    await link.setLive(bytes);
+    // never let a file move the USB port off what this page is talking through
+    const here = decodeState(desc, await link.getLive());
+    const keepPort = Object.fromEntries(fields.filter(severs).map((f) => [f.id, here[f.id]]));
+    await link.setLive(encodeState(desc, bytes, keepPort));
     await forceRead();
     status(`opened ${file.name}: playing now, not saved to a slot`, true);
   } catch (err) {

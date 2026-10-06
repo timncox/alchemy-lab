@@ -160,7 +160,10 @@ clean:
 # the firmware's source tree, for web/publish.sh's manifest
 print-root:
 	@echo $(FW_ROOT)
-.PHONY: print-root
+# where this build's output goes (custom firmwares get a folder per checkout)
+print-build:
+	@echo $(BUILD)
+.PHONY: print-root print-build
 
 # Your firmware's tests: the generic smoke test, then every script in
 # <FW_DIR>/emu-tests/*.emu (a "#!args ..." line in a script = its CLI options;
