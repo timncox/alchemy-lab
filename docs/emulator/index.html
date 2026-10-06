@@ -194,7 +194,8 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
   <p>Real: every line of each instrument's firmware, the Alchemy SDK's own framework (pages, Settings,
     LED rings, presets) and the FAT file system on the SD card. Imitated: the panel, the codec, the 64 MB SD
     card, the flash chip, and the USB controllers. Not imitated: the module's processor speed, so a sound that
-    works here can still be too heavy for the real thing; and the bootloader, the card picker and HostLink.</p>
+    works here can still be too heavy for the real thing; and the bootloader and the card picker. HostLink, the
+    USB protocol the <a href="../control/">control page</a> speaks, is imitated as bytes rather than USB.</p>
   <p>These are the builds Tim is working on now, so they can be ahead of the downloads on the homepage. Each
     build, by branch and commit (not all of them are on GitHub yet):</p>
   <div class="builds" id="builds">…</div>

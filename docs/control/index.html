@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alchemy Lab Control</title>
+<meta name="description" content="Turn an Alchemy Lab module's knobs and settings from the browser, and save and load its presets, over USB or on the emulator.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --wall:   #e6ebe7;
+  --wall-2: #dbe2dd;
+  --card:   #f3f6f4;
+  --ink:    #121614;
+  --ink-2:  #3d4641;
+  --ink-3:  #66716b;
+  --rule:   #c4cdc7;
+  --panel:  #15171b;
+  --track:  #cfd7d2;
+  --link:   #185c9a;
+  --focus:  #2a6bd6;
+  --warn:   #8a5a00;
+  --warn-bg: #f3e6c8;
+  --ok:     #1f7a46;
+  --accent-ink: var(--accent-light, #b5532a);
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body:    "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --accent-ink: var(--accent-glow, #ff9020);
+    --wall: #0f1311; --wall-2: #161b18; --card: #171c19; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+    --rule: #28302b; --track: #2c3530; --link: #8cc4ff; --focus: #8cb4ff; --warn: #f0c260; --warn-bg: #2f2512; --ok: #5fd08f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --accent-ink: var(--accent-glow, #ff9020);
+  --wall: #0f1311; --wall-2: #161b18; --card: #171c19; --ink: #e8ede9; --ink-2: #b7c1bb; --ink-3: #8a958f;
+  --rule: #28302b; --track: #2c3530; --link: #8cc4ff; --focus: #8cb4ff; --warn: #f0c260; --warn-bg: #2f2512; --ok: #5fd08f;
+}
+* { box-sizing: border-box; }
+html { background: var(--wall); }
+body {
+  margin: 0; background: var(--wall); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px; padding-block: 0 72px;
+}
+.wrap { max-width: 1100px; margin: 0 auto; }
+a { color: var(--link); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
+p { margin: 0; max-width: 64ch; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+.label { font: 500 12px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+
+.top { padding-block: 22px 0; font-size: 15px; }
+header { padding-block: 28px 26px; display: grid; gap: 16px; }
+h1 { font-weight: 800; font-size: clamp(40px, 6.4vw, 76px); line-height: .95; letter-spacing: -.02em; }
+h1 em { font-style: normal; color: var(--accent-ink); }
+.lede { font-size: 19px; line-height: 1.5; color: var(--ink-2); max-width: 56ch; }
+
+.connect { display: grid; gap: 14px; padding: 20px 0 22px; border-top: 1px solid var(--rule); }
+.go { display: flex; flex-wrap: wrap; gap: 12px 14px; align-items: center; }
+.power, .ghost {
+  appearance: none; cursor: pointer; font: 700 16px/1 var(--body); border-radius: 999px; padding: 14px 22px;
+  display: inline-flex; gap: 10px; align-items: center;
+}
+.power { color: #fff; background: var(--accent-ink); border: 0; }
+.power::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #fff; opacity: .9; }
+.ghost { color: var(--ink); background: transparent; border: 1.5px solid var(--rule); }
+.ghost:hover { border-color: var(--ink-3); }
+.power[disabled], .ghost[disabled] { opacity: .5; cursor: default; }
+.status { font: 500 13px/1.4 var(--mono); color: var(--ink-3); }
+.status.ok { color: var(--ok); }
+.hint { font-size: 15px; color: var(--ink-2); }
+.notice { background: var(--warn-bg); color: var(--ink); border-radius: 10px; padding: 12px 16px; font-size: 15px; display: none; }
+.notice.show { display: block; }
+
+.stage {
+  background: var(--panel); border-radius: 14px; padding: 14px; margin-bottom: 26px;
+  display: none; justify-items: center;
+}
+.stage.on { display: grid; }
+#canvas { width: 100% !important; max-width: 560px; height: auto !important; border-radius: 6px; touch-action: none; }
+
+/* ---- the module, once connected ---- */
+#module { display: none; gap: 30px; }
+#module.on { display: grid; }
+.ident { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; padding-top: 4px; }
+.ident h2 { font-weight: 800; font-size: clamp(28px, 3.6vw, 40px); letter-spacing: -.01em; }
+.ident .meta { font: 400 13px/1.5 var(--mono); color: var(--ink-3); }
+.tagline { color: var(--ink-2); font-size: 16px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab {
+  appearance: none; font: 600 15px/1 var(--body); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 999px; padding: 10px 14px; cursor: pointer;
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.tab i { width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--ink-3)); }
+.tab:hover { border-color: var(--ink-3); }
+.tab[aria-selected="true"] { border-color: var(--ink); background: var(--ink); color: var(--wall); }
+.pagehelp { font-size: 15px; color: var(--ink-2); max-width: 70ch; }
+
+/* six positions, laid out like the panel: P1 P2 / P3 P4 / P5 P6 */
+.knobs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; }
+.knob {
+  background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px 12px;
+  display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 4px 14px; align-items: center; min-height: 120px;
+}
+.knob.empty { display: block; color: var(--ink-3); font-size: 14px; min-height: 0; border-style: dashed; background: transparent; }
+.knob .pos { font: 500 11px/1 var(--mono); letter-spacing: .1em; color: var(--ink-3); }
+.knob .name { font: 700 18px/1.2 var(--display); }
+.knob .val { font: 500 16px/1.3 var(--mono); color: var(--accent-ink); overflow-wrap: anywhere; }
+.knob details { grid-column: 1 / -1; font-size: 14px; color: var(--ink-2); }
+.knob summary { cursor: pointer; color: var(--ink-3); font-size: 13px; width: max-content; }
+.knob .words { display: grid; gap: 4px; align-content: center; min-width: 0; }
+
+.dial { width: 84px; height: 84px; grid-row: span 1; cursor: ns-resize; touch-action: none; border-radius: 50%; }
+.dial svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.dial .trk { stroke: var(--track); }
+.dial .arc { stroke: var(--accent-ink); }
+.dial .cap { fill: var(--wall-2); stroke: var(--rule); }
+.dial .ptr { stroke: var(--ink); }
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+.seg button {
+  appearance: none; cursor: pointer; font: 600 14px/1 var(--body); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 8px; padding: 9px 11px;
+}
+.seg button[aria-pressed="true"] { background: var(--accent-ink); border-color: var(--accent-ink); color: #fff; }
+.knob.enum { grid-template-columns: 1fr; }
+
+.gesture { font-size: 14px; color: var(--ink-2); }
+
+/* ---- presets ---- */
+.slots { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; max-width: 760px; }
+.slot {
+  appearance: none; cursor: pointer; aspect-ratio: 1; border-radius: 12px; border: 1.5px solid var(--rule);
+  background: transparent; color: var(--ink); font: 600 16px/1 var(--mono); display: grid; place-items: center;
+  position: relative;
+}
+.slot.full { background: var(--card); border-color: var(--ink-3); }
+.slot.full::after { content: ""; position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-ink); }
+.slot.foreign::after { background: var(--warn); }
+.slot.reserved { border-style: dashed; color: var(--ink-3); }
+.slot[aria-pressed="true"] { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+.slotbar { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; max-width: 760px; }
+.slotbar .what { font-size: 15px; color: var(--ink-2); flex: 1 1 260px; }
+.small { font: 600 14px/1 var(--body); padding: 10px 14px; }
+
+section { display: grid; gap: 14px; }
+h3 { font-weight: 800; font-size: clamp(22px, 2.8vw, 28px); letter-spacing: -.01em; }
+table.ref { border-collapse: collapse; font-size: 15px; max-width: 760px; }
+table.ref td, table.ref th { text-align: left; padding: 6px 14px 6px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.ref th { font: 500 12px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); }
+.mono { font-family: var(--mono); font-size: 14px; }
+.chipline { display: flex; flex-wrap: wrap; gap: 8px; }
+.chipline span { font: 500 13px/1 var(--mono); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 10px; color: var(--ink-2); }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .lede { font-size: 17px; }
+  .knobs { grid-template-columns: 1fr; }
+  .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stage { padding: 8px; border-radius: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top"><a href="../">← Tim's Alchemy Lab</a></div>
+
+<header>
+  <div class="label">Control</div>
+  <h1>Your module, <em>on screen.</em></h1>
+  <p class="lede">Turn every knob and setting from the browser, see what each one does, and save, load and back up
+    presets. It talks to a module over USB, or to the emulator if you want to try it first.</p>
+</header>
+
+<div class="connect">
+  <div class="go">
+    <button type="button" class="power" id="usb">Connect a module</button>
+    <button type="button" class="ghost" id="emu">Try it on the emulator</button>
+    <span class="status" id="status" aria-live="polite"></span>
+  </div>
+  <p class="hint" id="usbHint">USB needs Chrome or Edge on a computer. Plug the module's front USB-C into the computer,
+    and on Tim's firmwares set <b>USB port</b> to <b>Mac</b> in Setup (the default).</p>
+  <div class="notice" id="notice" role="status"></div>
+</div>
+
+<div class="stage" id="stage">
+  <canvas id="canvas" tabindex="0" aria-label="The emulated module" oncontextmenu="event.preventDefault()"></canvas>
+</div>
+
+<div id="module">
+  <div>
+    <div class="ident">
+      <h2 id="modName"></h2>
+      <span class="meta" id="modMeta"></span>
+    </div>
+    <p class="tagline" id="modTag"></p>
+  </div>
+
+  <section aria-labelledby="knobsTitle">
+    <h3 id="knobsTitle">Knobs and settings</h3>
+    <div class="tabs" id="tabs" role="tablist" aria-labelledby="knobsTitle"></div>
+    <p class="pagehelp" id="pageHelp"></p>
+    <div class="knobs" id="knobs" role="tabpanel"></div>
+    <p class="hint">Drag a dial up or down, use the arrow keys, or scroll on it; double-click for its default. Moving
+      a knob on the module shows up here too. Changes are live but not saved: save them to a preset below.</p>
+  </section>
+
+  <section aria-labelledby="presetsTitle">
+    <h3 id="presetsTitle">Presets</h3>
+    <div class="slots" id="slots" role="group" aria-labelledby="presetsTitle"></div>
+    <div class="slotbar">
+      <span class="what" id="slotWhat">Pick a slot.</span>
+      <button type="button" class="ghost small" id="slotLoad" disabled>Load</button>
+      <button type="button" class="ghost small" id="slotSave" disabled>Save current here</button>
+      <button type="button" class="ghost small" id="slotErase" disabled>Erase</button>
+    </div>
+    <div class="slotbar">
+      <span class="what">Back up the sound you have now as a file, or bring one back.</span>
+      <button type="button" class="ghost small" id="exportLive">Download current</button>
+      <label class="ghost small" for="importFile" style="cursor:pointer">Open a file…</label>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+    <p class="hint" id="slotHint">Slot 1 is the Preset Slot knob turned all the way left, slot 16 all the way right.</p>
+  </section>
+
+  <section aria-labelledby="refTitle" id="refSection">
+    <h3 id="refTitle">Buttons and jacks</h3>
+    <table class="ref" id="buttons"></table>
+    <div class="chipline" id="jacks"></div>
+  </section>
+</div>
+
+<footer>
+  Made by Tim Cox in Brooklyn. It speaks HostLink, the Alchemy SDK's own USB protocol, so it works with any
+  Alchemy Lab firmware that turns HostLink on. Alchemy Lab is a product of Hermetic Modular; this site isn't affiliated with it.
+</footer>
+
+</div>
+
+<script type="module">
+import { HostLink, decodeState, encodeState, fieldsOf, emuTransport, serialTransport } from "./hostlink.js";
+
+/* What the protocol can't say: which emulator build to load for "try it",
+   and which slots Tim's firmwares keep for their own working state (saving
+   a preset into one of those by hand overwrites that firmware's settings). */
+const KNOWN = {
+  belt_alchemy:  { emu: "belt",  c: "#b5532a", ring: "#ff9020", reserved: [12, 13, 14, 15] },
+  mark_alchemy:  { emu: "mark",  c: "#1f9d57", ring: "#4cf28a", reserved: [12, 13, 14, 15] },
+  smack_alchemy: { emu: "smack", c: "#c2185b", ring: "#ff4fa0", reserved: [12, 13, 14, 15] },
+};
+const q = new URLSearchParams(location.search);
+const emuFw = q.get("fw") || "belt";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+// the descriptor's help strings use **bold**
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+
+let link = null, desc = null, live = null, values = {}, fields = [], known = {};
+let pages = [], pageIdx = 0, hello = null;
+let dirty = {}, writing = false, lastEdit = 0, dragging = null, slotSel = null, slotInfo = [];
+const widgets = new Map();
+
+function status(t, ok) { $("status").textContent = t; $("status").classList.toggle("ok", !!ok); }
+function notice(t) { $("notice").innerHTML = t; $("notice").classList.toggle("show", !!t); }
+function accent(k) {
+  if (!k?.c) return;
+  document.documentElement.style.setProperty("--accent-light", k.c);
+  document.documentElement.style.setProperty("--accent-glow", k.ring);
+}
+
+if (!("serial" in navigator)) {
+  $("usb").disabled = true;
+  $("usbHint").innerHTML = "This browser can't talk to USB devices. Use Chrome or Edge on a computer, or try the emulator.";
+}
+
+// ---- connecting ---------------------------------------------------------------
+
+$("usb").addEventListener("click", async () => {
+  let port;
+  try { port = await navigator.serial.requestPort(); } catch { return; }   // picker cancelled
+  status("connecting…");
+  try {
+    const t = await serialTransport(port);
+    await start(t, "USB");
+  } catch (e) {
+    status("");
+    notice(`Couldn't talk to it: ${esc(e.message || e)}. Is <b>USB port</b> set to <b>Mac</b> in Setup, and is
+      nothing else (another tab, the web programmer) connected to it?`);
+  }
+});
+
+$("emu").addEventListener("click", async () => {
+  $("emu").disabled = true; $("usb").disabled = true;
+  status(`loading the emulator…`);
+  try {
+    const base = `../emulator/fw/${emuFw}/`;
+    const { default: createEmu } = await import(`${base}emu.mjs`);
+    const M = await createEmu({
+      canvas: $("canvas"), locateFile: (f) => base + f,
+      print: () => {}, printErr: () => {},
+      onAbort: (what) => notice(`The emulator stopped: ${esc(what)}. Reload the page to try again.`),
+    });
+    const wav = new Uint8Array(await (await fetch("../emulator/demo/voice.wav")).arrayBuffer());
+    M.FS.writeFile("/input.wav", wav);
+    $("stage").classList.add("on");
+    const title = document.title;
+    M.callMain(["--in", "/input.wav", "--usb", "mac"]);   // USB port: Mac = HostLink on
+    document.title = title;   // SDL names the window (the tab) after the firmware
+    M._emu_web_set_volume?.(0.4);
+    window.emu = M;
+    await start(emuTransport(M), "emulator");
+  } catch (e) {
+    status("");
+    notice(`Couldn't start the emulator: ${esc(e.message || e)}.`);
+    $("emu").disabled = false;
+  }
+});
+
+async function start(transport, how) {
+  link = new HostLink(transport);
+  // the firmware answers once it has booted: ask a few times
+  for (let i = 0; i < 25 && !hello; i++) {
+    hello = await link.hello().catch(() => null);
+    if (!hello) await new Promise((r) => setTimeout(r, 200));
+  }
+  if (!hello) throw new Error("no HostLink answer (is it a HostLink firmware?)");
+  status(`reading ${hello.moduleName}…`);
+  desc = await link.descriptor();
+  if (desc.error) { notice(`${esc(hello.moduleName)} says its description is broken: ${esc(desc.error)}`); return; }
+  known = KNOWN[hello.moduleId] ?? {};
+  accent(known);
+  live = await link.getLive();
+  values = decodeState(desc, live);
+  fields = fieldsOf(desc);
+  buildIdent(how);
+  buildPages();
+  buildRef();
+  await refreshSlots();
+  $("module").classList.add("on");
+  $("usb").disabled = true; $("emu").disabled = true;
+  status(`connected over ${how}`, true);
+  $("module").scrollIntoView({ behavior: "smooth", block: "start" });
+  setInterval(poll, 400);
+}
+
+function buildIdent(how) {
+  const m = desc.module ?? {};
+  $("modName").textContent = m.name || hello.moduleName;
+  $("modMeta").textContent = `firmware ${m.fw || hello.fw} · ${m.git || hello.git} · SDK ${hello.sdk} · via ${how}`;
+  $("modTag").textContent = m.tagline || "";
+}
+
+// ---- knobs ----------------------------------------------------------------------
+
+// One tab per page of every field-bearing component: the performance pages
+// first, then Settings, then anything custom.
+function buildPages() {
+  pages = [];
+  for (const c of desc.components) {
+    if (!c.fields?.length) continue;
+    if (c.kind === "pager" || c.kind === "settings") {
+      const n = c.pages ?? (Math.max(...c.fields.map((f) => f.page ?? 0)) + 1);
+      for (let p = 0; p < n; p++) {
+        const fs = c.fields.filter((f) => (f.page ?? 0) === p);
+        const gs = (c.gestures ?? []).filter((g) => g.page === p);
+        if (!fs.filter((f) => !severs(f)).length && !gs.length) continue;   // nothing left to show
+        const named = c.pageNames?.[p];
+        const name = named || (c.kind === "settings" ? `Settings ${p + 1}` : `Page ${p + 1}`);
+        pages.push({ name, color: c.pageColors?.[p], help: c.pageHelp?.[p], fields: fs, gestures: gs, grid: true });
+      }
+    } else {
+      pages.push({ name: c.name || c.id, fields: c.fields, gestures: [], grid: false });
+    }
+  }
+  $("tabs").innerHTML = "";
+  pages.forEach((pg, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "tab"; b.role = "tab";
+    if (pg.color && /^#[0-9a-f]{3,8}$/i.test(pg.color)) b.style.setProperty("--c", pg.color);
+    b.innerHTML = `<i aria-hidden="true"></i>${esc(pg.name)}`;
+    b.addEventListener("click", () => showPage(i));
+    $("tabs").appendChild(b);
+  });
+  showPage(0);
+}
+
+function showPage(i) {
+  pageIdx = i;
+  [...$("tabs").children].forEach((b, k) => b.setAttribute("aria-selected", k === i));
+  const pg = pages[i];
+  $("pageHelp").innerHTML = md(pg.help || "");
+  widgets.clear();
+  const box = $("knobs");
+  box.innerHTML = "";
+  const cells = pg.grid ? Array.from({ length: 6 }, (_, pot) =>
+    pg.fields.find((f) => f.pot === pot) ?? pg.gestures.find((g) => g.pot === pot) ?? { pot, empty: true })
+    : pg.fields;
+  for (const f of cells) box.appendChild(f.id && !severs(f) ? knob(f, pg.grid) : placeholder(f));
+}
+
+// The setting that picks what the USB port is for: changing it from here
+// would take the port away from this page (at the next boot, on Tim's
+// firmwares), so it stays on the module.
+function severs(f) { return f.id === "usb" || /^usb( port)?$/i.test(f.name ?? ""); }
+
+function placeholder(g) {
+  const d = document.createElement("div");
+  d.className = "knob empty";
+  const pos = g.pot !== undefined ? `<span class="pos">P${g.pot + 1}</span> · ` : "";
+  if (g.type) {
+    d.innerHTML = `${pos}<span class="gesture"><b>${esc(g.name)}</b>: set it on the module. It decides what the USB
+      port does, so changing it from here would cut this page off.</span>`;
+    return d;
+  }
+  d.innerHTML = g.empty ? `<span class="pos">P${g.pot + 1}</span> · nothing here`
+    : `<span class="pos">P${g.pot + 1}</span> · <span class="gesture"><b>${esc(g.name)}</b>: used on the module itself; the presets section below does the same.</span>`;
+  return d;
+}
+
+function labelsOf(f) { return f.disp?.labels ?? null; }
+
+function show(f, v) {
+  const d = f.disp ?? {};
+  if (f.type === "enum") return labelsOf(f)?.[v] ?? String(v);
+  const n = d.labels?.length;
+  switch (d.kind) {
+    case "snap": return d.labels[Math.round(v * (n - 1))] ?? "";
+    case "enum": return d.labels[Math.min(n - 1, Math.floor(v * n))] ?? "";
+    case "percent": return `${Math.round(v * (d.scale ?? 100))}%`;
+    case "bipolar": return `${Math.round((v * 2 - 1) * 100)}%`;
+    case "brightness": return `${Math.round((d.lo + (d.hi - d.lo) * v) * 100)}%`;
+    case "gain": return v > 0 ? `${(20 * Math.log10(v)).toFixed(1)} dB` : "−∞ dB";
+    case "linear": { const x = d.lo + (d.hi - d.lo) * v; return `${Math.abs(d.hi - d.lo) >= 20 ? Math.round(x) : x.toFixed(2)}${d.unit ? ` ${d.unit}` : ""}`.replace(" %", "%"); }
+    case "exp": { const x = d.lo * Math.pow(d.hi / d.lo, v); return `${x >= 100 ? Math.round(x) : x.toPrecision(3)}${d.unit ? ` ${d.unit}` : ""}`; }
+    default: return `${Math.round(v * 100)}%`;
+  }
+}
+
+// snap fields only have n positions: step through those, write the centre of each
+function steps(f) {
+  const d = f.disp ?? {};
+  if (d.kind === "snap") return d.labels.length - 1;
+  if (d.kind === "enum") return d.labels.length;
+  return 0;
+}
+function quant(f, v) {
+  const n = steps(f);
+  if (f.disp?.kind === "snap") return Math.round(v * n) / n;
+  if (f.disp?.kind === "enum") return (Math.min(n - 1, Math.floor(v * n)) + 0.5) / n;
+  return Math.min(1, Math.max(0, v));
+}
+
+function knob(f, grid) {
+  const card = document.createElement("div");
+  const isEnum = f.type === "enum";
+  card.className = "knob" + (isEnum ? " enum" : "");
+  const pos = grid ? `P${f.pot + 1}` : "";
+  const help = f.help ? `<details><summary>What it does</summary>${md(f.help)}</details>` : "";
+  if (isEnum) {
+    card.innerHTML = `<div class="words"><span class="pos">${pos}</span><span class="name">${esc(f.name)}</span></div>
+      <div class="seg" role="radiogroup" aria-label="${esc(f.name)}"></div>${help}`;
+    const seg = card.querySelector(".seg");
+    (labelsOf(f) ?? Array.from({ length: f.zones }, (_, i) => String(i))).forEach((lab, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = lab;
+      b.addEventListener("click", () => set(f, i));
+      seg.appendChild(b);
+    });
+    widgets.set(f.id, { f, update: (v) => [...seg.children].forEach((b, i) => b.setAttribute("aria-pressed", i === v)) });
+  } else {
+    card.innerHTML = `<div class="dial" tabindex="0" role="slider" aria-label="${esc(f.name)}" aria-valuemin="0" aria-valuemax="100">
+        <svg viewBox="-50 -50 100 100" aria-hidden="true">
+          <path class="trk" fill="none" stroke-width="7" stroke-linecap="round"></path>
+          <path class="arc" fill="none" stroke-width="7" stroke-linecap="round"></path>
+          <circle class="cap" r="27" stroke-width="1.5"></circle>
+          <line class="ptr" x1="0" y1="-10" x2="0" y2="-24" stroke-width="3.5" stroke-linecap="round"></line>
+        </svg></div>
+      <div class="words"><span class="pos">${pos}</span><span class="name">${esc(f.name)}</span><span class="val"></span></div>${help}`;
+    const dial = card.querySelector(".dial"), val = card.querySelector(".val");
+    const A0 = -135, A1 = 135, R = 40;
+    const pt = (a) => { const r = (a - 90) * Math.PI / 180; return `${(R * Math.cos(r)).toFixed(2)} ${(R * Math.sin(r)).toFixed(2)}`; };
+    const arc = (a, b) => `M ${pt(a)} A ${R} ${R} 0 ${b - a > 180 ? 1 : 0} 1 ${pt(b)}`;
+    card.querySelector(".trk").setAttribute("d", arc(A0, A1));
+    const update = (v) => {
+      const a = A0 + (A1 - A0) * v;
+      const bip = f.disp?.kind === "bipolar" || (f.disp?.kind === "linear" && f.disp.lo < 0 && f.disp.hi > 0);
+      const from = bip ? 0 : A0;
+      card.querySelector(".arc").setAttribute("d", Math.abs(a - from) < 0.5 ? "" : arc(Math.min(a, from), Math.max(a, from)));
+      card.querySelector(".ptr").setAttribute("transform", `rotate(${a})`);
+      const s = show(f, v);
+      val.textContent = s;
+      dial.setAttribute("aria-valuenow", Math.round(v * 100));
+      dial.setAttribute("aria-valuetext", s);
+    };
+    widgets.set(f.id, { f, update });
+    let y0 = 0, v0 = 0;
+    dial.addEventListener("pointerdown", (e) => {
+      dial.setPointerCapture(e.pointerId); dragging = f.id; y0 = e.clientY; v0 = values[f.id]; e.preventDefault();
+    });
+    dial.addEventListener("pointermove", (e) => {
+      if (dragging !== f.id) return;
+      set(f, quant(f, v0 + (y0 - e.clientY) / (e.shiftKey ? 600 : 160)));
+    });
+    const end = () => { if (dragging === f.id) dragging = null; };
+    dial.addEventListener("pointerup", end);
+    dial.addEventListener("pointercancel", end);
+    dial.addEventListener("dblclick", () => set(f, quant(f, f.def ?? 0.5)));
+    dial.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const n = steps(f);
+      set(f, quant(f, values[f.id] + (n ? Math.sign(-e.deltaY) / n : -e.deltaY / 1200)));
+    }, { passive: false });
+    dial.addEventListener("keydown", (e) => {
+      const n = steps(f), d = n ? 1 / n : (e.shiftKey ? 0.1 : 0.01);
+      const k = { ArrowUp: d, ArrowRight: d, ArrowDown: -d, ArrowLeft: -d, PageUp: 0.1, PageDown: -0.1 }[e.key];
+      if (e.key === "Home") set(f, 0); else if (e.key === "End") set(f, 1);
+      else if (k !== undefined) set(f, quant(f, values[f.id] + k)); else return;
+      e.preventDefault();
+    });
+  }
+  widgets.get(f.id).update(values[f.id]);
+  return card;
+}
+
+function set(f, v) {
+  if (values[f.id] === v) return;
+  values[f.id] = v;
+  dirty[f.id] = v;
+  lastEdit = performance.now();
+  widgets.get(f.id)?.update(v);
+  flush();
+}
+
+// One write at a time; edits made meanwhile ride the next one. Each write is
+// the last state read from the module with every pending edit applied.
+async function flush() {
+  if (writing || !Object.keys(dirty).length) return;
+  writing = true;
+  const changes = dirty; dirty = {};
+  try {
+    live = encodeState(desc, live, changes);
+    await link.setLive(live);
+  } catch (e) {
+    status(`write failed: ${e.message}`);
+  } finally {
+    writing = false;
+    if (Object.keys(dirty).length) flush();
+  }
+}
+
+// Follow the module: knobs turned on the panel, a preset loaded on it.
+let polling = false;
+async function poll() {
+  if (polling || writing || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;
+  polling = true;
+  try {
+    const b = await link.getLive();
+    if (writing || Object.keys(dirty).length || performance.now() - lastEdit < 700) return;   // an edit raced the read
+    live = b;
+    const v = decodeState(desc, b);
+    for (const [id, x] of Object.entries(v)) {
+      if (x !== values[id] && id !== dragging) { values[id] = x; widgets.get(id)?.update(x); }
+    }
+  } catch (e) {
+    status(`lost the module: ${e.message}`);
+  } finally { polling = false; }
+}
+
+// ---- presets ----------------------------------------------------------------------
+
+async function refreshSlots() {
+  slotInfo = await link.listSlots();
+  const box = $("slots");
+  box.innerHTML = "";
+  slotInfo.forEach((s) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    const res = (known.reserved ?? []).includes(s.slot);
+    b.className = "slot" + (s.valid ? " full" : "") + (s.valid && !s.ours ? " foreign" : "") + (res ? " reserved" : "");
+    b.textContent = s.slot + 1;
+    b.setAttribute("aria-label", `Slot ${s.slot + 1}: ${slotWords(s)}`);
+    b.setAttribute("aria-pressed", s.slot === slotSel);
+    b.addEventListener("click", () => pickSlot(s.slot));
+    box.appendChild(b);
+  });
+  if (slotSel !== null) pickSlot(slotSel);
+}
+
+function slotWords(s) {
+  const res = (known.reserved ?? []).includes(s.slot);
+  const home = s.slot === hello.bootSlot && hello.bootSlot !== 0;
+  if (res) return home ? `${hello.moduleName}'s own working state (what it loads at power-on)`
+                       : `kept for a firmware's working state (Tim's firmwares share the card)`;
+  if (!s.valid) return "empty";
+  if (!s.ours) return "a preset from another firmware or an older version: it can't load here";
+  return "a saved preset";
+}
+
+function pickSlot(i) {
+  slotSel = i;
+  [...$("slots").children].forEach((b, k) => b.setAttribute("aria-pressed", k === i));
+  const s = slotInfo[i];
+  const res = (known.reserved ?? []).includes(i);
+  $("slotWhat").innerHTML = `<b>Slot ${i + 1}</b>: ${esc(slotWords(s))}.`;
+  $("slotLoad").disabled = !(s.valid && s.ours);
+  $("slotSave").disabled = res;
+  $("slotErase").disabled = !s.valid || res;
+}
+
+async function slotAct(what, fn) {
+  status(`${what}…`);
+  try { await fn(); status(`${what}: done`, true); }
+  catch (e) { status(`${what}: ${e.message}`); }
+  await refreshSlots();
+  await forceRead();
+}
+async function forceRead() {
+  live = await link.getLive();
+  values = decodeState(desc, live);
+  for (const [id, w] of widgets) w.update(values[id]);
+}
+
+$("slotLoad").addEventListener("click", () => slotAct(`loading slot ${slotSel + 1}`, () => link.loadFromSlot(slotSel)));
+$("slotSave").addEventListener("click", () => {
+  const s = slotInfo[slotSel];
+  if (s.valid && !confirmReplace(slotSel)) return;
+  slotAct(`saving to slot ${slotSel + 1}`, () => link.saveToSlot(slotSel));
+});
+$("slotErase").addEventListener("click", () => {
+  if (!confirmReplace(slotSel, true)) return;
+  slotAct(`erasing slot ${slotSel + 1}`, () => link.eraseSlot(slotSel));
+});
+// a second click on the same button confirms (no browser dialogs)
+let armed = null;
+function confirmReplace(i, erase) {
+  const key = `${erase ? "e" : "s"}${i}`;
+  if (armed === key) { armed = null; return true; }
+  armed = key;
+  const btn = erase ? $("slotErase") : $("slotSave");
+  const old = btn.textContent;
+  btn.textContent = erase ? "Click again to erase" : "Click again to replace it";
+  setTimeout(() => { if (armed === key) armed = null; btn.textContent = old; }, 3000);
+  return false;
+}
+
+// ---- files ------------------------------------------------------------------------
+
+const b64 = (u8) => btoa(String.fromCharCode(...u8));
+const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+$("exportLive").addEventListener("click", async () => {
+  await forceRead();
+  const doc = {
+    format: "alchemy-lab-preset", v: 1, module: hello.moduleId, name: hello.moduleName,
+    fw: hello.fw, git: hello.git, schemaHash: desc.schemaHash, size: live.length,
+    values: decodeState(desc, live), bytes: b64(live), saved: new Date().toISOString(),
+  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 1)], { type: "application/json" }));
+  a.download = `${hello.moduleName.toLowerCase()}-${doc.saved.slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+});
+
+$("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    const doc = JSON.parse(await file.text());
+    if (doc.format !== "alchemy-lab-preset") throw new Error("not a preset file from this page");
+    if (doc.module !== hello.moduleId) throw new Error(`it's for ${doc.name || doc.module}, this is ${hello.moduleName}`);
+    let bytes;
+    if (doc.schemaHash === desc.schemaHash && doc.size === desc.size) bytes = unb64(doc.bytes);
+    else {
+      // a different firmware version: carry over every value that still exists
+      const keep = Object.fromEntries(Object.entries(doc.values ?? {}).filter(([id]) => fields.some((f) => f.id === id)));
+      bytes = encodeState(desc, await link.getLive(), keep);
+      notice(`That file is from another version of ${esc(hello.moduleName)}; ${Object.keys(keep).length} of its settings carried over.`);
+    }
+    // never let a file move the USB port off what this page is talking through
+    const here = decodeState(desc, await link.getLive());
+    const keepPort = Object.fromEntries(fields.filter(severs).map((f) => [f.id, here[f.id]]));
+    await link.setLive(encodeState(desc, bytes, keepPort));
+    await forceRead();
+    status(`opened ${file.name}: playing now, not saved to a slot`, true);
+  } catch (err) {
+    notice(`Couldn't open ${esc(file.name)}: ${esc(err.message)}`);
+  }
+});
+
+// ---- reference --------------------------------------------------------------------
+
+function buildRef() {
+  const bt = desc.buttons ?? [];
+  $("buttons").innerHTML = bt.length ? `<tr><th>Button</th><th>Does</th></tr>` + bt.map((b) =>
+    `<tr><td><b>${esc(b.id.toUpperCase())}</b> ${esc(b.name)}</td><td>${(b.actions ?? []).map((a) =>
+      `<b>${esc(a.gesture)}</b>: ${md(a.label)}`).join("<br>")}</td></tr>`).join("") : "";
+  $("jacks").innerHTML = (desc.jacks ?? []).map((j) => `<span>${esc(j.id)} ${esc(j.name)}</span>`).join("");
+  $("refSection").style.display = bt.length || desc.jacks?.length ? "" : "none";
+}
+
+window.addEventListener("beforeunload", () => link?.t?.close?.());
+window.ctl = { get link() { return link; }, get desc() { return desc; }, decodeState };   // for the curious, in the console
+</script>
+</body>
+</html>
