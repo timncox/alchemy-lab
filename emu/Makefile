@@ -58,11 +58,15 @@ CC         := emcc
 SDL_CFLAGS := -sUSE_SDL=2
 FW_LDFLAGS :=   # Elements' Mach-O aliases: wasm symbols need none
 WEB_CARD   := $(if $(filter elements,$(FW)),$(BUILD)/card/mi/elements.smp)
+# a custom firmware's <FW_DIR>/emu-card/ (test samples...) rides along as /card;
+# the page passes --card /card for it
+WEB_CARD_DIR := $(if $(filter custom,$(FW)),$(wildcard $(FW_DIR)/emu-card))
 SDL_LIBS   := -sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=262144 -sSTACK_SIZE=1048576 \
               -sINITIAL_MEMORY=268435456 -sALLOW_MEMORY_GROWTH -sMAXIMUM_MEMORY=2GB \
               -sMODULARIZE -sEXPORT_ES6 -sEXPORT_NAME=createEmu -sINVOKE_RUN=0 \
               -sENVIRONMENT=web -sFORCE_FILESYSTEM -sEXPORTED_RUNTIME_METHODS=callMain,FS \
-              $(if $(WEB_CARD),--preload-file $(BUILD)/card@/card)
+              $(if $(WEB_CARD),--preload-file $(BUILD)/card@/card) \
+              $(if $(WEB_CARD_DIR),--preload-file $(WEB_CARD_DIR)@/card)
 EXE        := $(BUILD)/emu.mjs
 else
 SDL_CFLAGS := $(shell sdl2-config --cflags)

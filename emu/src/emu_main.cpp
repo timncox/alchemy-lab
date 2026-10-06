@@ -178,35 +178,45 @@ void Render(float* out, size_t frames)
     CallbackScope in_callback;
     auto cb = AudioCb();
     const size_t bs = BlockSize();
+    /* The firmware always gets whole blocks of its own size. A request that
+     * is not a multiple of it (128 frames here, SDL's 512/1024 in a browser,
+     * a firmware running 48-frame blocks) is served from the last block's
+     * leftover output first, so no frame is ever zero-filled and the
+     * firmware's clock keeps real time. Input leads output by under a block. */
     static std::vector<float> il, ir, ol, orr;
-    if (il.size() < bs) { il.resize(bs); ir.resize(bs); ol.resize(bs); orr.resize(bs); }
+    static size_t have = 0, at = 0;   /* frames of ol/orr not yet played, read index */
+    if (il.size() < bs) { il.resize(bs); ir.resize(bs); ol.resize(bs); orr.resize(bs); have = at = 0; }
     float in_pk = 0.f, out_pk = 0.f, acc = 0.f;
     size_t done = 0;
     while (done < frames)
     {
-        const size_t n = std::min(bs, frames - done);
-        for (size_t i = 0; i < n; i++)
+        if (have == 0)
         {
-            const float s = next_input_sample();
-            il[i] = s + PulseSample(0);
-            ir[i] = s + PulseSample(1);
-            in_pk = std::max(in_pk, std::fabs(s));
+            for (size_t i = 0; i < bs; i++)
+            {
+                const float s = next_input_sample();
+                il[i] = s + PulseSample(0);
+                ir[i] = s + PulseSample(1);
+                in_pk = std::max(in_pk, std::fabs(s));
+            }
+            if (cb)
+            {
+                const float* ins[2] = {il.data(), ir.data()};
+                float*       outs[2] = {ol.data(), orr.data()};
+                cb(ins, outs, bs);
+            }
+            else
+                for (size_t i = 0; i < bs; i++) { ol[i] = 0.f; orr[i] = 0.f; }
+            have = bs;
+            at = 0;
         }
-        if (cb && n == bs)
+        const size_t n = std::min(have, frames - done);
+        for (size_t k = 0; k < n; k++)
         {
-            const float* ins[2] = {il.data(), ir.data()};
-            float*       outs[2] = {ol.data(), orr.data()};
-            cb(ins, outs, bs);
-        }
-        else
-        {
-            for (size_t i = 0; i < n; i++) { ol[i] = 0.f; orr[i] = 0.f; }
-        }
-        for (size_t i = 0; i < n; i++)
-        {
-            out[(done + i) * 2]     = ol[i];
-            out[(done + i) * 2 + 1] = orr[i];
-            if (!std::isfinite(ol[i]) || !std::isfinite(orr[i])) { g_bad++; ol[i] = orr[i] = 0.f; out[(done + i) * 2] = out[(done + i) * 2 + 1] = 0.f; }
+            const size_t i = at + k;
+            out[(done + k) * 2]     = ol[i];
+            out[(done + k) * 2 + 1] = orr[i];
+            if (!std::isfinite(ol[i]) || !std::isfinite(orr[i])) { g_bad++; ol[i] = orr[i] = 0.f; out[(done + k) * 2] = out[(done + k) * 2 + 1] = 0.f; }
             if (std::fabs(ol[i]) >= 0.999f || std::fabs(orr[i]) >= 0.999f) g_pinned++;
             out_pk = std::max(out_pk, std::max(std::fabs(ol[i]), std::fabs(orr[i])));
             const float m = 0.5f * (ol[i] + orr[i]);
@@ -217,6 +227,8 @@ void Render(float* out, size_t frames)
             g_tap_r[w & 16383u] = orr[i];
             g_tap_w = w + 1;
         }
+        at += n;
+        have -= n;
         done += n;
     }
     g_frames += frames;
