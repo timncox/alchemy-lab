@@ -90,12 +90,14 @@ CXXFLAGS := -std=gnu++17 -O2 -g -w $(DEFS) $(INCS) $(SDL_CFLAGS) $(SANFLAGS)
 CFLAGS   := -std=gnu11 -O2 -g -w $(DEFS) $(INCS) $(FW_CFLAGS) $(SANFLAGS)
 
 # The SDK's framework, every file except the ones the emulator replaces: the
-# USB-CDC HostLink transport (no USB here) and Presets (src/presets_emu.cpp
-# compiles it with the flash rebased). The v2 board's own chip drivers are
-# replaced by include/alchemy/hw/alchemy_lab_v2.h + src/emu_board.cpp; its
-# layout, calibration and trigger-jack code compile as-is.
+# USB-CDC HostLink transport (no USB here), Presets (src/presets_emu.cpp
+# compiles it with the flash rebased) and ControlLoop (src/control_loop_emu.cpp
+# compiles it as-is, noting the loop so the panel's labels follow the page).
+# The v2 board's own chip drivers are replaced by
+# include/alchemy/hw/alchemy_lab_v2.h + src/emu_board.cpp; its layout,
+# calibration and trigger-jack code compile as-is.
 SDK_REPLACED := framework/src/host_link/cdc_transport.cpp framework/src/host_link/diagnostics.cpp \
-                framework/src/surface/presets.cpp
+                framework/src/surface/presets.cpp framework/src/surface/control_loop.cpp
 SDK_FRAMEWORK := $(patsubst $(ALCHEMY_DIR)/%,%,$(filter-out $(ALCHEMY_DIR)/framework/src/led/anims/%,\
                    $(sort $(shell find $(ALCHEMY_DIR)/framework/src -name '*.cpp'))))
 SDK_V2 := $(filter $(addprefix hardware/alchemy-lab/v2/src/,alchemy_lab_v2_layout.cpp v2_calibration.cpp trigger_jack.cpp),\
@@ -103,7 +105,7 @@ SDK_V2 := $(filter $(addprefix hardware/alchemy-lab/v2/src/,alchemy_lab_v2_layou
 SDK_SRC := $(filter-out $(SDK_REPLACED),$(SDK_FRAMEWORK)) $(SDK_V2) $(SDK_RAMDISK)
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
-EMU_CXX := src/emu_board.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
+EMU_CXX := src/emu_board.cpp src/emu_stubs.cpp src/presets_emu.cpp src/control_loop_emu.cpp src/emu_main.cpp \
            src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_hostlink.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp \
            src/emu_uart.cpp $(EMU_RAMDISK) $(FW_STUBS)
 

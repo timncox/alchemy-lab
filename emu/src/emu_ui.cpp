@@ -195,8 +195,14 @@ void draw(Ui& u)
         SDL_SetRenderDrawColor(r, 0xF0, 0xE8, 0xD8, 255);
         SDL_RenderDrawLine(r, cx, cy, px, py);
         SDL_RenderDrawLine(r, cx + 1, cy, px + 1, py);
-        const char* name = setup_held ? kSetup[p] : kPlay[p];
-        emu_text(r, cx - emu_text_width(name, 2) / 2, cy + kRingR + 14, 2, name, setup_held ? SDL_Color{0xC0, 0x80, 0xFF, 255} : kInk);
+        /* The firmware's own knob name on the page it shows (any B2 / B3
+         * layout); the fw/<fw>.mk labels only when it names nothing. */
+        bool        alt  = setup_held;
+        const char* live = emu::LiveKnobName(p, &alt);
+        if (!live) alt = setup_held;
+        const char* name = live ? live : (setup_held ? kSetup[p] : kPlay[p]);
+        const int   ts   = emu_text_width(name, 2) > 280 ? 1 : 2;
+        emu_text(r, cx - emu_text_width(name, ts) / 2, cy + kRingR + 14, ts, name, alt ? SDL_Color{0xC0, 0x80, 0xFF, 255} : kInk);
         char pn[8];
         std::snprintf(pn, sizeof pn, "P%d", p + 1);
         emu_text(r, cx - kRingR - 14, cy - kRingR - 8, 1, pn, kDim);
