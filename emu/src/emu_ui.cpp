@@ -170,6 +170,7 @@ void draw(Ui& u)
 
     emu_text(r, 40, 40, 3, EMU_FW_NAME, kRust);
     emu_text(r, 40, 72, 1, "ALCHEMY LAB EMULATOR - THE FIRMWARE, UNCHANGED", kDim);
+    if (const char* heading = emu::LiveHeading()) emu_text(r, 40, 86, 1, heading, SDL_Color{0xC0, 0x80, 0xFF, 255});
 
     const bool setup_held = P.button[2].load();
     for (int p = 0; p < 6; p++)

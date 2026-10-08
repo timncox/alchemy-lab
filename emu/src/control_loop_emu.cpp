@@ -11,6 +11,7 @@
  * falls back to the fw/<fw>.mk labels.
  */
 #include <atomic>
+#include <cstdio>
 #include <cstring>
 
 #include "alchemy/surface/control_loop.h"
@@ -35,10 +36,38 @@ void NoteControlLoop(alchemy::ControlLoop* loop) { g_loop.store(loop, std::memor
  * `alt` is set when that page is not the first attached one (drawn purple,
  * like the B3 labels). Read from the panel thread: the pages and names are
  * fixed after boot and ActivePage() is one byte, so the race is benign. */
+/* While Settings is open: the heading ("SETTINGS 3/4 - CV TO"). */
+const char* LiveHeading()
+{
+    static char buf[64];
+    alchemy::ControlLoop* loop = g_loop.load(std::memory_order_relaxed);
+    alchemy::Settings*    set  = loop ? loop->AttachedSettings() : nullptr;
+    if (!set || !set->IsActive()) return nullptr;
+    const uint8_t pg   = set->CurrentPage();
+    const char*   name = set->PageNameAt(pg);
+    if (name && *name)
+        std::snprintf(buf, sizeof buf, "SETTINGS %u/%u - %s", pg + 1u, (unsigned)set->NumPages(), name);
+    else
+        std::snprintf(buf, sizeof buf, "SETTINGS %u/%u", pg + 1u, (unsigned)set->NumPages());
+    return buf;
+}
+
 const char* LiveKnobName(int pot, bool* alt)
 {
     alchemy::ControlLoop* loop = g_loop.load(std::memory_order_relaxed);
     if (!loop) return nullptr;
+
+    /* Settings open: its own names for this page's pots (the display name,
+     * else the ident); a pot Settings doesn't use shows nothing. */
+    if (alchemy::Settings* set = loop->AttachedSettings(); set && set->IsActive())
+    {
+        const uint8_t pg = set->CurrentPage();
+        const char*   n  = set->DisplayNameAt(pg, (uint8_t)pot);
+        if (!n || !*n) n = set->IdentAt(pg, (uint8_t)pot);
+        if (alt) *alt = true;
+        return (n && *n) ? n : "";
+    }
+
     alchemy::KnobStorage* storage = loop->AttachedStorage();
     if (!storage || loop->NumAttachedPages() == 0) return nullptr;
     const uint8_t active = storage->ActivePage();

@@ -64,6 +64,8 @@ void     KeysNote(int note, int vel);
 /* control_loop_emu.cpp: the firmware's own name for the knob on `pot` of the
  * page showing now (null if none); `alt` = not the first page. */
 const char* LiveKnobName(int pot, bool* alt);
+/* "SETTINGS n/N - <page name>" while Settings is open, else null. */
+const char* LiveHeading();
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);
 
