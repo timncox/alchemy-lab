@@ -33,8 +33,11 @@ done
 TIMOS=${TIMOS:-$HOME/tim-os}
 CUSTOM=(
   "stencil|$TIMOS/stencil/.claude/worktrees/firmware/alchemy"
-  "break|$TIMOS/break-alchemy/.claude/worktrees/ecto-mvp"
+  "break|${BREAK_ROOT:-$TIMOS/break-alchemy/.claude/worktrees/ecto-mvp}"
 )
+# BREAK_ROOT=<a break-alchemy checkout>: publish that Break instead, e.g. a
+# worktree at the commit the public download was cut from, so unreleased
+# features on ecto-mvp don't reach the public emulator first.
 for entry in "${CUSTOM[@]}"; do
   f=${entry%%|*}; dir=${entry#*|}
   extra=()
