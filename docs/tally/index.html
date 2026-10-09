@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Operation manual for Tally, a complex oscillator for the Hermetic Modular Alchemy Lab: a sine/cosine pair through a morphing waveshaping ring, a Mod oscillator, a function generator and a delta-sigma pattern generator.">
+<title>Tally for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+  Tally for Alchemy Lab — operation manual.
+
+  The family's dark world (Mark, Smack, Belt, Seq, Break): one deliberate
+  dark theme. Ring and button colours are the firmware's own constants
+  (src/tally/tally_alchemy.cpp). The accent set is the morph ring's own LED
+  code: green self-feedback, yellow PM from the Mod, red cross PM.
+  Layout: a sticky section nav, then one section per idea; the panel and
+  the morph explorer are the two working instruments on the page.
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0c0d0b; --panel:#141612; --panel2:#1b1e18; --panel3:#242820;
+  --ink:#ecefe6; --dim:#90958a; --soft:#c9cec1;
+  --line:rgba(236,239,230,.12); --line2:rgba(236,239,230,.06);
+  --green:#3cff6a; --yellow:#ffb000; --red:#ff4a3a;
+  --acc:#ffb000; --acc-soft:rgba(255,176,0,.14);
+  --ok:#3cff6a; --no:#ffb000;
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;position:relative}
+a{color:var(--acc);text-decoration:none;border-bottom:1px solid rgba(255,176,0,.35)}
+a:hover{border-bottom-color:var(--acc)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(12,13,11,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{font-style:normal;background:linear-gradient(90deg,var(--green),var(--yellow),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:44px;align-items:center}
+.hero > *{min-width:0}
+@media(max-width:820px){.hero{grid-template-columns:1fr}.hero .heroplate{max-width:280px;margin:0 auto}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--acc);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(64px,12vw,148px);line-height:.86;letter-spacing:-.03em;margin:0;text-wrap:balance}
+h1.title em{font-style:normal;display:block;font-size:.3em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.5em}
+.tagline{font-family:var(--disp);font-weight:500;font-size:clamp(18px,2.5vw,24px);color:var(--soft);margin-top:22px;text-wrap:balance;max-width:36ch}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--soft);background:var(--panel)}
+.chip.ok{border-color:rgba(60,255,106,.4);color:var(--ok)}
+.chip.no{border-color:rgba(255,176,0,.45);color:var(--no)}
+.heroplate svg{width:100%;height:auto;display:block;overflow:visible;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;text-align:center;margin-top:12px}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(32px,5vw,50px);letter-spacing:-.02em;line-height:1;margin:0;text-wrap:balance}
+.sub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:12px 0 22px}
+.lede{font-size:18px;color:var(--soft);max-width:66ch}
+.cols{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:820px){.cols{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px;min-width:0}
+.card .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
+.card h4{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;line-height:1.15}
+.card p{color:var(--soft);font-size:15px}
+
+/* panel drawing */
+.toggles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:18px}
+.tg{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;padding:7px 12px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--soft);cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--ink)}
+.tg .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:0}
+.drawing{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:36px;align-items:start}
+.drawing > *{min-width:0}
+@media(max-width:760px){.drawing{grid-template-columns:1fr}.drawing .plate{max-width:300px;margin:0 auto}}
+.plate svg{width:100%;height:auto;display:block;overflow:visible}
+.hole{cursor:pointer}
+.hole .hit{fill:transparent;stroke:transparent;stroke-width:1.2;transition:stroke .15s}
+.hole:hover .hit,.hole.sel .hit{stroke:var(--acc)}
+.plabel{font-family:var(--mono);font-size:2.05px;fill:var(--dim);letter-spacing:.04em;text-anchor:middle;pointer-events:none}
+.plabel.lit{fill:var(--ink)}
+.jlabel{font-family:var(--mono);font-size:1.75px;fill:var(--dim);letter-spacing:.03em;text-anchor:middle;pointer-events:none}
+.legend{font-family:var(--mono);font-size:2.2px;fill:var(--soft);letter-spacing:.12em;text-anchor:middle;pointer-events:none}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px;position:sticky;top:70px}
+.readout .rk{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc)}
+.readout h3{font-family:var(--disp);font-weight:800;font-size:28px;margin:6px 0 2px;line-height:1.1}
+.readout .rs{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:12px}
+.readout .rd{color:var(--soft)}
+.readout .rm{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.readout .rm b{color:var(--ink);font-weight:500}
+
+/* tables */
+.tbl{overflow-x:auto;margin-top:28px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:500}
+td:first-child{font-family:var(--mono);color:var(--ink);white-space:nowrap}
+td .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+td.num{font-variant-numeric:tabular-nums}
+
+/* morph explorer */
+.gen{display:grid;grid-template-columns:280px 1fr;gap:28px;margin-top:28px;align-items:start}
+.gen > *{min-width:0}
+@media(max-width:820px){.gen{grid-template-columns:1fr}}
+.knobs{display:grid;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.knob label{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.knob label span{color:var(--dim);font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;text-align:right}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.scopes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.scopes{grid-template-columns:1fr}}
+.scope{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;min-width:0}
+.scope.wide{grid-column:1/-1}
+.scope canvas{display:block;width:100%;height:auto;max-width:100%}
+.scope .st{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;display:flex;justify-content:space-between;gap:8px}
+.scope .st b{color:var(--ink);font-weight:500;letter-spacing:.04em}
+.ringwrap{display:flex;gap:16px;align-items:center}
+.ringwrap svg{width:120px;height:120px;flex:none}
+.ringwrap .rt{font-size:14px;color:var(--soft)}
+.ringwrap .rt b{font-family:var(--disp);font-size:20px;font-weight:800;color:var(--ink);display:block;line-height:1.1}
+
+/* rules */
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:28px}
+@media(max-width:760px){.rules{grid-template-columns:1fr}}
+.rule{border-left:2px solid var(--acc);padding:4px 0 4px 16px;min-width:0}
+.rule.g{border-left-color:var(--green)} .rule.r{border-left-color:var(--red)}
+.rule h4{font-family:var(--disp);font-weight:800;font-size:19px;margin:0 0 4px}
+.rule p{color:var(--soft);font-size:15px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px}
+.two > *{min-width:0}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+.two h3{font-family:var(--disp);font-weight:800;font-size:26px;margin:0 0 6px}
+.list{display:grid;gap:8px;margin-top:14px;color:var(--soft);padding-left:20px}
+ol.steps{display:grid;gap:10px;margin-top:20px;max-width:72ch;padding-left:22px;color:var(--soft)}
+.nodes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:28px}
+@media(max-width:900px){.nodes{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:460px){.nodes{grid-template-columns:1fr}}
+.node{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c,var(--line));border-radius:6px;padding:14px 16px;min-width:0}
+.node h4{font-family:var(--mono);font-size:13px;letter-spacing:.1em;margin:0 0 2px;color:var(--ink)}
+.node .t{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--c);margin-bottom:8px}
+.node p{color:var(--soft);font-size:14px}
+footer{padding-block:40px;color:var(--dim);font-family:var(--mono);font-size:11px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top">tally<em>.</em></a>
+  <a class="s" href="#idea">The idea</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#ring">Morph ring</a>
+  <a class="s" href="#ufg">UFG</a>
+  <a class="s" href="#pattern">Pattern</a>
+  <a class="s" href="#root">Root + Mod</a>
+  <a class="s" href="#cv">CV map</a>
+  <a class="s" href="#setup">Setup</a>
+  <a class="s" href="#kacc">vs K-Accumulator</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="../" style="margin-left:auto;color:var(--acc)">All instruments ↗</a>
+</div></nav>
+
+<header id="top"><div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Hermetic Modular Alchemy Lab V2 · firmware 0.1.0</div>
+      <h1 class="title">tally<em>a complex oscillator for the Alchemy Lab</em></h1>
+      <p class="tagline">A sine and cosine pair, bent through a ring of eight waveshapers, with a function generator and a pattern generator built in.</p>
+      <div class="status">
+        <span class="chip ok">tested on a computer</span>
+        <span class="chip no">not yet on a module</span>
+      </div>
+    </div>
+    <div class="heroplate">
+      <svg id="heroSvg" viewBox="-4 -4 69 137" role="img" aria-label="Tally on the Alchemy Lab panel: the OSC page"></svg>
+      <div class="cap">12 HP · drawn at true scale · OSC page</div>
+    </div>
+  </div>
+</div></header>
+
+<section id="idea"><div class="wrap">
+  <h2 class="sh">The idea</h2>
+  <div class="sub">What it does</div>
+  <p class="lede">Tally is one oscillator with a lot of ways to bend it. It starts as a pure sine on J9 and a
+    cosine on J10, a stereo pair a quarter-cycle apart. Three controls reshape it, and a fourth, MORPH,
+    changes what those three do. Everything else is there to move them: a second oscillator, a function
+    generator, and a stepped pattern that can sequence it. It is written in the spirit of
+    <b>fancyyyyy × grrrwaaa's K-ACCUMULATOR</b>, folded down from 32 HP onto the Lab's six knobs.</p>
+  <div class="cols">
+    <div class="card"><div class="k">Centre</div><h4>Always one move from a sine</h4>
+      <p>With SHIFT, DEPTH, SHAPE and DAMPED all the way down (and STRETCH and the Mods at rest), the
+        output is a clean sine and cosine wherever MORPH points. Learn the way back here and the rest makes
+        sense: move one control, listen, return.</p></div>
+    <div class="card"><div class="k">The morph ring</div><h4>Eight ways to bend it</h4>
+      <p>MORPH travels round eight waveshaping nodes: formant, feedback, two-operator and cross phase
+        modulation, asymmetric. SHIFT, DEPTH and SHAPE keep similar jobs on each, and between nodes the sound
+        blends continuously.</p></div>
+    <div class="card"><div class="k">The UFG</div><h4>Function generator, three jobs at once</h4>
+      <p>A rise-and-fall generator from 0.02 Hz to audio rate. It modulates the oscillator, gates it
+        (DAMPED: from soft animation to hard sync and enveloped hits) and clocks the pattern. Out on J7.</p></div>
+    <div class="card"><div class="k">The pattern</div><h4>A sequencer that wanders and comes back</h4>
+      <p>A 2–16 step pattern drawn from the second oscillator. CHANCE lets new values in without ever
+        overwriting the loop, so turning it back down always returns the original. Out on J8, and it can play
+        the oscillator's pitch.</p></div>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <div class="sub">Five pages · click any control</div>
+  <p class="lede" style="margin-bottom:24px">B2 steps through four pages: OSC, UFG, Pattern and Mods. B2's light
+    is the page's colour. Hold B3 for the fifth, Root, which holds the tuning and the Mod oscillator. Knobs
+    catch: after a page change a knob does nothing until it passes the value it had, so nothing jumps.</p>
+  <div class="toggles" id="pageTg"></div>
+  <div class="drawing">
+    <div class="plate"><svg id="panelSvg" viewBox="-4 -4 69 137" role="img" aria-label="Interactive Alchemy Lab panel diagram"></svg></div>
+    <div class="readout" id="ro">
+      <div class="rk" id="roK">Select a control</div>
+      <h3 id="roT">The panel</h3>
+      <div class="rs" id="roS">6 knobs × 5 pages · 3 buttons · 10 jacks</div>
+      <div class="rd" id="roD">Hover or tap a knob, a button or a jack. B2 and B3 held together for two seconds open Settings: the external input, what the Mod follows, the CV map, and the SD-card firmware picker.</div>
+      <div class="rm" id="roM"></div>
+    </div>
+  </div>
+
+  <div class="tbl"><table>
+    <thead><tr><th>Jack</th><th>Does</th><th>Signal</th><th>Driven by</th></tr></thead>
+    <tbody>
+      <tr><td>J1</td><td>EXT: the sync leader or the pitch to follow (Settings)</td><td>audio, AC-coupled</td><td>codec in</td></tr>
+      <tr><td>J2</td><td>Through-zero phase modulation of the oscillator; depth is TZPM on Pattern</td><td>audio, AC-coupled</td><td>codec in</td></tr>
+      <tr><td>J3</td><td><span class="sw" style="background:#ffe0a0"></span>V/Oct for Root</td><td>1 V/oct</td><td>CV in</td></tr>
+      <tr><td>J4</td><td><span class="sw" style="background:#3cff6a"></span>CV A: mappable, default MORPH</td><td>±5 V</td><td>CV in</td></tr>
+      <tr><td>J5</td><td><span class="sw" style="background:#40c0ff"></span>CV B: mappable, default UFG trigger</td><td>gate above 1.5 V</td><td>CV in</td></tr>
+      <tr><td>J6</td><td><span class="sw" style="background:#c060ff"></span>CV C: mappable, default SHAPE</td><td>±5 V</td><td>CV in</td></tr>
+      <tr><td>J7</td><td>UFG out</td><td>0–5 V</td><td>STM32 DAC</td></tr>
+      <tr><td>J8</td><td>Pattern (delta-sigma) out</td><td>0–5 V</td><td>STM32 DAC</td></tr>
+      <tr><td>J9</td><td>SINE</td><td>audio</td><td>codec</td></tr>
+      <tr><td>J10</td><td>COSINE</td><td>audio</td><td>codec</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="ring"><div class="wrap">
+  <h2 class="sh">The morph ring</h2>
+  <div class="sub">Tally's oscillator, running in this page</div>
+  <p class="lede">Eight nodes sit round MORPH's ring. Their LEDs say how each one works: <b style="color:var(--green)">green</b>
+    nodes feed the oscillator back into itself, <b style="color:var(--yellow)">yellow</b> ones are modulated by the
+    Mod oscillator, <b style="color:var(--red)">red</b> ones modulate each other both ways. Move the sliders: the
+    scope draws the sine (J9) and cosine (J10), the figure on the right plots one against the other, and the
+    spectrum shows which harmonics are there. LISTEN plays two seconds of it.</p>
+  <div class="gen">
+    <div class="knobs">
+      <div class="ringwrap"><svg id="mRing" viewBox="-60 -60 120 120" role="img" aria-label="Morph ring position"></svg>
+        <div class="rt"><b id="mNode">FMNT</b><span id="mBlend">at the node</span></div></div>
+      <div class="knob"><label for="xMorph">Morph <span id="xMorphV"></span></label><input type="range" id="xMorph" min="0" max="1" step="0.0025" value="0"></div>
+      <div class="knob"><label for="xShift">Shift <span id="xShiftV"></span></label><input type="range" id="xShift" min="0" max="1" step="0.005" value="0"></div>
+      <div class="knob"><label for="xDepth">Depth <span id="xDepthV"></span></label><input type="range" id="xDepth" min="0" max="1" step="0.005" value="0"></div>
+      <div class="knob"><label for="xShape">Shape <span id="xShapeV"></span></label><input type="range" id="xShape" min="0" max="1" step="0.005" value="0"></div>
+      <div class="knob"><label for="xStretch">Stretch <span id="xStretchV"></span></label><input type="range" id="xStretch" min="0" max="1" step="0.005" value="0"></div>
+      <div class="knob"><label for="xHarm">Harmonic (Mod) <span id="xHarmV"></span></label><input type="range" id="xHarm" min="-1" max="1" step="0.005" value="0"></div>
+      <div class="btnrow"><button class="tg" id="xCentre">Back to Centre</button><button class="tg" id="xPlay">▶ Listen</button></div>
+    </div>
+    <div class="scopes">
+      <div class="scope"><div class="st">Scope · two cycles <b>J9 · J10</b></div><canvas id="cWave" width="520" height="260"></canvas></div>
+      <div class="scope"><div class="st">Sine against cosine</div><canvas id="cXY" width="520" height="260"></canvas></div>
+      <div class="scope wide"><div class="st">Spectrum · C4 · harmonics marked <b id="xNote"></b></div><canvas id="cSpec" width="1040" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <div class="nodes" id="nodeCards"></div>
+  <p style="color:var(--dim);font-size:14px;margin-top:20px;max-width:72ch">The page runs the firmware's oscillator core
+    (tally_engine.cpp, ported line for line) at 48 kHz with the UFG, pattern and damped sync left out. On the module those
+    move SHIFT, DEPTH, SHAPE and MORPH from the Mods page, so the sound is rarely this still.</p>
+</div></section>
+
+<section id="ufg"><div class="wrap">
+  <h2 class="sh">UFG and Damped</h2>
+  <div class="sub">The function generator</div>
+  <div class="rules">
+    <div class="rule"><h4>One rise, one fall</h4><p>TIME sets the rate: 0.02 Hz to about 4 kHz, or relative to Root when ROUTE sends Root to the UFG. SKEW tilts it from a falling ramp through a triangle to a rising ramp, and sets the length of its gate. U.SHAPE bends the curve: linear, sine, exponential, raised cosine.</p></div>
+    <div class="rule"><h4>Loop or one-shot</h4><p>LOOP runs it continuously. ONE-SHOT waits for a trigger from B1 or the jack mapped to UFG trigger (J5 by default), runs one cycle and stops.</p></div>
+    <div class="rule"><h4>Four trigger types</h4><p><b>Sync</b> restarts it, but lets the current cycle finish first, so triggers faster than the UFG lock it to a subharmonic. <b>Reverse</b> flips its direction. The two <b>Sustain</b> types do the same and also hold at the peak while the gate stays high.</p></div>
+    <div class="rule"><h4>DAMPED / PULSAR</h4><p>Syncs the oscillator to the UFG and gates it by the UFG at once. Low: gentle animation. Middle: the oscillator pulls into step. Full: hard sync and full gating. With a slow one-shot UFG that is an enveloped hit; at audio rate it is pulsar synthesis.</p></div>
+    <div class="rule"><h4>STRETCH</h4><p>Lives on the UFG page. It moves the harmonics that SHIFT and SHAPE create up and away from the harmonic series while the fundamental stays put. With no waveshaping it does nothing at all.</p></div>
+    <div class="rule"><h4>Out on J7</h4><p>The UFG's level, 0–5 V, updated every half millisecond. B1's light follows it too.</p></div>
+  </div>
+</div></section>
+
+<section id="pattern"><div class="wrap">
+  <h2 class="sh">The pattern</h2>
+  <div class="sub">Delta-sigma steps, clocked by the UFG</div>
+  <div class="rules">
+    <div class="rule"><h4>Where the values come from</h4><p>Each time the UFG comes round, the pattern advances a step. New values are taken from the Mod oscillator and squeezed into eight levels, so the Mod's pitch against the UFG's rate decides how busy or smooth they are.</p></div>
+    <div class="rule"><h4>CHANCE never overwrites</h4><p>At zero the pattern is a locked loop. Turning CHANCE up lets new values play in place of stored ones, but nothing stored changes, so turning it back down always returns the original loop.</p></div>
+    <div class="rule"><h4>LENGTH zooms</h4><p>2 to 16 steps, with 8 in a dead zone at noon. Shortening loops the stretch that starts where you made the change, without touching the rest.</p></div>
+    <div class="rule"><h4>SMOOTH</h4><p>Glides between steps. Which steps glide is part of the pattern, so the same loop glides the same way every time. Past noon every step slews; at audio rate it acts as a filter.</p></div>
+    <div class="rule"><h4>Editing with B1</h4><p>On the Pattern page: tap B1 to write a fresh value at the current step, double-tap to undo it, hold for a second to write a whole new pattern. The pattern is saved, so it survives a power cycle.</p></div>
+    <div class="rule"><h4>Where it goes</h4><p>J8 outputs it as 0–5 V. PITCH sends it to the oscillator's pitch, up to ±2 octaves, quantised when a scale is on. On the Mods page, SOURCE can make it the modulation instead of the UFG.</p></div>
+  </div>
+</div></section>
+
+<section id="root"><div class="wrap">
+  <h2 class="sh">Root, scales and the Mod</h2>
+  <div class="sub">Hold B3</div>
+  <p class="lede">ROOT is Tally's tuning reference: C4 at noon, ±3 octaves, plus 1 V/oct from J3. ROUTE sends it to the
+    oscillator, the UFG, both, or neither. With B3 held, tap B1 to choose the scale system: off (B3 grey), 12-TET (blue)
+    or just intonation (amber). SCALE then picks the scale, and the pitch snaps to it.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Scale</th><th>12-TET (blue)</th><th>Just intonation (amber)</th></tr></thead>
+    <tbody id="scaleRows"></tbody>
+  </table></div>
+  <div class="rules">
+    <div class="rule"><h4>The Mod oscillator</h4><p>A second sine that phase-modulates the first on the yellow and red nodes. HARMONIC sets its pitch relative to what it follows (Root by default; Settings can make it the oscillator or the UFG). Above noon it climbs the harmonics, below noon it drops freely, up to four octaves.</p></div>
+    <div class="rule"><h4>ORDER</h4><p>How HARMONIC behaves: <b>Free</b> (a smooth ±4-octave offset), <b>Even</b>, <b>All</b> or <b>Odd</b> (blending through that set of harmonics), or <b>Quantised</b> (snapped to the scale, or to simple ratios with no scale).</p></div>
+    <div class="rule"><h4>DETUNE</h4><p>Pulls the Mod off pitch, up to a semitone and fine near noon. It also drifts the wavefolder's harmonics, so with SHAPE up it sets the folds moving.</p></div>
+    <div class="rule"><h4>Q.Trig</h4><p>In Settings. Each time the quantised pitch moves to a new note, the UFG is triggered. With the UFG on one-shot and an LFO into J3, Tally arpeggiates itself.</p></div>
+  </div>
+</div></section>
+
+<section id="cv"><div class="wrap">
+  <h2 class="sh">The CV map</h2>
+  <div class="sub">J4, J5 and J6 go wherever you send them</div>
+  <p class="lede">J3 is always V/Oct. The other three CV inputs can each drive any knob on any page, a Settings choice, or
+    a button action, with an amount. Out of the box they are MORPH, UFG trigger and SHAPE.</p>
+  <ol class="steps">
+    <li>Hold <b>B2 + B3</b> for two seconds to open Settings, then tap <b>B1</b> to step through its pages to <b>CV to</b>.</li>
+    <li>Each row of knobs is one jack: top <b>J4</b>, middle <b>J5</b>, bottom <b>J6</b>. The left knob picks the <b>section</b>: Off, OSC, UFG, Pattern, Mods, Root, Settings or Actions. The right knob picks the <b>knob</b> in that section by its place on the panel, P1 (top left) to P6 (bottom right). So UFG + P4 is STRETCH and OSC + P2 is FREQ.</li>
+    <li>Tap B1 once more for <b>CV amount</b>: the left knob of each row is that jack's amount. Full right is +1, noon is off, full left inverts.</li>
+    <li>Press B2 or B3 to leave. The map saves with everything else.</li>
+  </ol>
+  <div class="tbl"><table>
+    <thead><tr><th>Section</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr></thead>
+    <tbody id="cvRows"></tbody>
+  </table></div>
+  <div class="rules">
+    <div class="rule"><h4>How far it goes</h4><p>On a knob, ±5 V sweeps its whole range. FREQ, ROOT and TIME follow 1 V/oct. MORPH moves 1.6 nodes per volt and wraps round the ring.</p></div>
+    <div class="rule"><h4>Selectors and Settings</h4><p>0–5 V steps through every option, starting from where the knob is set.</p></div>
+    <div class="rule"><h4>Actions</h4><p>Gates: on above 1.5 V, off below 0.5 V. Each fires once per rising edge, except UFG trigger, which holds while the gate is high (the Sustain trigger types use that).</p></div>
+    <div class="rule"><h4>What doesn't move</h4><p>CV moves the sound, not the knob rings, and a CV-driven Settings choice never changes the saved setting.</p></div>
+  </div>
+</div></section>
+
+<section id="setup"><div class="wrap">
+  <h2 class="sh">Setup, saving and flashing</h2>
+  <div class="sub">What to know before the first power-up</div>
+  <div class="rules">
+    <div class="rule"><h4>First boot is Centre</h4><p>After a flash Tally starts at Centre: a C4 sine and cosine, every waveshaper and attenuverter at rest, a slow looping UFG, a locked 8-step pattern.</p></div>
+    <div class="rule"><h4>It saves itself</h4><p>All five pages, the settings, the scale system and the pattern save to preset slot 2 five seconds after the last change, with your hands off the buttons.</p></div>
+    <div class="rule"><h4>Settings</h4><p>B2 + B3 for two seconds; B1 steps pages; B2 or B3 leaves. Page 1: brightness, presets, <b>Ext (J1)</b> (Off, Sync, Track) and <b>Mod tracks</b> (Root, OSC, UFG). Page 2: the SD firmware picker and <b>Q.Trig</b>. Pages 3 and 4: the CV map.</p></div>
+    <div class="rule"><h4>EXT on J1</h4><p><b>Sync</b>: J1's rising zero crossings replace the UFG as the damped-sync leader. <b>Track</b>: the oscillator follows J1's pitch (pitch only, not level), and FREQ becomes a ratio to it. Feed it a square wave and get a sine and cosine back, with all the waveshaping on top.</p></div>
+    <div class="rule"><h4>Other firmware on the same card</h4><p>The SD picker swaps firmware. Each one keeps its own preset slot (Tally 2, Stencil 3, Break 4, Seq 5, Meld 6, Warps 7, Clouds 8, Elements 9, Marbles 10, Plaits 11, Smack 12, Mark 13, Belt 14, Relay 15), so switching away and back loses nothing.</p></div>
+    <div class="rule"><h4>Lights</h4><p>B1 follows the UFG (on the Pattern page, the pattern's value). B2 is the page colour, red if the processor runs hot. B3 is the scale system. At boot the P1 ring shows the last session's worst processor load for 2.5 seconds.</p></div>
+  </div>
+  <h3 style="font-family:var(--disp);font-weight:800;font-size:24px;margin:40px 0 0">Getting it</h3>
+  <p style="color:var(--soft);max-width:66ch;margin-top:12px">Tally isn't released yet. It has been built and tested on a
+    computer, and its first run on a module is next. When it's out, it installs like every other instrument on
+    <a href="../#install">the Alchemy Lab page</a>: flash the first one with Hermetic's web programmer, then carry it
+    on the card and switch to it from the picker.</p>
+</div></section>
+
+<section id="kacc"><div class="wrap">
+  <h2 class="sh">Coming from a K-Accumulator</h2>
+  <div class="sub">Same ideas, a smaller panel, our own maths</div>
+  <p class="lede">Tally isn't a port. The K-Accumulator's firmware isn't public, and Tally contains none of it. Tally was
+    written from the K-Accumulator quick-start guide's descriptions. Where the guide only names an algorithm (damped sync,
+    harmonic stretching, the delta-sigma encoding, the scale tables), the maths here is our own and will sound different.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>K-Accumulator</th><th>Tally</th></tr></thead>
+    <tbody>
+      <tr><td>32 HP, two Daisies, 23 patch points, no menus</td><td>12 HP, one Daisy, 10 jacks; five pages of six knobs</td></tr>
+      <tr><td>An attenuverter and a normalisation button per CV input</td><td>The Mods page: five attenuverters and one SOURCE (UFG or pattern) for all of them</td></tr>
+      <tr><td>Morph on an endless encoder, with coarse/fine and snap</td><td>A knob that goes once round the ring</td></tr>
+      <tr><td>Root centred on MIDI note 0, with a CRS/FIN/OCT button</td><td>Root centred on C4, one continuous ±3-octave knob</td></tr>
+      <tr><td>21 scales per tuning system</td><td>9 per system (octaves at the ends, the densest at noon)</td></tr>
+      <tr><td>Continuous ORDER</td><td>Five ORDER zones: Free, Even, All, Odd, Quantised</td></tr>
+      <tr><td>Anti-aliased UFG</td><td>A plain UFG; it can alias at high audio rates</td></tr>
+      <tr><td>Double-length patterns, a pattern clock input, UFG TZFM input, Rung Divisions header</td><td>Not here</td></tr>
+      <tr><td>Fixed jacks</td><td>J4–J6 mappable to anything (the CV map)</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <div class="sub">Firmware 0.1.0 · not yet released</div>
+  <div class="two" style="margin-top:0">
+    <div>
+      <h3 style="color:var(--ok)">Checked</h3>
+      <ul class="list">
+        <li>339 automatic tests on a computer: Centre is a pure sine at every morph position, pitch and both tuning systems, every node and control changing the sound, a 40,000-block sweep of every control staying in range, STRETCH keeping the fundamental, the UFG, damped gating, the pattern's lock, length and restore, pitch tracking, and the CV map's scaling.</li>
+        <li>The whole firmware runs, unchanged, in an Alchemy Lab emulator: Centre and V/Oct, the waveshapers, page cycling, the UFG on J7, struck hits from J5 and B1, the pattern on J8, the scale system, and jacks remapped over USB and then played.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color:var(--no)">Not yet tried</h3>
+      <ul class="list">
+        <li>Anything on a real module: the processor load, the output level, the J7 and J8 outputs, the Settings pages under real fingers.</li>
+        <li>The sound itself. Every range was tuned by tests, not yet by ear.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Tally is firmware by Tim Cox for the Hermetic Modular Alchemy Lab, one of <a href="../">the instruments on Tim's Alchemy Lab page</a>. Hermetic Modular didn't write or test it and can't support it. It is inspired by the K-ACCUMULATOR by fancyyyyy × grrrwaaa (Fancy Synthesis), who aren't involved with Tally; none of their code is in it.</div></footer>
+
+
+<script>
+/* == panel geometry: alchemy-sdk panel/front-panel-template.kicad_pcb (as in Break's manual) == */
+const PANEL = {
+ plate:{w:60.96,h:128.5},
+ mount:[{x:4.537,y:1.297,w:5.1,h:3.4,r:1.7},{x:51.312,y:1.311,w:5.1,h:3.4,r:1.7},{x:4.537,y:123.8,w:5.1,h:3.4,r:1.7},{x:51.323,y:123.812,w:5.1,h:3.4,r:1.7}],
+ rails:[7.23,122.18],
+ pots:[{x:12.758,y:21.304},{x:47.758,y:21.304},{x:12.758,y:49.304},{x:47.758,y:49.304},{x:12.758,y:77.304},{x:47.758,y:77.304}],
+ ring:{r:10.09,leds:16,start_hour:7.5,step_hours:.75,arc_leds:13},
+ buttons:[{x:30.257,y:21.31,hole:3.1,halo:4.0},{x:30.257,y:49.312,hole:3.1,halo:4.0},{x:30.257,y:77.32,hole:3.1,halo:4.0}],
+ usb:{x:25.317,y:89.274,w:10.034,h:4.044,r:2.022},
+ jacks:[{id:"J1",x:6.699,y:100.093,hole:3.2},{id:"J2",x:6.699,y:113.053,hole:3.2},{id:"J3",x:18.51,y:100.119,hole:3.2},{id:"J4",x:30.286,y:100.119,hole:3.2},{id:"J5",x:42.014,y:100.119,hole:3.2},{id:"J6",x:18.51,y:113.056,hole:3.2},{id:"J7",x:30.286,y:113.056,hole:3.2},{id:"J8",x:42.014,y:113.056,hole:3.2},{id:"J9",x:53.901,y:100.126,hole:3.2},{id:"J10",x:53.889,y:113.036,hole:3.2}],
+ labels:{knob_dy:14.0,button_dy:10.63,in:[5.556,120.642],out:[51.53,120.642]}
+};
+
+/* ---------- colours: the firmware's constants (src/tally/tally_alchemy.cpp) ---------- */
+const C = {
+  freqU:"#ffc060", freqD:"#60c0ff", shift:"#60ffc0", depth:"#ff60a0", shape:"#c060ff", damped:"#ffff80",
+  ufg:"#40c0ff", ds:"#ff8020", attP:"#ff9020", attN:"#2090ff", root:"#ffe0a0", notch:"#ffffff",
+  dim:"#181818", idle:"#000030", grey:"#505050",
+};
+const TOPO = ["#00ff30", "#ffb000", "#ff1010"];
+const NODE_NAMES = ["FMNT", "FBPM2", "2OP2", "XPM2", "ASYM", "XPM", "2OP", "FBPM"];
+const NODE_TOPO  = [0, 0, 1, 2, 1, 2, 1, 0];
+const NODE_TEXT = [
+  ["Formant", "Self raised-cosine AM and PM, like FOF synthesis. DEPTH sets the bandwidth, SHIFT blends harmonics, SHAPE adds damped self-feedback. North pole."],
+  ["Chaotic feedback", "Self-feedback PM fed back through the folder: chaotic, latching onto subharmonics. DEPTH is the feedback, SHIFT a damping filter, SHAPE folds."],
+  ["Two-op, split", "PM from the Mod on DEPTH; self-modulation with damping on SHIFT; SHAPE folds."],
+  ["Cross PM, split", "Each oscillator modulates the other. DEPTH is the PM index, SHIFT a damping filter, SHAPE the cross-modulation back into the Mod."],
+  ["Asymmetric", "Asymmetric PM and pulse-train AM from the Mod, granular-sounding. DEPTH drives both; SHIFT and SHAPE work low harmonics. South pole."],
+  ["Cross PM", "PM from the Mod with damping, plus feedback into the Mod, all on DEPTH. SHIFT blends harmonics, SHAPE folds."],
+  ["Two-op", "Classic two-operator PM: DEPTH is the index from the Mod, with damping. SHIFT blends harmonics, SHAPE folds."],
+  ["Feedback", "Self-feedback PM: DEPTH takes the sine toward a saw. SHIFT blends harmonics, SHAPE folds."],
+];
+
+const PAGES = [
+  { name:"OSC", color:"#00ff40", pots:[
+    { name:"MORPH", ring:{style:"morph"}, v:0, sub:"eight nodes, once round", d:"Position on the waveshaping ring: from FMNT at the top clockwise through FBPM2, 2OP2 and XPM2 to ASYM at noon, then back through XPM, 2OP and FBPM. The ring shows each node in its colour and the position bright.", meta:["CV <b>J4 by default</b>"] },
+    { name:"FREQ", ring:{style:"bi", pos:C.freqU, neg:C.freqD, c:C.notch}, v:.5, sub:"±3 octaves", d:"The oscillator's pitch relative to Root (whole semitones while a scale is on), or about C4 when Root isn't sent to the oscillator. In EXT Track mode, a ratio to the tracked pitch.", meta:["noon <b>C4</b>"] },
+    { name:"SHIFT", ring:{style:"level", c:C.shift}, v:0, sub:"waveshaper", d:"On most nodes, blended harmonic shifting: a crossfade up the harmonic series of the note.", meta:["Mods <b>Shift mod</b>"] },
+    { name:"DEPTH", ring:{style:"level", c:C.depth}, v:0, sub:"waveshaper", d:"On most nodes, phase modulation with damping: self-feedback on the green nodes, from the Mod on the yellow and red ones.", meta:["Mods <b>Depth mod</b>"] },
+    { name:"SHAPE", ring:{style:"level", c:C.shape}, v:0, sub:"waveshaper", d:"On most nodes, harmonic wavefolding. DETUNE (Root page) sets its folds drifting.", meta:["CV <b>J6 by default</b>"] },
+    { name:"DAMPED", ring:{style:"level", c:C.damped}, v:0, sub:"sync + gating from the UFG", d:"From gentle animation through locking to hard sync and full gating. With a slow one-shot UFG, enveloped hits; at audio rate, pulsar synthesis.", meta:["Mods <b>Damped mod</b>"] },
+  ]},
+  { name:"UFG", color:"#40c0ff", pots:[
+    { name:"TIME", ring:{style:"level", c:C.ufg}, v:.4, sub:"0.02 Hz to ~4 kHz", d:"The UFG's rate. When ROUTE sends Root to the UFG, it is relative to Root instead, 8 octaves below to 2 above.", meta:["Pattern <b>Time mod</b>"] },
+    { name:"SKEW", ring:{style:"bi", pos:C.freqU, neg:C.freqD, c:C.notch}, v:.5, sub:"fall · triangle · rise", d:"Tilts the function from a falling ramp through a triangle to a rising ramp. Also the length of its gate.", meta:[] },
+    { name:"U.SHAPE", ring:{style:"level", c:C.ufg}, v:0, sub:"linear · sine · exp · raised cos", d:"Bends the UFG's curve.", meta:[] },
+    { name:"STRETCH", ring:{style:"level", c:C.shape}, v:0, sub:"harmonic stretching", d:"Moves the harmonics SHIFT and SHAPE make up and off the harmonic series while the fundamental stays. Nothing without waveshaping.", meta:[] },
+    { name:"LOOP", ring:{style:"sel", c:C.ufg, n:2}, v:.25, sub:"loop · one-shot", d:"Loop runs continuously. One-shot waits for a trigger (B1, or the jack mapped to UFG trigger) and runs one cycle.", meta:[] },
+    { name:"TRIG TYPE", ring:{style:"sel", c:C.ufg, n:4}, v:.125, sub:"sync · reverse · sustain ×2", d:"Sync (lets the cycle finish, so fast triggers lock it to a subharmonic), reverse direction, and both of those holding at the peak while the gate is high.", meta:[] },
+  ]},
+  { name:"PATTERN", color:"#ff8020", pots:[
+    { name:"CHANCE", ring:{style:"level", c:C.ds}, v:0, sub:"new values, never overwritten", d:"How often a new value plays instead of the stored one. Zero is a locked loop, and the loop is never written, so turning it back always restores it.", meta:[] },
+    { name:"LENGTH", ring:{style:"level", c:C.ds}, v:.5, sub:"2–16 steps · 8 at noon", d:"Zooms into the pattern from the step where you changed it.", meta:[] },
+    { name:"SMOOTH", ring:{style:"level", c:C.ds}, v:0, sub:"glide", d:"Glide on the pattern's own glide steps; past noon on every step. At audio rate, a filter.", meta:[] },
+    { name:"PITCH", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"pattern → pitch, ±2 oct", d:"Sends the pattern to the oscillator's pitch, quantised with Root when a scale is on. Noon is off.", meta:[] },
+    { name:"TIME MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"random walk → TIME", d:"A slow random walk on the UFG's rate, up to ±3 octaves. Noon is off.", meta:[] },
+    { name:"TZPM", ring:{style:"level", c:C.attP}, v:0, sub:"J2 depth", d:"How much audio on J2 phase-modulates the oscillator, through zero.", meta:["input <b>J2</b>"] },
+  ]},
+  { name:"MODS", color:"#c060ff", pots:[
+    { name:"SHIFT MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"attenuverter", d:"SOURCE into SHIFT. Noon is off, right adds, left subtracts.", meta:[] },
+    { name:"DEPTH MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"attenuverter", d:"SOURCE into DEPTH.", meta:[] },
+    { name:"SHAPE MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"attenuverter", d:"SOURCE into SHAPE.", meta:[] },
+    { name:"MORPH MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"attenuverter", d:"SOURCE round the morph ring. The MORPH ring follows it.", meta:[] },
+    { name:"DAMPED MOD", ring:{style:"bi", pos:C.attP, neg:C.attN, c:C.notch}, v:.5, sub:"attenuverter", d:"SOURCE into DAMPED.", meta:[] },
+    { name:"SOURCE", ring:{style:"sel", c:C.ds, n:2}, v:.25, sub:"UFG · pattern", d:"What the five attenuverters on this page scale: the UFG or the pattern.", meta:[] },
+  ]},
+  { name:"ROOT", color:"#ffe0a0", hold:true, pots:[
+    { name:"ROOT", ring:{style:"bi", pos:C.root, neg:C.freqD, c:C.notch}, v:.5, sub:"±3 oct about C4", d:"The tuning reference. J3 adds 1 V/oct. Snapped to the scale when a scale system is on (B1 with B3 held).", meta:["V/Oct <b>J3</b>"] },
+    { name:"SCALE", ring:{style:"sel", c:C.root, n:9}, v:4.5/9, sub:"9 scales per system", d:"Octaves at both ends, the densest scale at noon, standard scales to the left and unusual ones to the right.", meta:[] },
+    { name:"HARMONIC", ring:{style:"bi", pos:C.shift, neg:C.freqD, c:C.notch}, v:.5, sub:"Mod pitch", d:"The Mod oscillator's pitch relative to what it follows. Above noon through the harmonics (ORDER picks which), below noon a free drop of up to four octaves.", meta:[] },
+    { name:"ORDER", ring:{style:"sel", c:C.shift, n:5}, v:.5, sub:"free · even · all · odd · quantised", d:"How HARMONIC behaves.", meta:[] },
+    { name:"DETUNE", ring:{style:"bi", pos:C.freqU, neg:C.freqD, c:C.notch}, v:.5, sub:"±1 semitone", d:"Detunes the Mod, finer near noon, and drifts the wavefolder's harmonics.", meta:[] },
+    { name:"ROUTE", ring:{style:"sel", c:C.root, n:4}, v:.125, sub:"OSC · both · UFG · none", d:"Where Root goes.", meta:[] },
+  ]},
+];
+const BUTTONS = [
+  { name:"TRIGGER", sub:"press · hold · Pattern page", d:"Triggers the UFG; held, it is the UFG's gate. On the Pattern page: tap writes a new value at the current step, double-tap undoes it, hold for 1 s writes a whole new pattern. With B3 held: the scale system (off, 12-TET, JI). Its light follows the UFG.", meta:["light <b>UFG level</b>"] },
+  { name:"PAGE", sub:"tap", d:"Next page: OSC, UFG, Pattern, Mods. Its light is the page colour; red if the processor runs hot. B2 + B3 held for two seconds open Settings.", meta:["Settings <b>B2 + B3</b>"] },
+  { name:"ROOT", sub:"hold", d:"Shows the Root page while held. Its light is the scale system: grey off, blue 12-TET, amber JI. Held at power-up it is the bootloader's DFU button.", meta:["at power-up <b>DFU</b>"] },
+];
+const JACKS = {
+  J1:{ name:"EXT IN", sub:"audio", d:"Settings → Ext: Sync makes its zero crossings the damped-sync leader; Track makes the oscillator follow its pitch.", meta:["input <b>AC-coupled</b>"] },
+  J2:{ name:"TZPM IN", sub:"audio", d:"Through-zero phase modulation of the oscillator. Depth: TZPM on the Pattern page.", meta:["input <b>AC-coupled</b>"] },
+  J3:{ name:"V/OCT", sub:"1 V/oct", d:"Root's pitch input. Always V/Oct.", meta:["to <b>ROOT</b>"] },
+  J4:{ name:"CV A", sub:"±5 V · mappable", d:"Any knob, Settings choice or action (Settings → CV to). Default: MORPH, 1.6 nodes per volt.", meta:["default <b>MORPH</b>"] },
+  J5:{ name:"CV B", sub:"mappable", d:"Default: UFG trigger, a gate above 1.5 V. Remap it in Settings → CV to.", meta:["default <b>UFG TRIGGER</b>"] },
+  J6:{ name:"CV C", sub:"±5 V · mappable", d:"Default: SHAPE, 0.2 per volt. Remap it in Settings → CV to.", meta:["default <b>SHAPE</b>"] },
+  J7:{ name:"UFG OUT", sub:"0–5 V", d:"The function generator's level.", meta:["DAC <b>STM32</b>"] },
+  J8:{ name:"PATTERN OUT", sub:"0–5 V", d:"The delta-sigma pattern, smoothed by SMOOTH.", meta:["DAC <b>STM32</b>"] },
+  J9:{ name:"SINE", sub:"audio", d:"The waveshaped sine. Left of the stereo pair.", meta:["out <b>codec</b>"] },
+  J10:{ name:"COSINE", sub:"audio", d:"The waveshaped cosine, a quarter cycle on from J9. Right of the pair.", meta:["out <b>codec</b>"] },
+};
+const USB = { name:"USB-C", sub:"HostLink", d:"The web programmer's port: presets, the CV map and every setting, files on the card, flashing.", meta:["protocol <b>HostLink</b>"] };
+const JACKLEGEND = { J1:"EXT", J2:"TZPM", J3:"V/OCT", J4:"CV A", J5:"CV B", J6:"CV C", J7:"UFG", J8:"PATTERN", J9:"SIN", J10:"COS" };
+
+/* ---------- drawing (from the Break / Mark manuals) ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(n, a, parent) { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (parent) parent.appendChild(e); return e; }
+function hourXY(cx, cy, r, hour) { const a = hour / 12 * Math.PI * 2; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; }
+function dimmed(hex, k) { const n = parseInt(hex.slice(1), 16); const f = (s) => Math.round(((n >> s) & 255) * k).toString(16).padStart(2, "0"); return "#" + f(16) + f(8) + f(0); }
+function ringColours(ring, v, morphPos) {
+  const g = PANEL.ring, N = g.arc_leds, out = new Array(g.leds).fill(null);
+  if (ring.style === "level") { const n = Math.round(v * N); for (let i = 0; i < N; i++) out[i] = i < n ? ring.c : C.dim; }
+  else if (ring.style === "bi") { const mid = (N - 1) / 2, p = Math.round(v * (N - 1)); for (let i = 0; i < N; i++) out[i] = C.dim; if (p > mid) for (let i = mid + 1; i <= p; i++) out[i] = ring.pos; else if (p < mid) for (let i = p; i < mid; i++) out[i] = ring.neg; out[mid] = ring.c; }
+  else if (ring.style === "morph") {
+    for (let i = 0; i < N; i++) out[i] = C.dim;
+    for (let i = 0; i < 8; i++) out[Math.round(i * N / 8) % N] = dimmed(TOPO[NODE_TOPO[i]], .35);
+    const pos = (morphPos ?? v * 8) * N / 8, lo = Math.floor(pos) % N, node = Math.floor((morphPos ?? v * 8) + .5) & 7;
+    out[lo] = TOPO[NODE_TOPO[node]];
+  }
+  else { const z = Math.min(ring.n - 1, Math.floor(v * ring.n)); for (let q = 0; q < ring.n; q++) out[Math.round(q * (N - 1) / (ring.n - 1))] = (q === z) ? ring.c : C.dim; }
+  return out;
+}
+function drawRing(g, cx, cy, ring, v) {
+  const geo = PANEL.ring, cols = ringColours(ring, v);
+  for (let i = 0; i < geo.leds; i++) {
+    const [x, y] = hourXY(cx, cy, geo.r, (geo.start_hour + geo.step_hours * i) % 12);
+    const arc = i < geo.arc_leds, c = cols[i], lit = arc && c && c !== C.dim;
+    if (lit) el("circle", { cx:x, cy:y, r:1.55, fill:c, opacity:.22 }, g);
+    el("circle", { cx:x, cy:y, r:.72, fill: arc ? (c || "#0e0d13") : "#101014", opacity: arc ? 1 : .6 }, g);
+  }
+}
+function drawKnob(g, cx, cy, v) {
+  el("circle", { cx, cy, r:6.2, fill:"#0f100c", stroke:"rgba(255,255,255,.10)", "stroke-width":.25 }, g);
+  el("circle", { cx, cy, r:5.4, fill:"#1b1d17" }, g);
+  const hour = PANEL.ring.start_hour + v * (PANEL.ring.step_hours * (PANEL.ring.arc_leds - 1));
+  const [x1, y1] = hourXY(cx, cy, 2.2, hour), [x2, y2] = hourXY(cx, cy, 5.0, hour);
+  el("line", { x1, y1, x2, y2, stroke:"#e8ece0", "stroke-width":.7, "stroke-linecap":"round" }, g);
+}
+function drawButton(g, b, halo) {
+  if (halo && halo !== C.idle) el("circle", { cx:b.x, cy:b.y, r:b.halo + 1.6, fill:halo, opacity:.22 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.halo, fill: halo || "#101018", opacity: halo ? .85 : 1 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:b.hole, fill:"#0d0e0b", stroke:"rgba(255,255,255,.14)", "stroke-width":.25 }, g);
+  el("circle", { cx:b.x, cy:b.y, r:2.2, fill:"#1c1e18" }, g);
+}
+function drawJack(g, j) {
+  el("circle", { cx:j.x, cy:j.y, r:3.9, fill:"#0f100c", stroke:"rgba(255,255,255,.12)", "stroke-width":.25 }, g);
+  el("circle", { cx:j.x, cy:j.y, r:j.hole, fill:"#1c1e18" }, g);
+  el("circle", { cx:j.x, cy:j.y, r:1.5, fill:"#050505" }, g);
+}
+function drawPanel(svg, st, onHover) {
+  svg.textContent = "";
+  const P = PANEL, page = PAGES[st.page];
+  const plate = el("g", {}, svg);
+  el("rect", { x:0, y:0, width:P.plate.w, height:P.plate.h, rx:1.2, fill:"#191b15", stroke:"rgba(236,239,230,.18)", "stroke-width":.3 }, plate);
+  for (const m of P.mount) el("rect", { x:m.x, y:m.y, width:m.w, height:m.h, rx:m.r, fill:"#0c0d0b", stroke:"rgba(255,255,255,.12)", "stroke-width":.2 }, plate);
+  for (const y of P.rails) el("line", { x1:2, y1:y, x2:P.plate.w - 2, y2:y, stroke:"rgba(255,176,0,.25)", "stroke-width":.25 }, plate);
+  el("text", { x:P.plate.w / 2, y:P.rails[0] - 2.2, class:"legend" }, plate).textContent = "TALLY";
+  const mk = (key) => {
+    const g = el("g", { class:"hole" + (st.sel === key ? " sel" : ""), "data-key":key }, svg);
+    if (onHover) { g.addEventListener("mouseenter", () => onHover(key, false)); g.addEventListener("click", (e) => { e.stopPropagation(); onHover(key, true); }); }
+    return g;
+  };
+  P.pots.forEach((p, i) => {
+    const k = page.pots[i], g = mk("P" + (i + 1));
+    drawRing(g, p.x, p.y, k.ring, k.v); drawKnob(g, p.x, p.y, k.v);
+    el("text", { x:p.x, y:p.y + P.labels.knob_dy, class:"plabel lit" }, g).textContent = k.name;
+    el("circle", { cx:p.x, cy:p.y, r:P.ring.r + 2.2, class:"hit" }, g);
+  });
+  const b2 = page.hold ? PAGES[0].color : page.color;
+  const halos = ["#8a8a8a", b2, page.hold ? "#ffe0a0" : C.grey];
+  P.buttons.forEach((b, i) => {
+    const g = mk("B" + (i + 1)); drawButton(g, b, halos[i]);
+    el("text", { x:b.x, y:b.y + P.labels.button_dy, class:"plabel" }, g).textContent = BUTTONS[i].name;
+    el("circle", { cx:b.x, cy:b.y, r:b.halo + 2.2, class:"hit" }, g);
+  });
+  { const u = P.usb, g = mk("USB");
+    el("rect", { x:u.x, y:u.y, width:u.w, height:u.h, rx:u.r, fill:"#080808", stroke:"rgba(255,255,255,.16)", "stroke-width":.25 }, g);
+    el("rect", { x:u.x - 1, y:u.y - 1, width:u.w + 2, height:u.h + 2, rx:u.r + 1, class:"hit" }, g); }
+  const rows = [...new Set(P.jacks.map(j => Math.round(j.y)))].sort((a, b) => a - b);
+  P.jacks.forEach(j => {
+    const g = mk(j.id); drawJack(g, j);
+    const top = Math.round(j.y) === rows[0];
+    el("text", { x:j.x, y:j.y + (top ? 6.9 : 7.6), class:"jlabel" }, g).textContent = JACKLEGEND[j.id];
+    el("circle", { cx:j.x, cy:j.y, r:5.2, class:"hit" }, g);
+  });
+  el("text", { x:P.labels.in[0] + 1.2, y:P.labels.in[1] + 3.2, class:"legend" }, plate).textContent = "IN";
+  el("text", { x:P.labels.out[0] - 1.2, y:P.labels.out[1] + 3.2, class:"legend" }, plate).textContent = "OUT";
+}
+drawPanel(document.getElementById("heroSvg"), { page:0, sel:null });
+
+const iv = { page:0, sel:null };
+const psvg = document.getElementById("panelSvg");
+const roK = document.getElementById("roK"), roT = document.getElementById("roT"), roS = document.getElementById("roS"), roD = document.getElementById("roD"), roM = document.getElementById("roM");
+const roDefault = { k:roK.textContent, t:roT.textContent, s:roS.textContent, d:roD.textContent };
+let pinned = null;
+function describe(key) {
+  if (!key) return null;
+  if (key[0] === "P") { const i = +key[1] - 1, k = PAGES[iv.page].pots[i]; return { k:`${key} · ${PAGES[iv.page].name} page`, t:k.name, s:k.sub, d:k.d, m:k.meta }; }
+  if (key[0] === "B") { const b = BUTTONS[+key[1] - 1]; return { k:key, t:b.name, s:b.sub, d:b.d, m:b.meta }; }
+  if (key === "USB") return { k:"front panel", t:USB.name, s:USB.sub, d:USB.d, m:USB.meta };
+  const j = JACKS[key]; return { k:key, t:j.name, s:j.sub, d:j.d, m:j.meta };
+}
+function showReadout(key) {
+  const x = describe(key);
+  if (!x) { roK.textContent = roDefault.k; roT.textContent = roDefault.t; roS.textContent = roDefault.s; roD.textContent = roDefault.d; roM.innerHTML = ""; return; }
+  roK.textContent = x.k; roT.textContent = x.t; roS.textContent = x.s; roD.textContent = x.d;
+  roM.innerHTML = x.m.map(s => `<div>${s}</div>`).join("");
+}
+function onHover(key, click) { if (click) { pinned = pinned === key ? null : key; iv.sel = pinned; redraw(); } showReadout(pinned || key); }
+function redraw() { drawPanel(psvg, iv, onHover); }
+psvg.addEventListener("mouseleave", () => showReadout(pinned));
+const pageTg = document.getElementById("pageTg");
+const pageBtns = PAGES.map((pg, i) => {
+  const b = document.createElement("button");
+  b.className = "tg"; b.type = "button"; b.setAttribute("aria-pressed", i === 0);
+  b.innerHTML = `<span class="dot" style="background:${pg.color}"></span>${pg.name}${pg.hold ? " · hold B3" : ""}`;
+  b.onclick = () => { iv.page = i; pageBtns.forEach((x, k) => x.setAttribute("aria-pressed", k === i)); redraw(); showReadout(pinned); };
+  pageTg.appendChild(b); return b;
+});
+redraw();
+
+/* ---------- scale and CV-map tables (src/tally/tally_engine.cpp, cv_map.cpp) ---------- */
+const SCALES = [
+  ["Octaves", "Octaves", "1/1 (octaves)"], ["", "Fifths", "1/1 · 3/2"], ["", "Pentatonic", "PM ratios 1 · 5/4 · 3/2 · 7/4"],
+  ["", "Major", "JI major"], ["noon: densest", "Chromatic", "32 harmonics (32/32 … 63/32)"], ["", "Whole tone", "7-limit"],
+  ["", "Octatonic", "Utonal 16/16 … 16/9"], ["", "Hirajoshi", "11-limit"], ["Octaves", "Octaves", "1/1 (octaves)"]];
+document.getElementById("scaleRows").innerHTML = SCALES.map((r, i) =>
+  `<tr><td class="num">${i + 1}${r[0] ? " · " + r[0] : ""}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+const CVROWS = [
+  ...PAGES.map(pg => [pg.name, ...pg.pots.map(k => k.name)]),
+  ["SETTINGS", "Scale system", "Ext mode", "Mod tracks", "Q.Trig", "—", "—"],
+  ["ACTIONS", "UFG trigger (gate)", "Write step", "Restore step", "New pattern", "Next scale system", "—"]];
+document.getElementById("cvRows").innerHTML = CVROWS.map(r =>
+  `<tr>${r.map((c, i) => i ? `<td style="font-family:var(--body);color:var(--soft)">${c}</td>` : `<td>${c}</td>`).join("")}</tr>`).join("");
+document.getElementById("nodeCards").innerHTML = NODE_NAMES.map((n, i) => {
+  const c = TOPO[NODE_TOPO[i]], t = ["self-feedback", "PM from the Mod", "cross PM"][NODE_TOPO[i]];
+  return `<div class="node" style="--c:${c}"><h4>${n}</h4><div class="t">${t}</div><p><b>${NODE_TEXT[i][0]}.</b> ${NODE_TEXT[i][1]}</p></div>`;
+}).join("");
+
+/* ---------- the oscillator core: tally_engine.cpp, ported (no UFG, pattern or sync) ---------- */
+const SR = 48000, F0 = 261.6256;
+const TAU = Math.PI * 2;
+const wrap = (x) => x - Math.floor(x);
+/* the firmware's 1024-point sine table with linear interpolation, so the
+   feedback nodes behave as they do on the module */
+const SINE = new Float32Array(1025);
+for (let i = 0; i <= 1024; i++) SINE[i] = Math.sin(TAU * i / 1024);
+const sin1 = (x) => { const p = wrap(x) * 1024, i = p | 0, f = p - i; return SINE[i] + f * (SINE[i + 1] - SINE[i]); };
+const cos1 = (x) => sin1(x + .25);
+const clamp = (v, lo, hi) => v < lo ? lo : (v > hi ? hi : v);
+const lerp = (a, b, t) => a + (b - a) * t;
+const nyq = (r) => clamp((0.45 - r) * 20, 0, 1);
+function nodeVec(n, s, d, h) {
+  const v = { harm:0, fold:0, fb:0, fb_lp:1, mpm:0, m_lp:1, xpm:0, fmnt:0, mam:0, asym:0, chaos:0 };
+  switch (n) {
+    case 0: v.harm = s; v.fmnt = d; v.fb = .8 * h; v.fb_lp = 1 - .85 * h; break;
+    case 7: v.harm = s; v.fb = 1.6 * d; v.fold = h; break;
+    case 6: v.harm = s; v.mpm = 4 * d; v.m_lp = 1 - .75 * d; v.fold = h; break;
+    case 5: v.harm = s; v.mpm = 4 * d; v.m_lp = 1 - .75 * d; v.xpm = .8 * d; v.fold = h; break;
+    case 4: v.harm = .3 * s; v.asym = 1; v.mpm = 3 * d; v.mam = d; v.fold = .4 * h; break;
+    case 1: v.chaos = 1; v.fb = 2.6 * d; v.fb_lp = 1 - .95 * s; v.fold = h; break;
+    case 2: v.mpm = 4 * d; v.fb = 1.4 * s; v.fb_lp = 1 - .8 * s; v.fold = h; break;
+    case 3: v.mpm = 4 * d; v.m_lp = (1 - .9 * s) * (1 - .5 * h); v.xpm = h; break;
+  }
+  return v;
+}
+function lerpVec(a, b, t) { const o = {}; for (const k in a) o[k] = lerp(a[k], b[k], t); return o; }
+function softclip(x) { const a = Math.abs(x); if (a < .9) return x; const t = (a - .9) * 10, y = .9 + .1 * t / (1 + t); return x < 0 ? -y : y; }
+
+function render(p, n) {
+  const s = new Float32Array(n), c = new Float32Array(n);
+  const osc = F0, inc = osc / SR;
+  /* the Mod, ORDER = All, tracking Root (C4) */
+  let ratio = 1, mfr = 0, mn1 = 1, mn2 = 1;
+  if (p.harm < 0) ratio = Math.pow(2, 4 * p.harm);
+  else { const k = p.harm * 7, i = Math.floor(k); mfr = k - i; mn1 = i + 1; mn2 = i + 2; }
+  const modHz = osc * ratio, minc = modHz / SR;
+  const mf1 = nyq(modHz * mn1 / SR), mf2 = nyq(modHz * mn2 / SR);
+  const stInc = .5 * p.stretch * inc, foldInc = stInc;
+  const foldLimit = .45 * SR / (osc * 3);
+  let mp = p.morph * 8; mp = mp - 8 * Math.floor(mp / 8);
+  let ni = Math.floor(mp); if (ni > 7) ni = 7;
+  const v = lerpVec(nodeVec(ni, p.shift, p.depth, p.shape), nodeVec((ni + 1) & 7, p.shift, p.depth, p.shape), mp - ni);
+  let ph = 0, sph = 0, fph = 0, fbLp = 0, fbSrc = 0, outPrev = 0, mph = 0, mLp = 0;
+  const k = v.harm * 7, hi = Math.floor(k), hfr = k - hi, n1 = hi + 1, n2 = hi + 2;
+  const a1 = (1 - hfr) * nyq(n1 * inc), a2 = hfr * nyq(n2 * inc);
+  for (let i = 0; i < n; i++) {
+    mph = wrap(mph + minc + v.xpm * outPrev * .02);
+    const m = (1 - mfr) * mf1 * sin1(mn1 * mph) + mfr * mf2 * sin1(mn2 * mph);
+    mLp += v.m_lp * (m - mLp);
+    const asymIn = (mLp + 1) * (mLp + 1) * .5 - 1;
+    const pmMod = v.mpm * lerp(mLp, asymIn, v.asym);
+    fbLp += v.fb_lp * (fbSrc - fbLp);
+    const theta = ph + (pmMod + v.fb * fbLp) / TAU;
+    const t1 = n1 * theta + (n1 - 1) * sph, t2 = n2 * theta + (n2 - 1) * sph;
+    let xs = a1 * sin1(t1) + a2 * sin1(t2), xc = a1 * cos1(t1) + a2 * cos1(t2);
+    const carrier = xs;
+    if (v.fold > 0) {
+      let g = 1 + 7 * v.fold; if (g > foldLimit) g = foldLimit > 1 ? foldLimit : 1;
+      const mix = clamp(4 * v.fold, 0, 1), u1 = t1 + fph, u2 = t2 + fph;
+      const ys = a1 * sin1(u1) + a2 * sin1(u2), yc = a1 * cos1(u1) + a2 * cos1(u2);
+      xs += mix * (sin1(.25 * g * ys) - ys); xc += mix * (sin1(.25 * g * yc) - yc);
+    }
+    let env = 1;
+    if (v.fmnt > 0) { const rc = .5 + .5 * cos1(theta), w = Math.pow(rc + 1e-9, 1 + 24 * v.fmnt), mix = clamp(3 * v.fmnt, 0, 1); env = (1 - mix + mix * w) * (1 + 1.5 * v.fmnt); }
+    if (v.mam > 0) { const pa = .5 * (mLp + 1); env *= 1 - v.mam + v.mam * 1.6 * pa * pa * pa; }
+    fbSrc = lerp(carrier, xs, v.chaos); outPrev = xs;
+    s[i] = softclip(.8 * xs * env); c[i] = softclip(.8 * xc * env);
+    ph = wrap(ph + inc); sph = wrap(sph + stInc); fph = wrap(fph + foldInc);
+  }
+  return { s, c, mp };
+}
+
+/* radix-2 FFT magnitude (Hann), for the spectrum */
+function spectrum(x) {
+  const N = x.length, re = new Float32Array(N), im = new Float32Array(N);
+  for (let i = 0; i < N; i++) re[i] = x[i] * (.5 - .5 * Math.cos(TAU * i / (N - 1)));
+  for (let i = 1, j = 0; i < N; i++) { let bit = N >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+  for (let len = 2; len <= N; len <<= 1) {
+    const ang = -TAU / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < N; i += len) {
+      let cr = 1, ci = 0;
+      for (let j = 0; j < len / 2; j++) {
+        const ar = re[i + j + len / 2] * cr - im[i + j + len / 2] * ci, ai = re[i + j + len / 2] * ci + im[i + j + len / 2] * cr;
+        re[i + j + len / 2] = re[i + j] - ar; im[i + j + len / 2] = im[i + j] - ai; re[i + j] += ar; im[i + j] += ai;
+        const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t;
+      }
+    }
+  }
+  const mag = new Float32Array(N / 2);
+  for (let i = 0; i < N / 2; i++) mag[i] = Math.hypot(re[i], im[i]) * 4 / N;
+  return mag;
+}
+
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function prepCanvas(cv) { const g = cv.getContext("2d"); g.clearRect(0, 0, cv.width, cv.height); return g; }
+const ids = ["xMorph", "xShift", "xDepth", "xShape", "xStretch", "xHarm"];
+const X = Object.fromEntries(ids.map(id => [id, document.getElementById(id)]));
+function params() { return { morph:+X.xMorph.value, shift:+X.xShift.value, depth:+X.xDepth.value, shape:+X.xShape.value, stretch:+X.xStretch.value, harm:+X.xHarm.value }; }
+
+function drawMorphRing(mp) {
+  const svg = document.getElementById("mRing"); svg.textContent = "";
+  el("circle", { cx:0, cy:0, r:44, fill:"none", stroke:"rgba(236,239,230,.12)", "stroke-width":1 }, svg);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * TAU, x = 44 * Math.sin(a), y = -44 * Math.cos(a);
+    el("circle", { cx:x, cy:y, r:6, fill:TOPO[NODE_TOPO[i]], opacity:.35 }, svg);
+    const tx = 30 * Math.sin(a), ty = -30 * Math.cos(a) + 2.5;
+    el("text", { x:tx, y:ty, "text-anchor":"middle", "font-size":6.5, "font-family":"JetBrains Mono, monospace", fill:"#90958a" }, svg).textContent = NODE_NAMES[i];
+  }
+  const a = mp / 8 * TAU, node = Math.floor(mp + .5) & 7;
+  el("circle", { cx:44 * Math.sin(a), cy:-44 * Math.cos(a), r:8.5, fill:TOPO[NODE_TOPO[node]], stroke:"#ecefe6", "stroke-width":1.5 }, svg);
+}
+
+function update() {
+  const p = params();
+  const { s, c, mp } = render(p, 4096 + 2400);
+  X.xMorphV ??= 0;
+  document.getElementById("xMorphV").textContent = mp.toFixed(2) + " of 8";
+  document.getElementById("xShiftV").textContent = Math.round(p.shift * 100) + " %";
+  document.getElementById("xDepthV").textContent = Math.round(p.depth * 100) + " %";
+  document.getElementById("xShapeV").textContent = Math.round(p.shape * 100) + " %";
+  document.getElementById("xStretchV").textContent = Math.round(p.stretch * 100) + " %";
+  document.getElementById("xHarmV").textContent = p.harm >= 0 ? `harmonic ${(1 + p.harm * 7).toFixed(1)}` : `${(p.harm * 48).toFixed(0)} st`;
+  const lo = Math.floor(mp) & 7, hiN = (lo + 1) & 7, t = mp - Math.floor(mp);
+  document.getElementById("mNode").textContent = t < .03 ? NODE_NAMES[lo] : t > .97 ? NODE_NAMES[hiN] : `${NODE_NAMES[lo]} → ${NODE_NAMES[hiN]}`;
+  document.getElementById("mBlend").textContent = t < .03 || t > .97 ? "at the node" : `${Math.round(t * 100)} % of the way`;
+  drawMorphRing(mp);
+  const centre = p.shift === 0 && p.depth === 0 && p.shape === 0;
+  document.getElementById("xNote").textContent = centre ? "Centre: a pure sine" : "";
+
+  /* scope: two cycles of J9 and J10 */
+  const cw = document.getElementById("cWave"), gw = prepCanvas(cw), W = cw.width, H = cw.height;
+  gw.strokeStyle = "rgba(236,239,230,.12)"; gw.lineWidth = 1; gw.beginPath(); gw.moveTo(0, H / 2); gw.lineTo(W, H / 2); gw.stroke();
+  const per = SR / F0, start = 2400, span = Math.round(2 * per);
+  for (const [buf, col] of [[c, "#40c0ff"], [s, css("--green")]]) {
+    gw.strokeStyle = col; gw.lineWidth = 2.2; gw.beginPath();
+    for (let i = 0; i <= span; i++) { const x = i / span * W, y = H / 2 - buf[start + i] * H * .45; i ? gw.lineTo(x, y) : gw.moveTo(x, y); }
+    gw.stroke();
+  }
+  /* sine against cosine */
+  const cx2 = document.getElementById("cXY"), gx = prepCanvas(cx2), W2 = cx2.width, H2 = cx2.height, R = H2 * .44;
+  gx.strokeStyle = "rgba(236,239,230,.12)"; gx.beginPath(); gx.moveTo(W2 / 2 - R, H2 / 2); gx.lineTo(W2 / 2 + R, H2 / 2); gx.moveTo(W2 / 2, H2 / 2 - R); gx.lineTo(W2 / 2, H2 / 2 + R); gx.stroke();
+  gx.strokeStyle = css("--yellow"); gx.lineWidth = 1.6; gx.beginPath();
+  for (let i = 0; i < 4 * per; i++) { const x = W2 / 2 + c[start + i] * R, y = H2 / 2 - s[start + i] * R; i ? gx.lineTo(x, y) : gx.moveTo(x, y); }
+  gx.stroke();
+  /* spectrum, 0-6 kHz, harmonics of C4 marked */
+  const mag = spectrum(s.subarray(2304, 2304 + 4096));
+  const cs = document.getElementById("cSpec"), gs = prepCanvas(cs), W3 = cs.width, H3 = cs.height, fMax = 6000, binHz = SR / 4096;
+  gs.fillStyle = "#90958a"; gs.font = "18px JetBrains Mono, monospace"; gs.textAlign = "center";
+  for (let h = 1; h * F0 < fMax; h++) {
+    const x = h * F0 / fMax * W3;
+    gs.strokeStyle = "rgba(236,239,230,.07)"; gs.beginPath(); gs.moveTo(x, 0); gs.lineTo(x, H3 - 26); gs.stroke();
+    if (h <= 8 || h % 4 === 0) gs.fillText(String(h), x, H3 - 6);
+  }
+  gs.fillStyle = css("--green");
+  const bars = Math.floor(fMax / binHz);
+  for (let b = 1; b < bars; b++) {
+    const db = 20 * Math.log10(mag[b] + 1e-6), hgt = clamp((db + 72) / 72, 0, 1) * (H3 - 30);
+    if (hgt < 1) continue;
+    const x = b * binHz / fMax * W3;
+    gs.fillRect(x - 1.5, H3 - 26 - hgt, 3, hgt);
+  }
+}
+ids.forEach(id => X[id].addEventListener("input", update));
+document.getElementById("xCentre").onclick = () => { ["xShift", "xDepth", "xShape", "xStretch"].forEach(id => X[id].value = 0); X.xHarm.value = 0; update(); };
+
+let actx = null, playing = null;
+document.getElementById("xPlay").onclick = () => {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (playing) { try { playing.stop(); } catch (e) {} }
+    const n = 2 * SR, { s, c } = render(params(), n);
+    const buf = actx.createBuffer(2, n, SR), L = buf.getChannelData(0), Rr = buf.getChannelData(1), fade = 960;
+    for (let i = 0; i < n; i++) { const g = .35 * Math.min(1, i / fade, (n - 1 - i) / fade); L[i] = s[i] * g; Rr[i] = c[i] * g; }
+    const src = actx.createBufferSource(); src.buffer = buf; src.connect(actx.destination); src.start(); playing = src;
+  } catch (e) { document.getElementById("xNote").textContent = "This browser can't play audio here."; }
+};
+update();
+</script>
+
+</body>
+</html>
