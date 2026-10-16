@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tim's Alchemy Lab</title>
-<meta name="description" content="One Eurorack module, fourteen instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
+<meta name="description" content="One Eurorack module, sixteen instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -171,7 +171,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 <header class="hero">
   <div>
     <div class="label">Tim Cox · Hermetic Modular Alchemy Lab</div>
-    <h1>One box,<br><em id="accentWord">fourteen</em> instruments.</h1>
+    <h1>One box,<br><em id="accentWord">sixteen</em> instruments.</h1>
     <p class="lede">The Alchemy Lab is a small synthesizer module whose personality is software. I write the
     software. Each program turns the same six knobs and three buttons into a different instrument.</p>
     <div class="picker">
@@ -211,12 +211,14 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="instruments">
   <h2>The instruments</h2>
-  <p class="group-note">The first eight are my own designs. Mark, Belt and Smack have been played on the
+  <p class="group-note">The first nine are my own designs. Mark, Belt and Smack have been played on the
   module. Seq, a sequencer that writes parts for the rest of the synth, Break, which mangles drum breaks
   from the memory card, Stencil, which cuts held sounds into rhythm and can spell words in Morse code,
-  Tally, a sine wave with eight ways to bend it, and Hypjolin, two chaos machines patched into each
-  other, are built and tested on a computer and go on the module next. The other six bring classic open-source instruments by Mutable Instruments to the
-  Lab. They're built and tested on a computer too, and the first listen on the module is next.</p>
+  Tally, a sine wave with eight ways to bend it, Hypjolin, two chaos machines patched into each
+  other, and Relay, which turns notes from a computer into voltages, are built and tested on a computer
+  and go on the module next. The other seven bring classic open-source instruments by Mutable Instruments
+  to the Lab. They're built and tested on a computer too, and the first listen on the module is next.
+  Every one can be downloaded below, played or not.</p>
   <div class="inst" id="inst"></div>
 </section>
 
@@ -254,14 +256,14 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       <div class="dl" id="downloads"></div>
       <p class="fine" style="margin-top:14px">New, not yet played on a module:</p>
       <div class="dl" id="downloads-new"></div>
-      <p class="fine">Seq, Break and Stencil are early builds: tested on a computer, not yet on a module. Stencil also
-      runs on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-06">Release
+      <p class="fine">Seq, Break, Stencil, Tally, Hypjolin and Relay are early builds: tested on a computer, not yet
+      on a module. Stencil and Relay also run on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">Release
       notes</a>.</p>
-      <p class="fine" style="margin-top:14px">The six Mutable Instruments ports, not yet played on a module:</p>
+      <p class="fine" style="margin-top:14px">The seven Mutable Instruments ports, not yet played on a module:</p>
       <div class="dl" id="downloads-mi"></div>
-      <p class="fine">These six are an early release: they're built and tested on a computer, but haven't had their
-      first listen on a module yet. The <b>SD card zip</b> holds all six plus the samples Elements needs, already in
-      the right folders for step 2. <a href="https://github.com/timncox/mi-alchemy/releases/tag/v0.1.0">Release
+      <p class="fine">These seven are an early release: they're built and tested on a computer, but haven't had their
+      first listen on a module yet. The <b>SD card zip</b> holds all seven plus the samples Elements needs, already in
+      the right folders for step 2. <a href="https://github.com/timncox/mi-alchemy/releases/tag/v0.2.0">Release
       notes</a>.</p>
     </li>
     <li>
@@ -304,7 +306,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
     <p><b>The module</b> and the software kit it's built on are by
     <a href="https://hermeticmodular.com/modules/alchemy-lab">Hermetic Modular</a>, who made both open for people
     like me to write their own instruments.</p>
-    <p><b>Clouds, Elements, Marbles, Plaits and Warps</b> are by Emilie Gillet of Mutable Instruments, who
+    <p><b>Beads, Clouds, Elements, Marbles, Plaits and Warps</b> are by Emilie Gillet of Mutable Instruments, who
     published the code for her modules. <b>Warps and Meld</b> run Matthias Puech's
     <a href="https://github.com/mqtthiqs/parasites">Parasites</a> version of Warps. Porting Clouds turned up a
     bug in its public code, which I sent back as
@@ -321,8 +323,14 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   real firmware, compiled for the web, on an imitated panel.</p>
   <p class="group-note">Source code: <a href="https://github.com/timncox/mark-alchemy">mark-alchemy</a>,
   <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>,
-  <a href="https://github.com/timncox/smack-alchemy">smack-alchemy</a> and
-  <a href="https://github.com/timncox/mi-alchemy">mi-alchemy</a> (the six Mutable Instruments ports), all MIT licensed.</p>
+  <a href="https://github.com/timncox/smack-alchemy">smack-alchemy</a>,
+  <a href="https://github.com/timncox/seq-alchemy">seq-alchemy</a>,
+  <a href="https://github.com/timncox/break-alchemy">break-alchemy</a>,
+  <a href="https://github.com/timncox/stencil">stencil</a>,
+  <a href="https://github.com/timncox/relay">relay</a> and
+  <a href="https://github.com/timncox/mi-alchemy">mi-alchemy</a> (the seven Mutable Instruments ports), all MIT
+  licensed. Tally and Hypjolin's source isn't public yet; their builds are on the
+  <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">release page</a>.</p>
 </section>
 
 <footer>
@@ -337,86 +345,112 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
 /* == END GENERATED GEOMETRY == */
 
-/* The fourteen instruments. `knobs` are each firmware's real PLAY-page names
+/* The sixteen instruments. `knobs` are each firmware's real PLAY-page names
    (from its source); `v` is a resting position per knob for the drawing;
    `heard` is true only for what has actually made sound on a module
    (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
-   Instruments ports (their download row); `status` / `now` override the
-   default chip text; no `url` = no public manual yet. */
+   Instruments ports (their download row), `early` the early builds on this
+   repo's pre-release; `repo` is the GitHub link (Tally and Hypjolin have no
+   public source yet, so theirs is the release page); `status` / `now`
+   override the default chip text; `design` = `url` is notes, not a manual. */
 /* the instruments the emulator page runs (emulator/: Seq writes CV, not sound) */
+/* Downloads. Heard ones (Mark, Belt, Smack) have their own releases; the
+   early builds share one pre-release on this repo; the Mutable ports are
+   mi-alchemy's pre-release. Pre-releases need a fixed tag, not /latest. */
+const NEW_TAG = "firmware-2026-10-16";
+const NEW_REL = `https://github.com/timncox/alchemy-lab/releases/download/${NEW_TAG}/`;
+const NEW_PAGE = `https://github.com/timncox/alchemy-lab/releases/tag/${NEW_TAG}`;
+const MI_TAG = "v0.2.0";
+const MI_REL = `https://github.com/timncox/mi-alchemy/releases/download/${MI_TAG}/`;
+const MI_REPO = "https://github.com/timncox/mi-alchemy";
+function binUrl(inst) {
+  if (inst.heard) return `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
+  return (inst.mi ? MI_REL : NEW_REL) + `${inst.id}_alchemy.bin`;
+}
 const EMU = new Set(["mark", "belt", "smack", "stencil", "break", "clouds", "elements", "marbles", "plaits", "warps", "meld"]);
 const I = [
-  { id:"mark", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
+  { id:"mark", repo:"https://github.com/timncox/mark-alchemy", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
     what:"A five-track looper.",
     say:"Play a phrase, press a button, and it repeats. Stack up to five layers, mute them, undo them, and build a whole piece live.",
     knobs:["Track 1","Track 2","Track 3","Track 4","Track 5","Track Select"], v:[.8,.6,.7,.4,0,.1],
     url:"https://timncox.github.io/mark-alchemy/" },
-  { id:"belt", name:"Belt", c:"#b5532a", ring:"#ff9020", heard:true,
+  { id:"belt", repo:"https://github.com/timncox/belt-alchemy", name:"Belt", c:"#b5532a", ring:"#ff9020", heard:true,
     what:"A voice tuner with harmonies.",
     say:"Sing into it and it pulls your pitch into key, from gentle to full robot. It can add up to four harmony voices that follow the scale.",
     knobs:["Key","Scale","Retune","Amount","Harmony","Formant"], v:[.1,.2,.35,.8,.6,.5],
     url:"https://timncox.github.io/belt-alchemy/" },
-  { id:"smack", name:"Smack", c:"#c2185b", ring:"#ff4fa0", heard:true,
+  { id:"smack", repo:"https://github.com/timncox/smack-alchemy", name:"Smack", c:"#c2185b", ring:"#ff4fa0", heard:true,
     what:"A loop glitcher.",
     say:"It grabs what you're playing, chops it into slices and plays them back reordered, stuttered and filtered.",
     knobs:["FX","Order","Length","Slice","Blend","DJ Filter"], v:[.5,.3,.6,.4,.7,.5],
     url:"https://timncox.github.io/smack-alchemy/" },
-  { id:"seq", early:true, name:"Seq", c:"#b85a12", ring:"#ff7010", heard:false,
+  { id:"seq", repo:"https://github.com/timncox/seq-alchemy", early:true, name:"Seq", c:"#b85a12", ring:"#ff7010", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A sequencer that writes its own parts.",
     say:"It plays a bass line, a lead line and four drum parts on the rest of the synth, and the lines follow a chord progression. You shape them with a few knobs instead of writing every note, and keep the ones you like. A Launchpad plays it too.",
     knobs:["Density","Length","Slide","Jump","Tones","Octave"], v:[.6,.4,.2,.15,.1,.5],
     url:"https://timncox.github.io/alchemy-lab/seq/" },
-  { id:"break", early:true, name:"Break", c:"#a8321c", ring:"#ff4020", heard:false,
+  { id:"break", repo:"https://github.com/timncox/break-alchemy", early:true, name:"Break", c:"#a8321c", ring:"#ff4020", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A drum-break mangler.",
     say:"It plays chopped-up drum breaks from the memory card and mangles them as they go: stutters, reverses, tape stops, filter sweeps. One knob sets how much happens, another reshuffles the hits into new patterns, and it keeps time with the rest of the synth. It reads cards made for the Ectocore, a module built for exactly this.",
     knobs:["Break","Amen","Sample","Amen Random","Grimoire","DJ Filter"], v:[.45,.3,.2,.5,.15,.5],
     url:"https://timncox.github.io/alchemy-lab/break/" },
-  { id:"stencil", early:true, name:"Stencil", c:"#0e86a8", ring:"#20d0ff", heard:false,
+  { id:"stencil", repo:"https://github.com/timncox/stencil", early:true, name:"Stencil", c:"#0e86a8", ring:"#20d0ff", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A rhythm stencil for held sounds.",
     say:"Feed it a pad or a drone and it chops it into rhythm, from a hard trance gate to the soft pumping you hear under dance music. The pattern can come from a bank, an even spread of hits, or a word: type one on its web page and it plays your word in Morse code, fitted to one, two, four or eight bars. It also runs on the Daisy Patch.",
     knobs:["Rate","Pattern","Gate","Attack","Release","Depth"], v:[.25,.06,.47,.02,.04,1],
     url:"https://timncox.github.io/alchemy-lab/stencil/" },
-  { id:"tally", name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:false,
+  { id:"tally", early:true, repo:NEW_PAGE, name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"One pure tone, eight ways to bend it.",
     say:"It starts from the purest sound there is, a sine wave, and bends it into something richer: buzzing, glassy, vocal, metallic or wild. A built-in rhythm maker and a pattern generator can move it on their own, and three of its inputs can be pointed at any control. It's inspired by the K-Accumulator, a much bigger module.",
     knobs:["Morph","Freq","Shift","Depth","Shape","Damped"], v:[.3,.5,.35,.55,.2,0],
     url:"https://timncox.github.io/alchemy-lab/tally/" },
-  { id:"hypjolin", name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:false,
+  { id:"hypjolin", early:true, repo:NEW_PAGE, name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"Two chaos machines, patched together.",
     say:"One half is the Benjolin, a famous noise box whose pitches keep rearranging themselves in steps. The other is the Hypster, a swirling chaos generator that never quite repeats. Each one pushes the other around, from slow drifting drones to rhythmic grit and roaring noise. It follows Triglav Modular's Hypjolin, a hand-built module they gave away the plans for.",
     knobs:["Osc A","Osc B","Run>A","Run>B","Run>F","Loop"], v:[.66,.45,.25,.35,.4,.5],
     url:"https://timncox.github.io/alchemy-lab/hypjolin/" },
-  { id:"clouds", mi:true, name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
+  { id:"relay", early:true, repo:"https://github.com/timncox/relay", name:"Relay", c:"#5a6170", ring:"#e8ecf4", heard:false,
+    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+    what:"A translator from computer to synth.",
+    say:"Plug it into a computer and the notes from your music software come out as the voltages a modular synth understands: pitch, gates, how hard each key was hit, and a clock to keep time. It can play one voice or split into up to four. It also runs on the Daisy Patch.",
+    knobs:["Channel","Voices","Priority","Glide","Bend","Clock"], v:[0,.1,.5,.2,.3,.4],
+    url:"https://github.com/timncox/relay#readme", design:true, label:"Read me" },
+  { id:"clouds", mi:true, repo:MI_REPO, name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
     what:"Turns sound into clouds.",
     say:"It records what you feed it and plays it back as thousands of tiny grains, so you can freeze a moment, smear it, stretch it or pitch it.",
     knobs:["Position","Size","Pitch","Density","Texture","Blend"], v:[.3,.5,.5,.8,.5,.6],
     url:"https://timncox.github.io/mi-alchemy/clouds/" },
-  { id:"elements", mi:true, name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
+  { id:"beads", mi:true, repo:MI_REPO, name:"Beads", c:"#8a7d12", ring:"#ffff80", heard:false,
+    what:"Clouds, grown up.",
+    say:"Mutable's last take on grains: it records what you feed it and scatters it into tiny pieces, from a gentle shimmer to a thick swarm, with a reverb built in. Switch its input to Synth and it plays its own wavetables instead.",
+    knobs:["Time","Size","Pitch","Shape","Density","Dry/Wet"], v:[.4,.5,.5,.4,.65,.6],
+    url:"https://github.com/timncox/mi-alchemy/blob/release/src/beads/DESIGN.md", design:true },
+  { id:"elements", mi:true, repo:MI_REPO, name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
     what:"A virtual acoustic instrument.",
     say:"A modelled string, bell or tube that you bow, blow or strike. You change what it's made of and how it's played rather than picking a sample.",
     knobs:["Coarse","Fine","Geometry","Brightness","Damping","Position"], v:[.5,.5,.3,.6,.4,.3],
     url:"https://timncox.github.io/mi-alchemy/elements/" },
-  { id:"marbles", mi:true, name:"Marbles", c:"#b8336a", ring:"#ff5fa2", heard:false,
+  { id:"marbles", mi:true, repo:MI_REPO, name:"Marbles", c:"#b8336a", ring:"#ff5fa2", heard:false,
     what:"A dice roller for music.",
     say:"It invents rhythms and melodies at random for the rest of the synth to play, within limits you set. If you like what it rolled, it can loop it.",
     knobs:["Rate","t Bias","t Jitter","Deja vu","X Spread","X Bias"], v:[.5,.5,.2,.7,.4,.5],
     url:"https://timncox.github.io/mi-alchemy/marbles/" },
-  { id:"plaits", mi:true, name:"Plaits", c:"#c2561a", ring:"#ff7000", heard:false,
+  { id:"plaits", mi:true, repo:MI_REPO, name:"Plaits", c:"#c2561a", ring:"#ff7000", heard:false,
     what:"One voice, 24 sounds.",
     say:"A sound source with 24 different engines: classic synth tones, chords, speech, plucked strings and a full drum kit.",
     knobs:["Model","Frequency","Harmonics","Timbre","Morph","Decay"], v:[.35,.5,.45,.55,.4,.5],
     url:"https://timncox.github.io/mi-alchemy/plaits/" },
-  { id:"warps", mi:true, name:"Warps", c:"#2e7d5b", ring:"#3ddc97", heard:false,
+  { id:"warps", mi:true, repo:MI_REPO, name:"Warps", c:"#2e7d5b", ring:"#3ddc97", heard:false,
     what:"Smashes two sounds together.",
     say:"Feed it two sounds and it combines them in strange ways: ring modulation, folding, a vocoder that makes one sound talk with the other, and more.",
     knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.45,.5,.7,.7,.1,.2],
     url:"https://timncox.github.io/mi-alchemy/warps/" },
-  { id:"meld", mi:true, name:"Meld", c:"#6a4bb0", ring:"#a88bff", heard:false,
+  { id:"meld", mi:true, repo:MI_REPO, name:"Meld", c:"#6a4bb0", ring:"#a88bff", heard:false,
     what:"Warps, with more to say.",
     say:"Warps plus the original Mutable version as an extra mode. It also sends out pulses when its two sounds line up, and voltages that follow their loudness, to drive the rest of the synth.",
     knobs:["Algorithm","Timbre","Level 1","Level 2","Mode","Carrier"], v:[.6,.4,.7,.6,.95,.2],
@@ -531,7 +565,9 @@ I.forEach(inst => {
     <p>${inst.say}</p>
     <div class="foot">
       <span class="status ${inst.heard ? "heard" : "soon"}">${inst.heard ? "Played on the module" : inst.status || "Built · first listen next"}</span>
-      ${inst.url ? `<a href="${inst.url}">${inst.design ? "Design notes" : "Manual"}</a>` : ""}
+      ${inst.url ? `<a href="${inst.url}">${inst.label || (inst.design ? "Design notes" : "Manual")}</a>` : ""}
+      <a href="${binUrl(inst)}">Download</a>
+      <a href="${inst.repo}">GitHub</a>
       ${EMU.has(inst.id) ? `<a href="emulator/?fw=${inst.id}">Play it in your browser</a>` : ""}
     </div>`;
   a.querySelector("button").addEventListener("click", () => {
@@ -543,25 +579,24 @@ I.forEach(inst => {
 
 const man = document.getElementById("manuals");
 I.filter(x => x.url).forEach(inst => {
-  const a = document.createElement("a"); a.href = inst.url; a.textContent = inst.name + (inst.design ? " (notes)" : "");
+  const a = document.createElement("a"); a.href = inst.url; a.textContent = inst.name + (inst.design ? (inst.label ? " (read me)" : " (notes)") : "");
   man.appendChild(a);
 });
 
-/* Downloads: Mark, Belt, Smack (v0.2.0, heard) here; the MI ports below. */
+/* Downloads: Mark, Belt, Smack (v0.2.0, heard) here; the early builds and MI ports below. */
 const dl = document.getElementById("downloads");
 I.filter(x => x.heard).forEach(inst => {
   const a = document.createElement("a");
-  a.href = `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
+  a.href = binUrl(inst);
   a.style.setProperty("--c", inst.ring);
   a.innerHTML = `<i aria-hidden="true"></i>Download ${inst.name}`;
   dl.appendChild(a);
 });
-/* Seq, Break, Stencil: one pre-release on this repo (binaries only; the source is private). */
+/* The early builds: one pre-release on this repo (binaries; sources in each repo). */
 const dlNew = document.getElementById("downloads-new");
-const NEW_REL = "https://github.com/timncox/alchemy-lab/releases/download/firmware-2026-10-06/";
 I.filter(x => x.early).forEach(inst => {
   const a = document.createElement("a");
-  a.href = NEW_REL + `${inst.id}_alchemy.bin`;
+  a.href = binUrl(inst);
   a.style.setProperty("--c", inst.ring);
   a.innerHTML = `<i aria-hidden="true"></i>${inst.name}`;
   dlNew.appendChild(a);
@@ -573,21 +608,27 @@ I.filter(x => x.early).forEach(inst => {
   a.innerHTML = `<i aria-hidden="true"></i>Stencil · Daisy Patch`;
   dlNew.appendChild(a);
 }
-/* The Mutable Instruments ports: mi-alchemy v0.1.0, a pre-release (so a fixed tag, not /latest). */
+{
+  const a = document.createElement("a");
+  a.href = NEW_REL + "relay_patch.bin";
+  a.style.setProperty("--c", "#e8ecf4");
+  a.innerHTML = `<i aria-hidden="true"></i>Relay · Daisy Patch`;
+  dlNew.appendChild(a);
+}
+/* The Mutable Instruments ports: mi-alchemy's pre-release. */
 const dlMi = document.getElementById("downloads-mi");
-const MI_REL = "https://github.com/timncox/mi-alchemy/releases/download/v0.1.0/";
 I.filter(x => x.mi).forEach(inst => {
   const a = document.createElement("a");
-  a.href = MI_REL + `${inst.id}_alchemy.bin`;
+  a.href = binUrl(inst);
   a.style.setProperty("--c", inst.ring);
   a.innerHTML = `<i aria-hidden="true"></i>${inst.name}`;
   dlMi.appendChild(a);
 });
 {
   const a = document.createElement("a");
-  a.href = MI_REL + "mi-alchemy-sd-card-v0.1.0.zip";
+  a.href = MI_REL + `mi-alchemy-sd-card-${MI_TAG}.zip`;
   a.style.setProperty("--c", "var(--wall)");
-  a.innerHTML = `<i aria-hidden="true"></i>SD card zip · all six`;
+  a.innerHTML = `<i aria-hidden="true"></i>SD card zip · all seven`;
   dlMi.appendChild(a);
 }
 
