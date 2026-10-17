@@ -13,6 +13,7 @@ Videos that name one of our firmwares are flagged with *.
 import json
 import re
 import sys
+import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -77,7 +78,12 @@ def main():
     new, errors = {}, []
     for q in QUERIES:
         try:
-            for v in search(q):
+            try:
+                results = search(q)
+            except RuntimeError:  # YouTube sometimes serves a page without ytInitialData; one retry
+                time.sleep(3)
+                results = search(q)
+            for v in results:
                 if v["id"] in known or v["id"] in seen or v["id"] in new:
                     continue
                 if v["age"] == "?" or OLD.search(v["age"]) or \

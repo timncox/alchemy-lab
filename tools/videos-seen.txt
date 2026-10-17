@@ -1,1 +1,9 @@
 # Videos already reviewed and left off the site. One per line: <video id>  <note>
+D-5XmIFGvwI  Vibe Coding a Eurorack Module: Mutable Beads on Two Daisies — Eight4aWish
+yNfbBzEpoaM  introducing Capicola. — Heavylight Industries  and Hermetic Modular
+9yNJnmZVlNY  Live coding Eurorack: Strudel Primer — Eight4aWish
+oHyLW2EzWFQ  Sound design with Spagyros #modular #eurorack — Hermetic Modular
+_pjYW3GEZF0  Spagyros 2.0 End of Chain FX Processor Release! And more! — Hermetic Modular
+zX8eOWlj5Tg  Parameter Lock SDK updates — Hermetic Modular
+7uuAPH935pU  Alchemy-SDK 0.11.0 update overview — Hermetic Modular
+TA6JLeQHEX0  How do you test 36,700 LEDs? — Hermetic Modular
