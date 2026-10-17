@@ -327,10 +327,11 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   <a href="https://github.com/timncox/seq-alchemy">seq-alchemy</a>,
   <a href="https://github.com/timncox/break-alchemy">break-alchemy</a>,
   <a href="https://github.com/timncox/stencil">stencil</a>,
+  <a href="https://github.com/timncox/tally-alchemy">tally-alchemy</a>,
+  <a href="https://github.com/timncox/hypjolin-alchemy">hypjolin-alchemy</a>,
   <a href="https://github.com/timncox/relay">relay</a> and
   <a href="https://github.com/timncox/mi-alchemy">mi-alchemy</a> (the seven Mutable Instruments ports), all MIT
-  licensed. Tally and Hypjolin's source isn't public yet; their builds are on the
-  <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">release page</a>.</p>
+  licensed.</p>
 </section>
 
 <footer>
@@ -350,8 +351,7 @@ const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1
    `heard` is true only for what has actually made sound on a module
    (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
    Instruments ports (their download row), `early` the early builds on this
-   repo's pre-release; `repo` is the GitHub link (Tally and Hypjolin have no
-   public source yet, so theirs is the release page); `status` / `now`
+   repo's pre-release; `repo` is the GitHub link; `status` / `now`
    override the default chip text; `design` = `url` is notes, not a manual. */
 /* the instruments the emulator page runs (emulator/: Seq writes CV, not sound) */
 /* Downloads. Heard ones (Mark, Belt, Smack) have their own releases; the
@@ -359,7 +359,6 @@ const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1
    mi-alchemy's pre-release. Pre-releases need a fixed tag, not /latest. */
 const NEW_TAG = "firmware-2026-10-16";
 const NEW_REL = `https://github.com/timncox/alchemy-lab/releases/download/${NEW_TAG}/`;
-const NEW_PAGE = `https://github.com/timncox/alchemy-lab/releases/tag/${NEW_TAG}`;
 const MI_TAG = "v0.2.0";
 const MI_REL = `https://github.com/timncox/mi-alchemy/releases/download/${MI_TAG}/`;
 const MI_REPO = "https://github.com/timncox/mi-alchemy";
@@ -402,13 +401,13 @@ const I = [
     say:"Feed it a pad or a drone and it chops it into rhythm, from a hard trance gate to the soft pumping you hear under dance music. The pattern can come from a bank, an even spread of hits, or a word: type one on its web page and it plays your word in Morse code, fitted to one, two, four or eight bars. It also runs on the Daisy Patch.",
     knobs:["Rate","Pattern","Gate","Attack","Release","Depth"], v:[.25,.06,.47,.02,.04,1],
     url:"https://timncox.github.io/alchemy-lab/stencil/" },
-  { id:"tally", early:true, repo:NEW_PAGE, name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:false,
+  { id:"tally", early:true, repo:"https://github.com/timncox/tally-alchemy", name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"One pure tone, eight ways to bend it.",
     say:"It starts from the purest sound there is, a sine wave, and bends it into something richer: buzzing, glassy, vocal, metallic or wild. A built-in rhythm maker and a pattern generator can move it on their own, and three of its inputs can be pointed at any control. It's inspired by the K-Accumulator, a much bigger module.",
     knobs:["Morph","Freq","Shift","Depth","Shape","Damped"], v:[.3,.5,.35,.55,.2,0],
     url:"https://timncox.github.io/alchemy-lab/tally/" },
-  { id:"hypjolin", early:true, repo:NEW_PAGE, name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:false,
+  { id:"hypjolin", early:true, repo:"https://github.com/timncox/hypjolin-alchemy", name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"Two chaos machines, patched together.",
     say:"One half is the Benjolin, a famous noise box whose pitches keep rearranging themselves in steps. The other is the Hypster, a swirling chaos generator that never quite repeats. Each one pushes the other around, from slow drifting drones to rhythmic grit and roaring noise. It follows Triglav Modular's Hypjolin, a hand-built module they gave away the plans for.",
