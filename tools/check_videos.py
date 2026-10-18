@@ -5,8 +5,8 @@
     python3 tools/check_videos.py --mark-seen  # ...and remember them as reviewed
 
 Searches YouTube (newest first, no API key: it reads the search page's
-ytInitialData), then drops every video already on docs/index.html (the
-data-id of each .yt button) or listed in tools/videos-seen.txt. What's left
+ytInitialData), then drops every video already shown on the community hub
+(HUB, any YouTube id in its live HTML) or listed in tools/videos-seen.txt. What's left
 is printed for a human to judge; nothing is added to the site automatically.
 Videos that name one of our firmwares are flagged with *.
 """
@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PAGE = ROOT / "docs" / "index.html"
+HUB = "https://alchemy-lab-hub.vercel.app/"  # the community index the videos are for
 SEEN = ROOT / "tools" / "videos-seen.txt"
 
 # Our instruments, as named on the site. A video is flagged when its title
@@ -72,7 +72,9 @@ def search(query):
 
 def main():
     mark = "--mark-seen" in sys.argv
-    known = set(re.findall(r'class="yt" data-id="([\w-]{11})"', PAGE.read_text()))
+    req = urllib.request.Request(HUB, headers={"User-Agent": "Mozilla/5.0"})
+    hub = urllib.request.urlopen(req, timeout=20).read().decode("utf-8", "replace")
+    known = set(re.findall(r"(?:youtube(?:-nocookie)?\.com/(?:embed/|watch\?v=)|youtu\.be/|i\.ytimg\.com/vi/)([\w-]{11})", hub))
     seen = {l.split()[0] for l in SEEN.read_text().splitlines() if l.strip() and not l.startswith("#")} \
         if SEEN.exists() else set()
     new, errors = {}, []
@@ -96,7 +98,7 @@ def main():
     for e in errors:
         print("! " + e, file=sys.stderr)
     if not new:
-        print(f"No new videos ({len(known)} on the site, {len(seen)} reviewed).")
+        print(f"No new videos ({len(known)} on the hub, {len(seen)} reviewed).")
         return 1 if errors else 0
     names = re.compile(r"\b(" + "|".join(FIRMWARES) + r")\b", re.I)
     for v in new.values():
