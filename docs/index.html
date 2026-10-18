@@ -126,29 +126,6 @@ h2 { font-weight: 800; font-size: clamp(30px, 4.2vw, 46px); line-height: 1; lett
 .status.soon  { color: var(--soon);  background: var(--soon-bg); }
 .group-note { font-size: 15px; color: var(--ink-3); }
 
-/* ---- videos ---- */
-.videos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 24px; margin: 0; padding: 0; }
-.videos li { list-style: none; display: grid; gap: 8px; align-content: start; }
-.videos li.big { grid-column: 1 / -1; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 8px 32px; align-items: start; }
-.videos li.big .yt { grid-row: span 3; }
-.yt {
-  position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: var(--panel);
-  border: 0; padding: 0; cursor: pointer; display: block; width: 100%;
-}
-.yt img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s ease; }
-.yt:hover img { opacity: .85; }
-.yt::after {
-  content: ""; position: absolute; inset: 50% auto auto 50%; width: 64px; height: 44px; translate: -50% -50%;
-  border-radius: 12px; background: rgba(18, 22, 20, .82)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z' fill='%23fff'/%3E%3C/svg%3E") center / 28px no-repeat;
-}
-.yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.yt.on::after { display: none; }
-.videos h3 { font-size: 20px; font-weight: 800; }
-.videos li.big h3 { font-size: 26px; }
-.videos p { color: var(--ink-2); font-size: 16px; }
-.videos .by { font: 500 12px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
-
 /* ---- two-col prose ---- */
 .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 48px; }
 .cols p + p { margin-top: 12px; }
@@ -180,11 +157,9 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 @media (max-width: 900px) {
   .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 36px; }
   .inst { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .videos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .steps, .cols, .inst, .guide, .videos, .videos li.big { grid-template-columns: minmax(0, 1fr); }
-  .videos li.big .yt { grid-row: auto; }
+  .steps, .cols, .inst, .guide { grid-template-columns: minmax(0, 1fr); }
   .hero .lede { font-size: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { h1 em { transition: none; } }
@@ -232,45 +207,6 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       needed.</p>
     </li>
   </ol>
-</section>
-
-<section id="watch">
-  <h2>See the module</h2>
-  <p class="group-note">Videos of the Alchemy Lab by the people who make it and the people who play it. They
-  show Hermetic's own firmware and other people's, not mine yet, but it's the same box.</p>
-  <ul class="videos">
-    <li class="big">
-      <button type="button" class="yt" data-id="U-V_9Z4ImVI" aria-label="Play: Hermetic Modular launch announcement"><img src="https://i.ytimg.com/vi/U-V_9Z4ImVI/hqdefault.jpg" alt="" loading="lazy"></button>
-      <span class="by">Hermetic Modular</span>
-      <h3>The launch</h3>
-      <p>The people who make the module introduce it, with sound demos of the first two programs it shipped with:
-      a delay called Echoa and an effects chain called Spagyros.</p>
-    </li>
-    <li>
-      <button type="button" class="yt" data-id="BZGxsR4W_sg" aria-label="Play: No more rebooting to swap firmware"><img src="https://i.ytimg.com/vi/BZGxsR4W_sg/hqdefault.jpg" alt="" loading="lazy"></button>
-      <span class="by">Hermetic Modular</span>
-      <h3>Switching programs</h3>
-      <p>Hermetic showing the module switch from one program to another without restarting.</p>
-    </li>
-    <li>
-      <button type="button" class="yt" data-id="nLZZ6mfHzTA" aria-label="Play: I can barely contain my excitement about Alchemy Lab"><img src="https://i.ytimg.com/vi/nLZZ6mfHzTA/hqdefault.jpg" alt="" loading="lazy"></button>
-      <span class="by">Perceptes</span>
-      <h3>A first look</h3>
-      <p>A musician walks through the module, its launch programs, its web editor and starting to write programs for it.</p>
-    </li>
-    <li>
-      <button type="button" class="yt" data-id="2BOOAams6JY" aria-label="Play: Rambling About: Hermetic Modular Alchemy Lab with tafony"><img src="https://i.ytimg.com/vi/2BOOAams6JY/hqdefault.jpg" alt="" loading="lazy"></button>
-      <span class="by">tafony</span>
-      <h3>A longer walkthrough</h3>
-      <p>A tour of the module and its two launch programs, Spagyros and Echoa.</p>
-    </li>
-    <li>
-      <button type="button" class="yt" data-id="4CTzSEcD6mU" aria-label="Play: HAGIWO Alchemy Lab custom firmware demo"><img src="https://i.ytimg.com/vi/4CTzSEcD6mU/hqdefault.jpg" alt="" loading="lazy"></button>
-      <span class="by">HAGIWO</span>
-      <h3>Someone else's programs</h3>
-      <p>Another builder's own effects for the same module, which shows how open it is to people writing their own.</p>
-    </li>
-  </ul>
 </section>
 
 <section id="instruments">
@@ -698,18 +634,6 @@ I.filter(x => x.mi).forEach(inst => {
 let pick = "mark";
 try { const h = location.hash.replace("#", ""); if (I.some(x => x.id === h)) pick = h; } catch (e) {}
 select(pick, false);
-</script>
-<script>
-// Videos load only when tapped: no YouTube player or cookies until then.
-document.querySelectorAll('.yt').forEach(b => b.addEventListener('click', () => {
-  if (b.classList.contains('on')) return;
-  const f = document.createElement('iframe');
-  f.src = `https://www.youtube-nocookie.com/embed/${b.dataset.id}?autoplay=1&rel=0`;
-  f.title = b.getAttribute('aria-label').replace(/^Play: /, '');
-  f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
-  f.allowFullScreen = true;
-  b.classList.add('on'); b.replaceChildren(f);
-}));
 </script>
 </body>
 </html>
