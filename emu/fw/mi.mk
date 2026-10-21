@@ -1,10 +1,13 @@
-# The six Mutable Instruments ports (mi-alchemy), FW = clouds | elements |
-# marbles | meld | plaits | warps. Port branch 42c5b50 = the v0.1.0 release.
+# The seven Mutable Instruments ports (mi-alchemy), FW = clouds | elements |
+# marbles | meld | plaits | warps | beads. Built from the mi-alchemy checkout,
+# whose main is the published release (v0.2.0 = 5575297), so the emulator runs
+# what users download. The old `port` worktree (42c5b50) is v0.1.0 and has no
+# Beads; pass FW_ROOT=<a mi-alchemy worktree> to build another revision.
 #
 # Each port's own src/<fw>/fw.mk is included as-is so the engine source list
 # can't drift; its repo-relative paths are resolved against FW_ROOT (vpath for
 # rule prerequisites, abs_mi for the lists).
-FW_ROOT  ?= $(TIMOS)/mi-alchemy/.claude/worktrees/port
+FW_ROOT  ?= $(TIMOS)/mi-alchemy
 EURORACK := $(FW_ROOT)/vendor/eurorack
 BUILD_DIR := $(BUILD)
 CPP_SOURCES :=
@@ -33,6 +36,7 @@ FW_NAME_marbles  := Marbles
 FW_NAME_meld     := Meld
 FW_NAME_plaits   := Plaits
 FW_NAME_warps    := Warps
+FW_NAME_beads    := Beads
 FW_NAME := $(FW_NAME_$(FW))
 
 L_clouds   := POSITION|SIZE|PITCH|DENSITY|TEXTURE|BLEND
@@ -47,6 +51,8 @@ L_plaits   := MODEL|FREQUENCY|HARMONICS|TIMBRE|MORPH|DECAY
 A_plaits   := OCTAVE|FINE|FM|TIMBRE ATT|MORPH ATT|LPG COLOUR
 L_warps    := ALGORITHM|TIMBRE|LEVEL 1|LEVEL 2|MODE|CARRIER
 A_warps    := IN GAIN|TUNE|P3|P4|P5|P6
+L_beads    := TIME|SIZE|PITCH|SHAPE|DENSITY|DRY/WET
+A_beads    := TIME RND|SIZE RND|PITCH RND|SHAPE RND|FEEDBACK|REVERB
 EMU_LABELS     := $(L_$(FW))
 EMU_LABELS_ALT := $(A_$(FW))
 

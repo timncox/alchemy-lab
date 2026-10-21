@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 DEST=${1:?usage: web/publish.sh <site>/docs/emulator}
-FWS=(belt mark smack clouds elements marbles meld plaits warps)
+FWS=(belt mark smack clouds elements marbles meld plaits warps beads)
 mkdir -p "$DEST/fw" "$DEST/demo"
 python3 web/make_demos.py "$DEST/demo"
 manifest="{"

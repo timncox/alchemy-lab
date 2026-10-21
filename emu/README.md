@@ -32,7 +32,7 @@ core) are compiled **as they are**; only the board is replaced:
 | mark | mark-alchemy `track-page` (= the card's 75196d5) |
 | smack | smack-alchemy `worktree-smack-alchemy-port` (= the card's ff2a16c + a comment) |
 | seq | seq-alchemy `worktree-core` (the sequencer; J1 clock / J2 reset in, J3–J10 out) |
-| clouds elements marbles meld plaits warps | mi-alchemy `port` (= v0.1.0); each port's own `fw.mk`, `-DTEST` (stmlib's portable path) |
+| clouds elements marbles meld plaits warps beads | the mi-alchemy checkout (main = the published release, v0.2.0); each port's own `fw.mk`, `-DTEST` (stmlib's portable path) |
 
 Host-only adjustments, all in `fw/` / `include/fw/`, none in firmware source:
 Mark's pool 62 → 72 MiB (8-byte pointers outgrow the M7's 99.6 %-full pool);
