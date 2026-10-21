@@ -224,7 +224,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="play">
   <h2>Play them in your browser</h2>
-  <p>No module? Eleven of them run right here, in the emulator: the real firmware, compiled for the web, on an
+  <p>No module? Twelve of them run right here, in the emulator: the real firmware, compiled for the web, on an
   imitated panel with working knobs, buttons, lights and sound. Sing into Belt, glitch a drum loop with Smack,
   or strike Plaits.</p>
   <div class="dl"><a href="emulator/">Open the emulator →</a></div>
@@ -319,7 +319,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   <p>Each instrument has a full manual: every knob, button and jack, how to install it, and what's still
   untested.</p>
   <div class="links" id="manuals"></div>
-  <p class="group-note">No module? <a href="emulator/">The emulator</a> runs eleven of them in your browser: the
+  <p class="group-note">No module? <a href="emulator/">The emulator</a> runs twelve of them in your browser: the
   real firmware, compiled for the web, on an imitated panel.</p>
   <p class="group-note">Source code: <a href="https://github.com/timncox/mark-alchemy">mark-alchemy</a>,
   <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>,
@@ -366,7 +366,7 @@ function binUrl(inst) {
   if (inst.heard) return `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
   return (inst.mi ? MI_REL : NEW_REL) + `${inst.id}_alchemy.bin`;
 }
-const EMU = new Set(["mark", "belt", "smack", "stencil", "break", "clouds", "elements", "marbles", "plaits", "warps", "meld"]);
+const EMU = new Set(["mark", "belt", "smack", "stencil", "break", "clouds", "elements", "marbles", "plaits", "warps", "meld", "beads"]);
 const I = [
   { id:"mark", repo:"https://github.com/timncox/mark-alchemy", name:"Mark", c:"#1f9d57", ring:"#4cf28a", heard:true,
     what:"A five-track looper.",

@@ -211,7 +211,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--rule);
 </div>
 
 <script type="module">
-/* The eleven instruments the emulator builds (Seq writes CV, not sound, so it
+/* The twelve instruments the emulator builds (Seq writes CV, not sound, so it
    isn't here yet). `in` is the input a first-timer hears it best with; `ctl`
    = it has a Launchpad mode. Colours and lines match the homepage. */
 const I = [
@@ -237,6 +237,8 @@ const I = [
     what:"Smashes two sounds together.", tip:"Your input against its own oscillator: turn ALGORITHM and TIMBRE.", url:"https://timncox.github.io/mi-alchemy/warps/" },
   { id:"meld",     name:"Meld",     c:"#6a4bb0", ring:"#a88bff", in:"voice",
     what:"Warps, with more to say.", tip:"Your input against its own oscillator: turn ALGORITHM and TIMBRE.", url:"https://github.com/timncox/mi-alchemy/blob/release/src/meld/DESIGN.md" },
+  { id:"beads",    name:"Beads",    c:"#8a7d12", ring:"#ffff80", in:"voice",
+    what:"Clouds' successor: grains of your sound.", tip:"DENSITY at noon makes no grains: turn it left for regular ones, right for random. Then try SIZE, PITCH and SHAPE, and tap B1 (or the key 1) to freeze.", url:"https://github.com/timncox/mi-alchemy/blob/release/src/beads/DESIGN.md" },
 ];
 
 const $ = (id) => document.getElementById(id);
