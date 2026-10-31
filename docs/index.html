@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tim's Alchemy Lab</title>
-<meta name="description" content="One Eurorack module, seventeen instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
+<meta name="description" content="One Eurorack module, eighteen instruments. The firmware Tim Cox has written for the Hermetic Modular Alchemy Lab, explained for everyone.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Figtree:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -171,7 +171,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 <header class="hero">
   <div>
     <div class="label">Tim Cox · Hermetic Modular Alchemy Lab</div>
-    <h1>One box,<br><em id="accentWord">seventeen</em> instruments.</h1>
+    <h1>One box,<br><em id="accentWord">eighteen</em> instruments.</h1>
     <p class="lede">The Alchemy Lab is a small synthesizer module whose personality is software. I write the
     software. Each program turns the same six knobs and three buttons into a different instrument.</p>
     <div class="picker">
@@ -211,14 +211,16 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="instruments">
   <h2>The instruments</h2>
-  <p class="group-note">The first ten are my own designs. Mark, Belt and Smack have been played on the
+  <p class="group-note">The first eleven are my own designs. Mark, Belt, Smack, Tally, a sine wave with
+  eight ways to bend it, and Hypjolin, two chaos machines patched into each other, have been played on the
   module. Seq, a sequencer that writes parts for the rest of the synth, Break, which mangles drum breaks
   from the memory card, Stencil, which cuts held sounds into rhythm and can spell words in Morse code,
-  Tally, a sine wave with eight ways to bend it, Hypjolin, two chaos machines patched into each
-  other, Relay, which turns notes from a computer into voltages, and Work, a sampler and effects chain
-  with twenty-six machines, are built and tested on a computer and go on the module next. The other seven bring classic open-source instruments by Mutable Instruments
-  to the Lab. They're built and tested on a computer too, and the first listen on the module is next.
-  All but Work can be downloaded below, played or not.</p>
+  Relay, which turns notes from a computer into voltages, Work, a sampler and effects chain with
+  twenty-six machines, and Benjolin, Hypjolin's noise box on its own in three pages, are built and tested
+  on a computer and go on the module next. The other seven bring classic open-source instruments by
+  Mutable Instruments to the Lab. Elements has been played on a module; the rest are built and tested on a
+  computer, with the first listen on the module next. All but Work and Benjolin can be downloaded below,
+  played or not.</p>
   <div class="inst" id="inst"></div>
 </section>
 
@@ -254,15 +256,15 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       flash the file with Hermetic's <a href="https://hermeticmodular.com/program">web programmer</a>. The module
       stays in the rack the whole time.</p>
       <div class="dl" id="downloads"></div>
-      <p class="fine" style="margin-top:14px">New, not yet played on a module:</p>
+      <p class="fine" style="margin-top:14px">Newer builds:</p>
       <div class="dl" id="downloads-new"></div>
-      <p class="fine">Seq, Break, Stencil, Tally, Hypjolin and Relay are early builds: tested on a computer, not yet
-      on a module. Stencil and Relay also run on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">Release
+      <p class="fine">Tally and Hypjolin have now been played on a module. Seq, Break, Stencil and Relay are early
+      builds: tested on a computer, not yet on a module. Stencil and Relay also run on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">Release
       notes</a>.</p>
-      <p class="fine" style="margin-top:14px">The seven Mutable Instruments ports, not yet played on a module:</p>
+      <p class="fine" style="margin-top:14px">The seven Mutable Instruments ports:</p>
       <div class="dl" id="downloads-mi"></div>
-      <p class="fine">These seven are an early release: they're built and tested on a computer, but haven't had their
-      first listen on a module yet. The <b>SD card zip</b> holds all seven plus the samples Elements needs, already in
+      <p class="fine">These seven are an early release: all built and tested on a computer, and Elements has now been
+      played on a module; the others haven't had their first listen yet. The <b>SD card zip</b> holds all seven plus the samples Elements needs, already in
       the right folders for step 2. <a href="https://github.com/timncox/mi-alchemy/releases/tag/v0.2.0">Release
       notes</a>.</p>
     </li>
@@ -346,10 +348,11 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 const PANEL = {"plate":{"w":60.96,"h":128.5,"hp":12.0},"mount":[{"x":4.537,"y":1.297,"w":5.1,"h":3.4,"r":1.7},{"x":51.312,"y":1.311,"w":5.1,"h":3.4,"r":1.7},{"x":4.537,"y":123.8,"w":5.1,"h":3.4,"r":1.7},{"x":51.323,"y":123.812,"w":5.1,"h":3.4,"r":1.7}],"pots":[{"id":"P1","x":12.758,"y":21.304},{"id":"P2","x":47.758,"y":21.304},{"id":"P3","x":12.758,"y":49.304},{"id":"P4","x":47.758,"y":49.304},{"id":"P5","x":12.758,"y":77.304},{"id":"P6","x":47.758,"y":77.304}],"ring":{"r":10.09,"leds":16,"start_hour":7.5,"step_hours":0.75,"arc_leds":13},"buttons":[{"id":"B1","x":30.257,"y":21.31,"hole":3.1,"halo":4.0},{"id":"B2","x":30.257,"y":49.312,"hole":3.1,"halo":4.0},{"id":"B3","x":30.257,"y":77.32,"hole":3.1,"halo":4.0}],"usb":{"x":25.317,"y":89.274,"w":10.034,"h":4.044,"r":2.022},"jacks":[{"id":"J1","x":6.699,"y":100.093,"hole":3.2},{"id":"J2","x":6.699,"y":113.053,"hole":3.2},{"id":"J3","x":18.51,"y":100.119,"hole":3.2},{"id":"J4","x":30.286,"y":100.119,"hole":3.2},{"id":"J5","x":42.014,"y":100.119,"hole":3.2},{"id":"J6","x":18.51,"y":113.056,"hole":3.2},{"id":"J7","x":30.286,"y":113.056,"hole":3.2},{"id":"J8","x":42.014,"y":113.056,"hole":3.2},{"id":"J9","x":53.901,"y":100.126,"hole":3.2},{"id":"J10","x":53.889,"y":113.036,"hole":3.2}],"labels":{"knob_dy":14.0}};
 /* == END GENERATED GEOMETRY == */
 
-/* The seventeen instruments. `knobs` are each firmware's real PLAY-page names
+/* The eighteen instruments. `knobs` are each firmware's real PLAY-page names
    (from its source); `v` is a resting position per knob for the drawing;
    `heard` is true only for what has actually made sound on a module
-   (docs/alchemy-lab-status.md, 2026-09-22). `mi` marks the Mutable
+   (docs/alchemy-lab-status.md: Mark/Belt/Smack 2026-09-22; Tally and
+   Hypjolin 2026-10-21, Elements 2026-10-29 by a tester). `mi` marks the Mutable
    Instruments ports (their download row), `early` the early builds on this
    repo's pre-release; `repo` is the GitHub link; `status` / `now`
    override the default chip text; `design` = `url` is notes, not a manual. */
@@ -363,8 +366,11 @@ const MI_TAG = "v0.2.0";
 const MI_REL = `https://github.com/timncox/mi-alchemy/releases/download/${MI_TAG}/`;
 const MI_REPO = "https://github.com/timncox/mi-alchemy";
 function binUrl(inst) {
-  if (inst.heard) return `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
-  return (inst.mi ? MI_REL : NEW_REL) + `${inst.id}_alchemy.bin`;
+  /* Where the file lives, not whether it was heard: Tally, Hypjolin and
+     Elements are heard but still ship from the shared pre-releases. */
+  if (inst.mi) return MI_REL + `${inst.id}_alchemy.bin`;
+  if (inst.early) return NEW_REL + `${inst.id}_alchemy.bin`;
+  return `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
 }
 const EMU = new Set(["mark", "belt", "smack", "stencil", "break", "clouds", "elements", "marbles", "plaits", "warps", "meld", "beads"]);
 const I = [
@@ -401,18 +407,22 @@ const I = [
     say:"Feed it a pad or a drone and it chops it into rhythm, from a hard trance gate to the soft pumping you hear under dance music. The pattern can come from a bank, an even spread of hits, or a word: type one on its web page and it plays your word in Morse code, fitted to one, two, four or eight bars. It also runs on the Daisy Patch.",
     knobs:["Rate","Pattern","Gate","Attack","Release","Depth"], v:[.25,.06,.47,.02,.04,1],
     url:"https://timncox.github.io/alchemy-lab/stencil/" },
-  { id:"tally", early:true, repo:"https://github.com/timncox/tally-alchemy", name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:false,
-    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+  { id:"tally", early:true, repo:"https://github.com/timncox/tally-alchemy", name:"Tally", c:"#2a7a3a", ring:"#3cff6a", heard:true,
     what:"One pure tone, eight ways to bend it.",
     say:"It starts from the purest sound there is, a sine wave, and bends it into something richer: buzzing, glassy, vocal, metallic or wild. A built-in rhythm maker and a pattern generator can move it on their own, and three of its inputs can be pointed at any control. It's inspired by the K-Accumulator, a much bigger module.",
     knobs:["Morph","Freq","Shift","Depth","Shape","Damped"], v:[.3,.5,.35,.55,.2,0],
     url:"https://timncox.github.io/alchemy-lab/tally/" },
-  { id:"hypjolin", early:true, repo:"https://github.com/timncox/hypjolin-alchemy", name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:false,
-    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+  { id:"hypjolin", early:true, repo:"https://github.com/timncox/hypjolin-alchemy", name:"Hypjolin", c:"#5a3ab0", ring:"#b030ff", heard:true,
     what:"Two chaos machines, patched together.",
     say:"One half is the Benjolin, a famous noise box whose pitches keep rearranging themselves in steps. The other is the Hypster, a swirling chaos generator that never quite repeats. Each one pushes the other around, from slow drifting drones to rhythmic grit and roaring noise. It follows Triglav Modular's Hypjolin, a hand-built module they gave away the plans for.",
     knobs:["Osc A","Osc B","Run>A","Run>B","Run>F","Loop"], v:[.66,.45,.25,.35,.4,.5],
     url:"https://timncox.github.io/alchemy-lab/hypjolin/" },
+  { id:"benjolin", noBin:true, name:"Benjolin", c:"#2a4aa8", ring:"#4080ff", heard:false,
+    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+    what:"The noise box on its own, in three pages.",
+    say:"Hypjolin without the chaos machine: just the Benjolin, two oscillators feeding a shift register that keeps rearranging their pitches in steps, through a gritty filter. Everything fits on three pages, so it's quick to play. It came from a tester who found more than three pages tedious.",
+    knobs:["Osc A","Osc B","Run>A","Run>B","Run>F","Loop"], v:[.62,.4,.3,.35,.45,.5],
+    url:"https://timncox.github.io/alchemy-lab/benjolin/" },
   { id:"relay", early:true, repo:"https://github.com/timncox/relay", name:"Relay", c:"#5a6170", ring:"#e8ecf4", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A translator from computer to synth.",
@@ -435,7 +445,7 @@ const I = [
     say:"Mutable's last take on grains: it records what you feed it and scatters it into tiny pieces, from a gentle shimmer to a thick swarm, with a reverb built in. Switch its input to Synth and it plays its own wavetables instead.",
     knobs:["Time","Size","Pitch","Shape","Density","Dry/Wet"], v:[.4,.5,.5,.4,.65,.6],
     url:"https://github.com/timncox/mi-alchemy/blob/release/src/beads/DESIGN.md", design:true },
-  { id:"elements", mi:true, repo:MI_REPO, name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:false,
+  { id:"elements", mi:true, repo:MI_REPO, name:"Elements", c:"#9a6a14", ring:"#e0b25c", heard:true,
     what:"A virtual acoustic instrument.",
     say:"A modelled string, bell or tube that you bow, blow or strike. You change what it's made of and how it's played rather than picking a sample.",
     knobs:["Coarse","Fine","Geometry","Brightness","Damping","Position"], v:[.5,.5,.3,.6,.4,.3],
@@ -588,9 +598,10 @@ I.filter(x => x.url).forEach(inst => {
   man.appendChild(a);
 });
 
-/* Downloads: Mark, Belt, Smack (v0.2.0, heard) here; the early builds and MI ports below. */
+/* Downloads: Mark, Belt, Smack (their own v0.2.0 releases) here; the early builds and MI ports
+   below -- some of those are heard now too, but they still download from the shared pre-releases. */
 const dl = document.getElementById("downloads");
-I.filter(x => x.heard).forEach(inst => {
+I.filter(x => x.heard && !x.early && !x.mi).forEach(inst => {
   const a = document.createElement("a");
   a.href = binUrl(inst);
   a.style.setProperty("--c", inst.ring);
