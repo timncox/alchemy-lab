@@ -122,6 +122,9 @@ Two modules, each in its own Terminal window:
     build/belt-phone/emu --usb phone --hostlink 5071 --flash ~/.alchemy-emu/left.bin
     build/belt-phone/emu --usb phone --hostlink 5072 --flash ~/.alchemy-emu/right.bin --nomic
 
+The first plays the Mac's mic out of its speakers, so use headphones, or add
+`--nomic` to it too (say, on a call). Esc, `q` or closing a window quits it.
+
 Each prints `HostLink on 127.0.0.1:<port>`. Then in the app (in the iOS
 Simulator, which shares the Mac's 127.0.0.1): **Connect > Emulator**.
 
