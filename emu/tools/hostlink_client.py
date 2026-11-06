@@ -279,14 +279,16 @@ def play_notes(link, notes, at, hold, t0):
     def poll_until(t_end, label, present=present):
         rows = []   # the voice row as it went, changes only; the last one counts
         seen = None
-        while time.monotonic() < t_end:
+        while True:  # at least once, so --at 0 has a row to compare against
             r = ctrl(link, present)
             if r:
                 seen = r[0]
                 if not rows or rows[-1] != voice_row(r[1]):
                     rows.append(voice_row(r[1]))
+            if time.monotonic() >= t_end:
+                break
             time.sleep(0.1)
-        print(f"  {label}: present_seen 0x{seen:02X}, voice row {' -> '.join(rows)}")
+        print(f"  {label}: present_seen {'-' if seen is None else f'0x{seen:02X}'}, voice row {' -> '.join(rows)}")
         return seen, rows[-1] if rows else None
 
     r = ctrl(link, present)
@@ -303,7 +305,13 @@ def play_notes(link, notes, at, hold, t0):
     ctrl(link, present, [(6, n, 0, 0) for n in notes])
     print(f"  t={time.monotonic() - t0:.1f} s note off {notes}")
     _, after = poll_until(time.monotonic() + 1.5, "released")
-    if held == before or after != before:
+    # A held note takes the next voice, so notes landing on voices that were
+    # already on leave the row as it was: that shows nothing either way.
+    took = min(len(notes), 4)
+    if held == before and before and before[:took] == "x" * took:
+        print(f"  INCONCLUSIVE: the {took} voice(s) these notes take were already on, so the row can't move;"
+              " play more notes than that, or turn them off")
+    elif held == before or after != before:
         print("  FAIL: the voice row did not follow the held notes")
         bad += 1
 
