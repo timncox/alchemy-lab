@@ -9,6 +9,13 @@
  *                                  panel actions and checks, exit 0 / 1
  *   belt-emu --usb launchpad      boot in Launchpad mode with the emulated Launchpad
  *                                 Mini MK3, Launch Control XL and Haute42 plugged in
+ *   belt-emu --usb phone|phone+audio   boot in a Phone USB mode (USB MIDI carrying
+ *                                 HostLink, for the iPhone app); no emulated controllers
+ *   belt-emu --hostlink 5071      the front USB-C's device side on 127.0.0.1:5071 (TCP,
+ *                                 one client): the MIDI bytes the app would send over
+ *                                 USB, both ways (emu_hostlink.cpp)
+ *   belt-emu --uid 7              this module's unique-ID number (default: the
+ *                                 --hostlink port, else 1); two emulators = two units
  *   belt-emu --card dir           copy a host folder onto the emulated SD card
  *   belt-emu --flash path.bin      where presets persist (default
  *                                  ~/.alchemy-emu/belt-flash.bin; "none" = RAM)
@@ -390,7 +397,11 @@ bool StartSoundCard(bool want_mic)
 
 /* ---------------------------------------------------------- firmware ---- */
 
-static void firmware_thread() { firmware_main(); }
+static void firmware_thread()
+{
+    emu::usbdev::MarkFirmwareThread();   /* USB receives land on this thread */
+    firmware_main();
+}
 
 int  emu_ui_run(bool want_mic);                 /* emu_ui.cpp */
 bool emu_ui_init(bool want_mic);
@@ -405,6 +416,8 @@ int main(int argc, char** argv)
     const char* rec = nullptr;
     const char* card = nullptr;
     const char* usb  = nullptr;
+    int         hostlink_port = 0;
+    long        uid = -1;
     bool        nomic = false;   /* input is silence: no microphone asked for */
     std::string flash = std::string(std::getenv("HOME") ? std::getenv("HOME") : ".") + "/.alchemy-emu/" + std::string(EMU_FW_NAME) + "-flash.bin";
     for (int i = 1; i < argc; i++)
@@ -417,9 +430,24 @@ int main(int argc, char** argv)
         else if (a == "--flash" && i + 1 < argc) flash = argv[++i];
         else if (a == "--card" && i + 1 < argc) card = argv[++i];
         else if (a == "--usb" && i + 1 < argc) usb = argv[++i];
+        else if (a == "--hostlink" && i + 1 < argc) hostlink_port = std::atoi(argv[++i]);
+        else if (a == "--uid" && i + 1 < argc) uid = std::strtol(argv[++i], nullptr, 0);
         else if (a == "--nomic") nomic = true;
-        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none] [--card dir] [--usb launchpad] [--nomic]\n", argv[0]); return 2; }
+        else { std::fprintf(stderr, "usage: %s [--headless --script f] [--in wav] [--record wav] [--flash path|none] [--card dir] [--usb mac|launchpad|audio|phone|phone+audio] [--hostlink port] [--uid n] [--nomic]\n", argv[0]); return 2; }
     }
+    if (usb)
+    {
+        static const char* const kUsb[] = {"mac", "launchpad", "audio", "phone", "phone+audio"};
+        bool ok = false;
+        for (const char* k : kUsb) ok = ok || !std::strcmp(usb, k);
+        if (!ok) { std::fprintf(stderr, "[emu] --usb: one of mac, launchpad, audio, phone, phone+audio\n"); return 2; }
+    }
+    if (hostlink_port < 0 || hostlink_port > 65535) { std::fprintf(stderr, "[emu] --hostlink: a TCP port\n"); return 2; }
+    /* The MCU's unique ID: word 2 is this instance's number, so emulators
+     * side by side are distinct, stable modules (HELLO's mcu_uid, Belt's
+     * phone unit). Before the firmware starts: it reads the ID at boot. */
+    if (uid < 0) uid = hostlink_port ? hostlink_port : 1;
+    emu_uid_words[2] = (uint32_t)uid;
 #ifdef __EMSCRIPTEN__
     flash.clear();   /* the browser keeps presets in memory only */
 #endif
@@ -440,6 +468,13 @@ int main(int argc, char** argv)
          * launchpad also plugs in the emulated controllers */
         emu::WriteCardFile("0:/alchemy", "0:/alchemy/usb.cfg", (std::string(usb) + "\n").c_str());
         emu::ctl::Enable(usb[0] == 'l');
+    }
+    if (hostlink_port)
+    {
+        if (!emu::hostlink::Start(hostlink_port)) return 2;
+        if (!usb || usb[0] != 'p')
+            std::fprintf(stderr, "[emu] --hostlink is the firmware's USB MIDI device: boot it with "
+                                 "--usb phone (or phone+audio) unless its saved settings already pick Phone\n");
     }
 
     auto& P = emu::Panel();

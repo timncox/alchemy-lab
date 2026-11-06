@@ -326,6 +326,7 @@ bool emu_ui_frame()
     Ui& u = g_ui;
     auto& P = emu::Panel();
     bool run = true;
+    emu::hostlink::Poll();   /* --hostlink: the app's bytes, both ways */
     {
         SDL_Event e;
         while (SDL_PollEvent(&e))

@@ -9,12 +9,15 @@
 # surface and the USB-host / picker modules are replaced (include/, src/).
 
 FWS := belt mark smack seq clouds elements marbles meld plaits warps
+# built on request only (not by all-fw / test): Belt from its iPhone branch,
+# with the Phone USB modes the --hostlink server serves (fw/belt-phone.mk)
+EXTRA_FWS := belt-phone
 ifneq ($(filter test-custom,$(MAKECMDGOALS)),)
 FW := custom
 endif
 FW  ?= belt
-ifeq ($(filter $(FW),$(FWS) custom),)
-$(error FW must be one of: $(FWS), or custom FW_DIR=<your firmware repo>)
+ifeq ($(filter $(FW),$(FWS) $(EXTRA_FWS) custom),)
+$(error FW must be one of: $(FWS) $(EXTRA_FWS), or custom FW_DIR=<your firmware repo>)
 endif
 
 #   make FW=custom FW_DIR=~/my-module
@@ -104,7 +107,8 @@ SDK_SRC := $(filter-out $(SDK_REPLACED),$(SDK_FRAMEWORK)) $(SDK_V2) $(SDK_RAMDIS
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
 EMU_CXX := src/emu_board.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
-           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp $(EMU_RAMDISK) $(FW_STUBS)
+           src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp \
+           src/emu_hostlink.cpp $(EMU_RAMDISK) $(FW_STUBS)
 
 ALL_CXX := $(addprefix $(ALCHEMY_DIR)/,$(SDK_SRC)) $(SDK_ANIMS) $(EMU_CXX) $(FW_CXX)
 ALL_C   := $(FW_C) $(FATFS)/ff.c $(FATFS)/option/ccsbcs.c

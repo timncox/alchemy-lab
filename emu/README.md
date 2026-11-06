@@ -21,13 +21,15 @@ core) are compiled **as they are**; only the board is replaced:
 | SD card | a formatted 64 MB FAT32 RAM disk under the real FatFS; `--card dir` copies a folder onto it |
 | Smack's 1U OLED | drawn on the panel; scripts read it (`expect screen`) |
 | Launchpad Mini MK3, Launch Control XL, Haute42 | `src/emu_ctl.cpp` — emulated devices behind the firmware's own `lp::` / `xl::` / `pad::` API (`--usb launchpad`), drawn beside the panel (`src/emu_ui_ctl.cpp`) |
-| SD picker, USB audio, HostLink's USB | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
+| The front USB-C as a USB device (libDaisy's `UsbHandle`, Phone+Audio's MIDI) | `src/emu_hostlink.cpp` — a TCP socket (`--hostlink <port>`) carrying the USB MIDI bytes; see "Phone mode and the iOS app" |
+| SD picker, USB audio, HostLink's USB-CDC (Mac mode) | `src/emu_stubs.cpp`, `src/stubs_usbhost.cpp` — inert |
 
 ## Firmwares (`fw/*.mk` says where each one's source comes from)
 
 | FW | Source |
 |---|---|
 | belt | belt-alchemy `hold` (HOLD + Hide and Seek) |
+| belt-phone | belt-alchemy `claude/iphone-screen` (Phone / Phone+Audio USB modes for the iPhone app; not in `all-fw` / `test`) |
 | mark | mark-alchemy `track-page` (= the card's 75196d5) |
 | smack | smack-alchemy `worktree-smack-alchemy-port` (= the card's ff2a16c + a comment) |
 | seq | seq-alchemy `worktree-core` (the sequencer; J1 clock / J2 reset in, J3–J10 out) |
@@ -90,11 +92,75 @@ lpmoves|lpstill|rms|tone|cv|cvrange|screen|booted|alive|finite`, `snapshot`).
 `make FW=mark SAN=thread` builds a ThreadSanitizer variant (build/mark-thread/). A `#!args --usb launchpad` line gives a
 script its command-line options.
 
+## Phone mode and the iOS app
+
+Belt's iPhone branch has two more USB modes: **Phone** (the front USB-C is a
+USB MIDI device carrying HostLink inside SysEx, for the Alchemy Screen app)
+and **Phone+Audio** (the same plus a 2-in/2-out audio interface). In the
+emulator the USB device under the firmware is a TCP socket: `--hostlink
+<port>` listens on `127.0.0.1:<port>`, and a client there is the USB host.
+The firmware's own `MidiUsbHostTransport`, `hlmidi.h` framing, phone block
+(0x70–0x77) and HostLink core run unchanged; only the USB-MIDI device layer
+is replaced (`include/hid/usb.h` → `src/emu_hostlink.cpp`).
+
+**On the socket: plain MIDI bytes, both ways.** The client writes exactly
+the SysEx it would send the module over USB MIDI, `F0 7D 48 4C 01 <packed>
+F7` (each COBS-framed HostLink frame, 0x00-delimited, cut into runs of up to
+140 bytes, 7-bit packed: `hlmidi.h`, the app's `SysExPipe.swift`), and reads
+the module's SysEx back the same way. No USB-MIDI 4-byte packets and no
+extra framing: the emulator makes and unmakes those. One client at a time; a
+new connection replaces the old one.
+
+Once, on the Mac (Belt's iPhone branch, with its submodules, next to `hold`):
+
+    git -C ~/tim-os/belt-alchemy worktree add .claude/worktrees/iphone-screen claude/iphone-screen
+    git -C ~/tim-os/belt-alchemy/.claude/worktrees/iphone-screen submodule update --init --recursive
+    make FW=belt-phone                  # build/belt-phone/emu  (FW_ROOT=<dir> for another checkout)
+
+Two modules, each in its own Terminal window:
+
+    build/belt-phone/emu --usb phone --hostlink 5071 --flash ~/.alchemy-emu/left.bin
+    build/belt-phone/emu --usb phone --hostlink 5072 --flash ~/.alchemy-emu/right.bin --nomic
+
+Each prints `HostLink on 127.0.0.1:<port>`. Then in the app (in the iOS
+Simulator, which shares the Mac's 127.0.0.1): **Connect > Emulator**.
+
+- **Two units.** The phone tells modules apart by `unit`, a hash of the
+  MCU's 96-bit unique ID. The emulator's ID is "EMU0" "BELT" and an instance
+  number, which is the `--hostlink` port unless `--uid <n>` says otherwise
+  (1 without either), so 5071 and 5072 are two stable, distinct modules
+  (HELLO's `mcu_uid` too). Give each its own `--flash`, or both share
+  `~/.alchemy-emu/Belt-flash.bin` (presets, settings) and overwrite each other.
+- **`--usb phone+audio`** boots Phone+Audio: the same HostLink over the
+  composite device's MIDI interface; its audio isn't modelled (the phone's
+  stream into Belt is silence, Belt's stream back goes nowhere; J9/J10 still
+  play on the Mac).
+- **Controllers** come from the phone in Phone modes (CTRL, 0x77), so the
+  emulated Launchpad / XL / Haute42 aren't drawn; `--usb launchpad` still
+  has them (for this firmware through its own `launchpad_core.cpp`, with
+  `src/emu_ctl_split.cpp` as the USB host).
+- **Not there:** firmware switching from the phone (FW_LIST lists nothing,
+  FW_FLASH answers UNSUPPORTED), and a module never reboots into another mode:
+  `--usb` sets it at launch, as the card's `usb.cfg` does at power-up. A
+  window with `--hostlink` and no `--usb` boots in whatever mode its saved
+  settings hold (the emulator says so).
+
+Without the app: `tools/hostlink_client.py` (Python 3, standard library)
+connects, sends HELLO, PHONE_INFO (0x70) and STATE (0x76) wrapped as the app
+wraps them, and prints the decoded answers; `tools/hostlink-test.sh` boots a
+headless emulator in Phone mode and runs it with `--check` (exit 0 = every
+answer OK). A headless emulator serves the socket during its script's
+`wait`s, so a script of one long `wait` is a module with no window.
+
+    python3 tools/hostlink_client.py --port 5071
+    tools/hostlink-test.sh build/belt-phone/emu 5079 phone+audio
+
 ## Not modelled
 
 The M7's speed (CPU readings are the Mac's — check load on the module), the
 SD picker, the controllers' USB drivers themselves (and real controllers
-plugged into the Mac — next: CoreMIDI), USB audio mode, HostLink.
+plugged into the Mac — next: CoreMIDI), USB audio mode, HostLink over
+USB-CDC (Mac mode; Phone mode's USB MIDI is the `--hostlink` socket).
 
 ## In the browser
 

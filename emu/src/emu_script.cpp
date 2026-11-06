@@ -87,7 +87,18 @@ int btn_index(const char* s)
     return -1;
 }
 
-void sleep_ms(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
+/* Waits keep the --hostlink socket served (emu_hostlink.cpp): a script that
+ * only waits is a headless module for the app or tools/hostlink_client.py. */
+void sleep_ms(int ms)
+{
+    using Clock = std::chrono::steady_clock;
+    const auto end = Clock::now() + std::chrono::milliseconds(ms);
+    do
+    {
+        emu::hostlink::Poll();
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    } while (Clock::now() < end);
+}
 
 /* The button pair's colour as the firmware set it (both LEDs of a pair are
  * set together; the top one is read). */

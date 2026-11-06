@@ -181,7 +181,9 @@ Good fixes are worth sending upstream as a pull request to `timncox/alchemy-lab`
 - **Analog behaviour.** The codec, the CV input filtering and DAC settling are idealised; the
   calibration is the SDK's design default (`V2CalDesignFallback`).
 - **The bootloader, the USB-C port (HostLink, the web programmer, USB MIDI/audio) and the SD card
-  picker** aren't emulated. HostLink compiles but goes nowhere.
+  picker** aren't emulated. HostLink compiles but goes nowhere -- except a firmware that runs
+  HostLink over libDaisy's `UsbHandle` as a USB MIDI device (Belt's Phone mode): `--hostlink
+  <port>` puts that device on a TCP socket (README, "Phone mode and the iOS app").
 - **Timing.** The firmware's main loop runs on a host thread with real sleeps, and the audio
   callback on the sound card's thread, so the main loop sees roughly the same rates as on the
   module but not cycle-exact ones.

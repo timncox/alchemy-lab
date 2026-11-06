@@ -56,6 +56,21 @@ uint8_t XlButtonLed(int row, int col);
 void     PadSet(uint32_t bit, bool down);
 uint32_t PadMask();
 } // namespace ctl
+/* The front USB-C's device side over TCP (emu_hostlink.cpp, --hostlink).
+ * Start: listen on 127.0.0.1:port, print "HostLink on 127.0.0.1:<port>".
+ * Poll: accept / read / write without blocking, from the main loop (the
+ * window's frames, the script's waits). Service: hand what the client sent
+ * to the firmware's receive callback; SleepMs calls it, and it acts only
+ * on the firmware's thread (marked by MarkFirmwareThread). */
+namespace hostlink {
+bool Start(int port);
+void Poll();
+} // namespace hostlink
+namespace usbdev {
+void MarkFirmwareThread();
+void Service();
+} // namespace usbdev
+
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);
 

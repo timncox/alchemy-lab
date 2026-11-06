@@ -76,6 +76,9 @@ CallbackScope::CallbackScope() {}
 CallbackScope::~CallbackScope() {}
 void SleepMs(uint32_t ms)
 {
+    /* where the firmware yields, the USB "interrupt" delivers what the
+     * --hostlink client sent (firmware thread only; emu_hostlink.cpp) */
+    usbdev::Service();
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 #endif

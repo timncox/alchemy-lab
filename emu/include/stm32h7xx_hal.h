@@ -209,9 +209,12 @@ inline uint32_t HAL_RCC_GetPCLK1Freq() { return 200000000u; }
 /* ---- emulator additions: reset + the chip's unique ID ---- */
 namespace emu { void RebootRequested(const char* why); }
 inline void     HAL_NVIC_SystemReset(void) { emu::RebootRequested("system reset"); }
-inline uint32_t HAL_GetUIDw0(void) { return 0x454D5530u; }   /* "EMU0" */
-inline uint32_t HAL_GetUIDw1(void) { return 0x42454C54u; }   /* "BELT" */
-inline uint32_t HAL_GetUIDw2(void) { return 0x00000001u; }
-/* The unique-ID words as memory (some firmwares read *(uint32_t*)UID_BASE). */
-inline const uint32_t emu_uid_words[3] = {0x454D5530u, 0x42454C54u, 0x00000001u};
+/* The unique-ID words as memory (some firmwares read *(uint32_t*)UID_BASE).
+ * "EMU0" "BELT" then an instance number: emu_main sets word 2 from --uid
+ * (default: the --hostlink port, else 1) before the firmware starts, so two
+ * emulators side by side are two modules (Belt's phone "unit" hashes these). */
+inline uint32_t emu_uid_words[3] = {0x454D5530u, 0x42454C54u, 0x00000001u};
 #define UID_BASE ((uintptr_t)emu_uid_words)
+inline uint32_t HAL_GetUIDw0(void) { return emu_uid_words[0]; }
+inline uint32_t HAL_GetUIDw1(void) { return emu_uid_words[1]; }
+inline uint32_t HAL_GetUIDw2(void) { return emu_uid_words[2]; }
