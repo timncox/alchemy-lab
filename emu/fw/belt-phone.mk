@@ -20,7 +20,10 @@ FW_MAIN   := $(FW_ROOT)/src/belt_alchemy.cpp
 # remote backend; its USB-host half is src/emu_ctl_split.cpp)
 FW_CXX    := $(FW_ROOT)/src/usb_shared.cpp $(FW_ROOT)/src/midi_usb_transport.cpp \
              $(FW_ROOT)/src/phone_ext.cpp $(FW_ROOT)/src/launchpad_core.cpp
-FW_C      := $(FW_ROOT)/src/belt_core_alchemy.c $(FW_ROOT)/src/versio_alloc.c $(FW_ROOT)/src/punch_fx.c
+# usb_midi_keys.c: the keyboard filter launchpad_core.cpp runs the phone's
+# notes (CTRL types 6/7) through, as a USB-MIDI keyboard's
+FW_C      := $(FW_ROOT)/src/belt_core_alchemy.c $(FW_ROOT)/src/versio_alloc.c $(FW_ROOT)/src/punch_fx.c \
+             $(FW_ROOT)/src/usb_midi_keys.c
 FW_INCS   := -I$(FW_ROOT)/src -I$(FW_ROOT)/src/vendor -Iinclude/fw/usbd
 FW_DEFS   := -DBELT_VERSION=\"emu\" -DBELT_GIT_HASH=\"$(shell git -C $(FW_ROOT) rev-parse --short HEAD)\"
 FW_CFLAGS := -ffast-math -fno-finite-math-only

@@ -2,9 +2,10 @@
  * The emulated Launchpad Mini MK3, Launch Control XL and Haute42 for a
  * firmware whose controller layer is split in two (belt-phone: Belt's
  * claude/iphone-screen branch): launchpad_core.cpp, compiled unchanged, keeps
- * the event queues, knob tables, gamepad mask and LED framebuffers that both
- * backends share, plus the remote backend (HostLink CTRL, controllers on the
- * phone's hub); launchpad.cpp is the USB host backend. This file replaces
+ * the event queues, knob tables, gamepad mask, keyboard queue and LED
+ * framebuffers that both backends share, plus the remote backend (HostLink
+ * CTRL, controllers and a keyboard on the phone's hub); launchpad.cpp is the
+ * USB host backend. This file replaces
  * launchpad.cpp: the "USB host" is the emulator panel.
  *
  * Launchpad mode (--usb launchpad): what is clicked on the panel's
@@ -95,6 +96,10 @@ namespace lpd {
 bool UsbLpConnected()  { return g_on.load(); }
 bool UsbXlConnected()  { return g_on.load(); }
 bool UsbPadConnected() { return g_on.load(); }
+/* No USB-MIDI keyboard on the panel: in Launchpad mode the PLAY pads play
+ * notes; in Phone modes the phone's keyboard comes over CTRL. */
+bool UsbKeysConnected() { return false; }
+bool UsbKeysHeld()      { return false; }
 } // namespace lpd
 
 namespace lp {

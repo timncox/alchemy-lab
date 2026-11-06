@@ -155,6 +155,14 @@ answer OK). A headless emulator serves the socket during its script's
     python3 tools/hostlink_client.py --port 5071
     tools/hostlink-test.sh build/belt-phone/emu 5079 phone+audio
 
+`--notes 67,72,76 --at 8 --hold 4` then plays a keyboard over CTRL (present
+bit 3, types 6 and 7) as the app forwards one: the notes go down 8 s after
+launch and stay held 4 s (CTRL polls keep the module's 1 s timeout away),
+then the sustain pedal holds them after release until bit 3 clears. With the
+Launchpad present too, the client watches Belt's voice row in the reply
+(each held note takes a harmony voice); a script that sings (`sing 220`) and
+`print tones` around those times hears the held notes in the output.
+
 ## Not modelled
 
 The M7's speed (CPU readings are the Mac's — check load on the module), the

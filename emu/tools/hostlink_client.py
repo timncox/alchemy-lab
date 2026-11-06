@@ -3,6 +3,10 @@
 
     python3 tools/hostlink_client.py --port 5071            HELLO, PHONE_INFO, STATE
     python3 tools/hostlink_client.py --port 5071 --check    exit 1 unless all answer OK
+    python3 tools/hostlink_client.py --port 5071 --notes 67 --at 6 --hold 4
+        then play notes as the phone forwards a keyboard: CTRL (0x77) with
+        present bit 3, note-ons at --at s after launch, held --hold s (CTRL
+        polls keep the module's 1 s timeout away), then note-offs
 
 The emulator (`--usb phone --hostlink 5071`) is the module's USB MIDI port:
 the TCP stream is plain MIDI bytes both ways. Each HostLink frame
@@ -24,7 +28,8 @@ import time
 import zlib
 
 PROTO = 1
-HELLO, PHONE_INFO, STATE = 0x01, 0x70, 0x76
+HELLO, PHONE_INFO, STATE, CTRL = 0x01, 0x70, 0x76, 0x77
+KEYS, LAUNCHPAD = 0x08, 0x01   # CTRL present bits (CONTROLLERS.md)
 SYSEX_HEAD = bytes([0xF0, 0x7D, 0x48, 0x4C, 0x01])
 MAX_RAW_PER_MESSAGE = 140
 STATUS = {0: "OK", 1: "UNSUPPORTED", 2: "BAD_ARGS", 3: "BAD_STATE", 4: "BAD_CRC",
@@ -249,6 +254,69 @@ def show_state(r: Reader):
     print(f"  sung {'-' if sung == -32768 else sung} cents {cents}; trace last {last}, {n} new")
 
 
+def ctrl(link, present, events=()):
+    """One CTRL request; returns (present_seen, lp_leds) or None."""
+    body = bytes([present, len(events)]) + b"".join(bytes(e) for e in events)
+    typ, b = link.request(CTRL, body)
+    st, name = status_of(typ, b)
+    if st != 0 or len(b) < 3 + 81 + 40:
+        print(f"CTRL (0x77): {name}")
+        return None
+    return b[2], b[3:3 + 81]
+
+
+def voice_row(leds):
+    """Launchpad row 7 (Belt's harmony voices 1-4): which are lit."""
+    return "".join("x" if leds[6 * 8 + v] else "." for v in range(4))
+
+
+def play_notes(link, notes, at, hold, t0):
+    """Keyboard over CTRL, with the Launchpad present so Belt paints its voice
+    row (G_MASK: in Harmony mode a held note takes a voice). Returns failures."""
+    bad = 0
+    present = KEYS | LAUNCHPAD
+
+    def poll_until(t_end, label, present=present):
+        rows = []   # the voice row as it went, changes only; the last one counts
+        seen = None
+        while time.monotonic() < t_end:
+            r = ctrl(link, present)
+            if r:
+                seen = r[0]
+                if not rows or rows[-1] != voice_row(r[1]):
+                    rows.append(voice_row(r[1]))
+            time.sleep(0.1)
+        print(f"  {label}: present_seen 0x{seen:02X}, voice row {' -> '.join(rows)}")
+        return seen, rows[-1] if rows else None
+
+    r = ctrl(link, present)
+    if not r:
+        return 1
+    print(f"CTRL (0x77): OK, present 0x{present:02X} -> present_seen 0x{r[0]:02X}")
+    if not r[0] & KEYS:
+        print("  keyboard bit 3 not echoed: this firmware doesn't play notes")
+        return 1
+    _, before = poll_until(t0 + at, "before")
+    r = ctrl(link, present, [(6, n, 100, 0) for n in notes])
+    print(f"  t={time.monotonic() - t0:.1f} s note on {notes}")
+    _, held = poll_until(time.monotonic() + hold, "held")
+    ctrl(link, present, [(6, n, 0, 0) for n in notes])
+    print(f"  t={time.monotonic() - t0:.1f} s note off {notes}")
+    _, after = poll_until(time.monotonic() + 1.5, "released")
+    if held == before or after != before:
+        print("  FAIL: the voice row did not follow the held notes")
+        bad += 1
+
+    # the pedal holds released notes; dropping bit 3 lets go of everything
+    ctrl(link, present, [(7, 1, 0, 0)] + [(6, n, 100, 0) for n in notes] + [(6, n, 0, 0) for n in notes])
+    _, ped = poll_until(time.monotonic() + 1.0, "pedal down, keys pressed and let go")
+    _, gone = poll_until(time.monotonic() + 1.0, "bit 3 cleared", LAUNCHPAD)
+    if ped != held or gone != after:
+        print("  FAIL: sustain / release on bit 3 clear")
+        bad += 1
+    return bad
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--host", default="127.0.0.1")
@@ -257,7 +325,11 @@ def main():
     ap.add_argument("--wait", type=float, default=10.0,
                     help="seconds to keep trying to connect (the emulator may still be starting)")
     ap.add_argument("--check", action="store_true", help="exit 1 unless every answer is OK")
+    ap.add_argument("--notes", default="", help="comma-separated MIDI notes to play over CTRL")
+    ap.add_argument("--at", type=float, default=0.0, help="seconds after launch to press them")
+    ap.add_argument("--hold", type=float, default=3.0, help="seconds to hold them")
     a = ap.parse_args()
+    t0 = time.monotonic()
 
     end = time.monotonic() + a.wait
     while True:
@@ -301,6 +373,8 @@ def main():
         except struct.error:
             print("  (reply shorter than expected)")
             bad += 1
+    if a.notes:
+        bad += play_notes(link, [int(n) for n in a.notes.split(",")], a.at, a.hold, t0)
     print(f"{link.dec.messages} SysEx messages received")
     return 1 if a.check and bad else 0
 
