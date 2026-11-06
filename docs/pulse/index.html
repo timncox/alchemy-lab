@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Operation manual for Pulse on the Hermetic Modular Alchemy Lab: a master clock and eight clocked CV outputs with ratios, waveforms, euclidean patterns, chance, swing and two CV inputs.">
+<title>Pulse for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+  Pulse for Alchemy Lab — operation manual.
+
+  The family's dark world (Mark, Smack, Belt, Seq, Break, Work, Tally):
+  one deliberate dark theme. The eight accents are the firmware's output
+  colours (pulse/src/pulse_alchemy.cpp kOutCol). The scope at the top runs
+  a JavaScript copy of pulse_engine's Shape / SwingWarp / EuclidHit and
+  ratio table, so what it draws is what the jacks put out.
+  Source: belt-alchemy pulse/docs/site.html; the alchemy-lab site serves a
+  copy at /pulse/. Keep the two identical.
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0b0c10; --panel:#12141a; --panel2:#191c24; --panel3:#222632;
+  --ink:#eceef4; --dim:#8f94a3; --soft:#c7cbd6;
+  --line:rgba(236,238,244,.12); --line2:rgba(236,238,244,.06);
+  --o1:#ff3030; --o2:#ff9010; --o3:#f0e020; --o4:#40ff40; --o5:#20e0e0; --o6:#3070ff; --o7:#a040ff; --o8:#ff40c0;
+  --master:#ffb040; --ext:#20c0ff; --green:#30ff60; --amber:#ffa020;
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;position:relative}
+a{color:#7fd6ff;text-decoration:none;border-bottom:1px solid rgba(48,192,255,.4)}
+a:hover{border-bottom-color:#7fd6ff}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ext);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(11,12,16,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{font-style:normal;background:linear-gradient(90deg,var(--o1),var(--o3),var(--o5),var(--o7));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:.9fr 1.1fr;gap:44px;align-items:center}
+.hero > *{min-width:0}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--master);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(64px,12vw,150px);line-height:.86;letter-spacing:-.035em;margin:0}
+h1.title span:nth-child(1){color:var(--o1)} h1.title span:nth-child(2){color:var(--o3)} h1.title span:nth-child(3){color:var(--o4)}
+h1.title span:nth-child(4){color:var(--o5)} h1.title span:nth-child(5){color:var(--o7)}
+h1.title em{font-style:normal;display:block;font-size:.25em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.55em;text-wrap:balance}
+.lede{font-size:19px;line-height:1.5;color:var(--soft);margin-top:24px;max-width:58ch}
+.lede b{color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.facts span{font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--soft)}
+
+/* the scope */
+.scope{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.scope .bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em}
+.scope .bar b{color:var(--ink);font-weight:500}
+.scope button{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 11px;cursor:pointer}
+.scope button.on{border-color:var(--green);color:var(--green)}
+.scope input[type=range]{flex:1;min-width:120px;accent-color:var(--master)}
+.lanes{display:grid;gap:4px}
+.lane{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;align-items:center;background:none;border:1px solid transparent;border-radius:8px;padding:2px 4px;cursor:pointer;color:inherit;font:inherit;text-align:left}
+.lane[aria-pressed="true"]{border-color:var(--c);background:var(--panel2)}
+.lane .n{font-family:var(--mono);font-size:10px;color:var(--c);text-align:center;line-height:1.1}
+.lane .n i{display:block;font-style:normal;color:var(--dim);font-size:9px}
+.lane canvas{width:100%;height:34px;display:block}
+.edit{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;border-top:1px solid var(--line);padding-top:10px}
+@media(max-width:520px){.edit{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.edit label{display:grid;gap:3px;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.edit select,.edit input{width:100%;font:inherit;font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:5px 6px;text-transform:none;letter-spacing:0}
+.edit input[type=range]{padding:0;accent-color:var(--sel,#fff)}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(30px,4.6vw,46px);letter-spacing:-.02em;line-height:1;margin:0 0 22px;text-wrap:balance}
+h3{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;letter-spacing:-.01em}
+.prose{max-width:66ch;display:grid;gap:14px;color:var(--soft)}
+.prose b{color:var(--ink)}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:26px}
+@media(max-width:860px){.three{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c,var(--line));border-radius:12px;padding:20px}
+.card p{color:var(--soft);font-size:15px}
+.card p + p{margin-top:10px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+/* panel */
+.pagetabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pagetabs button{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--panel);color:var(--soft);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:8px 13px;cursor:pointer}
+.pagetabs button[aria-pressed="true"]{background:var(--panel3);color:var(--ink);border-color:var(--c)}
+.panelgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:26px;align-items:start}
+@media(max-width:820px){.panelgrid{grid-template-columns:1fr}}
+.face{background:#16181d;border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;grid-template-columns:1fr auto 1fr;gap:16px 10px;align-items:center;justify-items:center;max-width:380px;margin-inline:auto;width:100%}
+.knob{display:grid;justify-items:center;gap:6px;cursor:pointer;background:none;border:none;color:inherit;padding:0;font:inherit}
+.knob svg{width:84px;height:84px;max-width:100%}
+.knob span{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--soft);text-align:center;min-height:2.4em}
+.knob[aria-pressed="true"] span{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.knob[disabled]{cursor:default;opacity:.4}
+.btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--bc,var(--line));display:grid;place-items:center;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.help{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;min-height:220px}
+.help .name{font-family:var(--disp);font-weight:800;font-size:26px;margin-bottom:2px}
+.help .where{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin-bottom:12px}
+.help p{color:var(--soft)}
+.help p + p{margin-top:10px}
+.btns{display:grid;gap:10px;margin-top:22px}
+.btns div{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;color:var(--soft);font-size:15px}
+.btns kbd{text-align:center}
+.swatches{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.swatches span{font-family:var(--mono);font-size:10.5px;border-radius:999px;padding:3px 10px;color:#0b0c10;font-weight:600}
+
+/* tables */
+.tbl{overflow-x:auto;margin-top:22px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:500;background:var(--panel)}
+td{color:var(--soft)}
+td b{color:var(--ink)}
+
+.recipes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:26px}
+.recipes .card h3{font-size:18px}
+.recipes ol{margin:8px 0 0;padding-left:18px;color:var(--soft);font-size:14.5px}
+
+.status{display:grid;gap:10px;margin-top:22px;max-width:760px}
+.status div{display:grid;grid-template-columns:22px 1fr;gap:10px;color:var(--soft)}
+.status .y{color:var(--green)} .status .n{color:var(--amber)}
+footer{padding-block:40px 60px;color:var(--dim);font-size:14px}
+footer p + p{margin-top:8px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top"><em>pulse</em></a>
+  <a class="s" href="#idea">Idea</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#patterns">Patterns</a>
+  <a class="s" href="#clock">Clock</a>
+  <a class="s" href="#cv">CV in</a>
+  <a class="s" href="#jacks">Jacks</a>
+  <a class="s" href="#recipes">Recipes</a>
+  <a class="s" href="#setup">Setup</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="https://timncox.github.io/alchemy-lab/">Alchemy Lab ↗</a>
+</div></nav>
+
+<header id="top"><div class="wrap hero">
+  <div>
+    <div class="eyebrow">Firmware for the Hermetic Modular Alchemy Lab</div>
+    <h1 class="title"><span>p</span><span>u</span><span>l</span><span>s</span><span>e</span><em>a master clock and eight clocked outputs</em></h1>
+    <p class="lede"><b>Pulse</b> keeps the time for the rest of your rack. It runs a clock, from tap tempo or from
+    a clock you plug into J1, and sends eight outputs from J3 to J10. Each one divides or multiplies the beat,
+    and it can be a gate, a trigger, an LFO, an envelope or a random voltage, with its own euclidean pattern,
+    chance and swing.</p>
+    <div class="facts">
+      <span>8 outputs · ±5 V</span><span>/64 to x32</span><span>9 waveforms</span>
+      <span>euclidean · chance · swing</span><span>tap · clock in · reset</span><span>2 CV inputs</span>
+    </div>
+  </div>
+  <div class="scope" aria-label="The eight outputs, live">
+    <div class="bar">
+      <button id="run" class="on" aria-pressed="true">Running</button>
+      <button id="tap">Tap</button>
+      <span><b id="bpmv">120</b> BPM</span>
+      <input id="bpm" type="range" min="10" max="300" step="1" value="120" aria-label="Tempo">
+    </div>
+    <div class="lanes" id="lanes"></div>
+    <div class="edit" id="edit" aria-live="polite"></div>
+    <div class="cap">The eight outputs as a fresh module starts, two bars at a time. Pick an output and change
+    it; the module does the same from the OUTPUT and PATTERN layers.</div>
+  </div>
+</div></header>
+
+<section id="idea"><div class="wrap">
+  <h2 class="sh">One beat, eight ways to read it</h2>
+  <div class="prose">
+    <p>Everything counts from one clock. Each output has a <b>ratio</b> to it: <b>x2</b> runs twice as fast as the
+    beat, <b>/4</b> once a bar. Then a <b>waveform</b> decides what each cycle looks like: a gate held for part
+    of it, a short trigger, a ramp, a triangle, a sine, a falling envelope, or a new random level.</p>
+    <p>Because every output counts from the same clock, they always line up again on the downbeat. A reset (from
+    B3 or J2) brings them all back to the top together, and the random and chance outputs replay the same
+    sequence each time, so resetting every few bars turns randomness into a loop.</p>
+  </div>
+  <div class="three">
+    <div class="card" style="--c:var(--o1)"><div class="tag">Clocks</div><h3>Gates and triggers</h3>
+      <p>Quarters, eighths, a bar gate, a triplet feel from x1.5, odd meters from /5 and /7. Gate width runs up to
+      100%, which ties notes into one long gate.</p></div>
+    <div class="card" style="--c:var(--o5)"><div class="tag">Modulation</div><h3>LFOs in time</h3>
+      <p>Saw, ramp, triangle with a skew, sine, and smooth random, all locked to the tempo. LEVEL and OFFSET place
+      them anywhere in ±5 V; PHASE shifts one against the others.</p></div>
+    <div class="card" style="--c:var(--o7)"><div class="tag">Rhythm</div><h3>Patterns</h3>
+      <p>Spread any number of hits over up to 32 steps, rotate the pattern, let chance drop hits, and swing pairs
+      of steps from straight to a heavy shuffle.</p></div>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <div class="prose"><p>Six knobs on three layers. The OUTPUT layer edits the selected output; hold <kbd>B3</kbd> for
+  its PATTERN layer; hold <kbd>B2</kbd> for the MASTER layer, which is the clock itself. Pick a layer, then a knob.</p></div>
+  <div style="height:22px"></div>
+  <div class="pagetabs" id="pageTabs" role="group" aria-label="Layers"></div>
+  <div class="panelgrid">
+    <div>
+      <div class="face" id="face"></div>
+      <div class="btns">
+        <div><kbd>B1</kbd><span><b>Tap</b>: the next output, 1 → 8 → 1. <b>Hold</b> and turn the top-left knob to jump to
+        any output; its ring shows all eight in their colours. B1's light is the selected output, flashing with it.</span></div>
+        <div><kbd>B2</kbd><span><b>Tap</b>: tap tempo. Two to four taps set the BPM (a pause of two seconds starts a new
+        count). <b>Hold</b>: the MASTER layer. Its light flashes on the beat, amber on the internal clock and blue
+        when it's following J1.</span></div>
+        <div><kbd>B3</kbd><span><b>Tap</b>: stop, or start from the top. <b>Hold</b>: the PATTERN layer. Green while
+        running, red when stopped.</span></div>
+        <div><kbd>B2+B3</kbd><span>Held for two seconds: Settings. Brightness, presets and the J7/J8 switch on the first
+        page; <kbd>B1</kbd> steps to the firmware picker; <kbd>B3</kbd> leaves.</span></div>
+      </div>
+    </div>
+    <div class="help" id="help" aria-live="polite"></div>
+  </div>
+  <div class="prose" style="margin-top:22px">
+    <p><b>Knobs catch.</b> Six knobs serve eight outputs and three layers, so after you change output or layer a knob
+    does nothing until you turn it to the value its ring shows. Until then a dim dot on the ring marks where the
+    knob physically is. Nothing ever jumps.</p>
+    <div class="swatches" id="swatches"></div>
+  </div>
+</div></section>
+
+<section id="patterns"><div class="wrap">
+  <h2 class="sh">Patterns, chance and swing</h2>
+  <div class="prose">
+    <p><b>STEPS</b> turns an output into a euclidean pattern: each cycle of the output is one step, and
+    <b>FILLS</b> hits are spread over the steps as evenly as they'll go. Three hits in eight steps is the
+    tresillo; five in eight, the cinquillo; seven in sixteen, a samba. <b>ROTATE</b> moves the pattern's start.
+    Turning STEPS up from off starts it half full, so you hear it at once. A step with no hit stays at 0 V (the
+    random waves hold their level instead).</p>
+    <p><b>CHANCE</b> rolls for every hit; at 50% about half get through. <b>SWING</b> delays every second cycle:
+    50% is straight, 66.7% a triplet shuffle, 75% as far as it goes. <b>SLEW</b> glides the output from one level to the
+    next, up to about a second, which turns stepped random into a wandering line and softens a gate into a swell.</p>
+    <p>Chance and random draw from a sequence that starts again at every reset. Reset every bar, or every four, and
+    the "random" parts repeat exactly.</p>
+  </div>
+</div></section>
+
+<section id="clock"><div class="wrap">
+  <h2 class="sh">Following another clock</h2>
+  <div class="prose">
+    <p>Plug a clock into <b>J1</b> and Pulse follows it. Set how many pulses make a beat with <b>PPQN</b> on the MASTER
+    layer: 1, 2, 4, 8, 12, 24 (the default, as MIDI clock and most sequencers' sync outputs use) or 48. Each pulse puts
+    the count back where it should be, so multiplied outputs stay locked and a late pulse makes them wait instead
+    of drifting. When J1 goes quiet for three of its periods, Pulse carries on at its own BPM.</p>
+    <p><b>J2</b> does one of two things, chosen on the MASTER layer: <b>Reset</b> sends everything back to the top, or
+    <b>Start/Stop</b> toggles the clock with each pulse (starting from the top). A pulse on J1 that arrives with the
+    reset counts as the new downbeat.</p>
+    <p>J1 and J2 read pulses and triggers, not held voltages: they're the audio inputs, and a steady voltage fades
+    out of them within about a second. That's why J2's start/stop is a toggle rather than a held run gate.</p>
+  </div>
+</div></section>
+
+<section id="cv"><div class="wrap">
+  <h2 class="sh">Two CV inputs</h2>
+  <div class="prose">
+    <p>In Settings, the top-right knob switches <b>J7 and J8</b> between <b>Outputs</b> (the default) and
+    <b>CV in</b>. As inputs they're <b>CV A</b> and <b>CV B</b>, ±5 V each, and outputs 5 and 6 go quiet.</p>
+    <p>Hold <kbd>B2</kbd>: the middle-right knob picks what CV A moves, the bottom-left knob what CV B moves. The
+    choices are Off, Ratio, Wave, Width, Level, Offset, Phase, Steps, Fills, Rotate, Chance, Swing and Slew. Each one
+    moves the output that was selected when you turned its knob, and the knob's ring takes that output's colour.</p>
+    <p>The CV adds to the setting rather than replacing it: +5 V is one full turn of the knob up, −5 V one full turn
+    down. So −5 V into LEVEL silences an output, and +5 V into RATIO takes x1 all the way to x32. Your stored setting
+    never changes; pull the cable and the output is as you left it.</p>
+  </div>
+</div></section>
+
+<section id="jacks"><div class="wrap">
+  <h2 class="sh">Jacks</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Jack</th><th>What it does</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><b>J1</b></td><td>Clock in</td><td>Rising edges, timed to the sample. PPQN on the MASTER layer.</td></tr>
+      <tr><td><b>J2</b></td><td>Reset, or start/stop</td><td>Rising edges. Its job is on the MASTER layer.</td></tr>
+      <tr><td><b>J3–J6</b></td><td>Outputs 1–4</td><td>±5 V, 12-bit.</td></tr>
+      <tr><td><b>J7–J8</b></td><td>Outputs 5–6, or CV A and B</td><td>±5 V, 12-bit; switched in Settings.</td></tr>
+      <tr><td><b>J9–J10</b></td><td>Outputs 7–8</td><td>±5 V, 24-bit: the finest outputs, best for slow LFOs.</td></tr>
+    </tbody></table></div>
+  <div class="prose" style="margin-top:18px">
+    <p>Every output sits between 0 and +5 V at the default OFFSET of 0. Turn OFFSET down by half the LEVEL to centre an
+    LFO on zero (outputs 5 and 6 start that way, at −2.5 V). Gates, triggers and envelopes rest at 0 V while the clock
+    is stopped.</p>
+  </div>
+</div></section>
+
+<section id="recipes"><div class="wrap">
+  <h2 class="sh">Recipes</h2>
+  <div class="recipes">
+    <div class="card" style="--c:var(--o7)"><h3>Tresillo kick</h3><ol>
+      <li>Select an output and set RATIO to x2, WAVE to Trig.</li>
+      <li>Hold B3: STEPS to 8. It starts at 4 fills; turn FILLS to 3.</li>
+      <li>ROTATE moves where the pattern starts in the bar.</li></ol></div>
+    <div class="card" style="--c:var(--o5)"><h3>Breathing filter</h3><ol>
+      <li>WAVE to Tri, RATIO to /8 (two bars).</li>
+      <li>WIDTH skews it: low for a slow rise and a quick fall.</li>
+      <li>LEVEL and OFFSET fit it to the filter's range.</li></ol></div>
+    <div class="card" style="--c:var(--o8)"><h3>A looping random melody</h3><ol>
+      <li>WAVE to Random, RATIO to x2, into a quantizer.</li>
+      <li>Hold B3: a little SLEW for glide, CHANCE to taste.</li>
+      <li>Hold B2: J2 to Reset, and send it a pulse every bar or two. The melody repeats.</li></ol></div>
+    <div class="card" style="--c:var(--o2)"><h3>Fills from a CV</h3><ol>
+      <li>Settings: J7/J8 to CV in.</li>
+      <li>Select your hi-hat output, hold B2, and turn the middle-right knob to Fills.</li>
+      <li>An envelope or LFO into J7 now thickens and thins the pattern.</li></ol></div>
+  </div>
+</div></section>
+
+<section id="setup"><div class="wrap">
+  <h2 class="sh">Setup, saving and flashing</h2>
+  <div class="prose">
+    <p>Everything (the tempo, the J1 and J2 settings, the CV targets and all eight outputs) saves itself to preset
+    slot 11 five seconds after you stop turning things, and comes back at the next power-up. The other firmwares in
+    this family use other slots, so switching through the firmware picker keeps each one's state. Presets saved by
+    hand from Settings hold the whole patch too.</p>
+    <p>A fresh module starts with: <b>1</b> quarter gates, <b>2</b> eighths, <b>3</b> sixteenth triggers, <b>4</b> a gate
+    each bar, <b>5</b> a two-bar sine, <b>6</b> a four-bar triangle, <b>7</b> a 3-in-8 eighth-note pattern, and
+    <b>8</b> a new random level each beat.</p>
+    <p>Build it from <code>belt-alchemy/pulse</code> with <code>make libdaisy</code> once in the repo root, then
+    <code>make</code>, which gives <code>build/pulse_alchemy.bin</code>. Put it in <code>/alchemy</code> on the card and
+    pick it from the firmware picker, or flash it like any Alchemy Lab firmware with the
+    <a href="https://hermeticmodular.com/program">web programmer</a>.</p>
+  </div>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <div class="status">
+    <div><span class="y">✓</span><span>Builds for the module (v0.2.0, about 236 KB).</span></div>
+    <div><span class="y">✓</span><span>The clock engine passes 100 tests on a computer: every ratio's count and alignment, widths and levels,
+    euclidean spacing and rotation, swing timing, phase, chance, tap tempo, following a 24 PPQN clock through a tempo
+    change, reset and start/stop on J2, slew, saving and loading, and both CV inputs on every target.</span></div>
+    <div><span class="y">✓</span><span>Runs unchanged in the <a href="https://timncox.github.io/alchemy-lab/emulator/">Alchemy Lab emulator</a>:
+    five test scripts and 60 checks covering boot, all eight outputs' rates, stop and start, tap tempo, following
+    J1, resets on J2, BPM from the MASTER layer, and the J7/J8 switch with CV moving a ratio and a level.</span></div>
+    <div><span class="n">○</span><span>Not yet on a module. How tightly J3–J6 hold time at fast rates (they're written about once a
+    millisecond) is still to be heard.</span></div>
+    <div><span class="n">○</span><span>Not in the browser emulator yet.</span></div>
+    <div><span class="n">○</span><span>Not yet: ratchets, a quantizer, outputs that combine other outputs, one-shot mode and MIDI.</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Pulse for Alchemy Lab · by <a href="https://timncox.github.io/alchemy-lab/">Tim Cox</a> ·
+  source in <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>.</p>
+  <p>The Alchemy Lab and its software kit are by <a href="https://hermeticmodular.com/modules/alchemy-lab">Hermetic Modular</a>.</p>
+</div></footer>
+
+<script>
+{
+const $ = id => document.getElementById(id);
+const COL = ["#ff3030","#ff9010","#f0e020","#40ff40","#20e0e0","#3070ff","#a040ff","#ff40c0"];
+const JACK = ["J3","J4","J5","J6","J7","J8","J9","J10"];
+
+/* pulse_engine.cpp kRatios: [num, den, label] */
+const RATIOS = [[1,64,"/64"],[1,32,"/32"],[1,24,"/24"],[1,16,"/16"],[1,12,"/12"],[1,8,"/8"],[1,7,"/7"],[1,6,"/6"],
+  [1,5,"/5"],[1,4,"/4"],[1,3,"/3"],[1,2,"/2"],[2,3,"/1.5"],[1,1,"x1"],[3,2,"x1.5"],[2,1,"x2"],[3,1,"x3"],[4,1,"x4"],
+  [5,1,"x5"],[6,1,"x6"],[7,1,"x7"],[8,1,"x8"],[12,1,"x12"],[16,1,"x16"],[24,1,"x24"],[32,1,"x32"]];
+const WAVES = ["Gate","Trig","Saw","Ramp","Tri","Sine","Env","Random","Smooth"];
+
+/* pulse_engine Defaults() */
+const base = () => ({ ratio:13, wave:0, width:.5, level:1, offset:0, phase:0, steps:0, fills:0, rotate:0, chance:1, swing:.5, slew:0 });
+const OUT = Array.from({length:8}, base);
+OUT[1].ratio = 15;
+Object.assign(OUT[2], { ratio:17, wave:1, width:.1 });
+Object.assign(OUT[3], { ratio:9, width:.25 });
+Object.assign(OUT[4], { ratio:5, wave:5, offset:-2.5 });
+Object.assign(OUT[5], { ratio:3, wave:4, offset:-2.5 });
+Object.assign(OUT[6], { ratio:15, wave:1, steps:8, fills:3, width:.1 });
+OUT[7].wave = 7;
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+function euclid(i, steps, fills, rot) {
+  if (steps <= 0) return true;
+  if (fills <= 0) return false;
+  if (fills >= steps) return true;
+  const k = (((i + rot) % steps) + steps) % steps;
+  return (k * fills) % steps < fills;
+}
+function swingWarp(c, s) {
+  s = clamp(s, .5, .75);
+  if (s <= .5) return c;
+  const pair = Math.floor(c / 2), u = c - pair * 2, b = 2 * s;
+  return pair * 2 + (u < b ? u / b : 1 + (u - b) / (2 - b));
+}
+function shape(w, p, width, cyc, r0, r1) {
+  switch (w) {
+    case 0: { const ww = clamp(width, .01, 1); return (ww >= 1 || p < ww) ? 1 : 0; }
+    case 1: { let len = .005 + clamp(width, 0, 1) * .045; if (len > .5 * cyc) len = .5 * cyc; return p * cyc < len ? 1 : 0; }
+    case 2: return p;
+    case 3: return 1 - p;
+    case 4: { const ww = clamp(width, .001, .999); return p < ww ? p / ww : (1 - p) / (1 - ww); }
+    case 5: return .5 - .5 * Math.cos(2 * Math.PI * p);
+    case 6: return Math.exp(-p / (.03 + clamp(width, 0, 1) * .6));
+    case 7: return r1;
+    case 8: return r0 + (r1 - r0) * (.5 - .5 * Math.cos(Math.PI * p));
+  }
+  return 0;
+}
+/* a hash in place of the engine's xorshift: the same idea (one value per
+   cycle, repeating after a reset), not the same numbers */
+const rnd = (c, i, k) => { let x = Math.sin((i + 1) * 12.9898 + (c + 1) * 78.233 + k * 37.719) * 43758.5453; return x - Math.floor(x); };
+
+/* volts of output c at beat position pos (beats since reset) */
+function volts(c, pos, bpm, running) {
+  const P = OUT[c], R = RATIOS[P.ratio];
+  const cyc = pos * R[0] / R[1] + P.phase;
+  const w = swingWarp(cyc, P.swing), idx = Math.floor(w), p = w - idx;
+  const cycle_s = 60 / bpm * R[1] / R[0];
+  const hit = euclid(idx, P.steps, Math.min(P.fills, P.steps), P.rotate) && rnd(c, idx, 9) < P.chance;
+  const rand = P.wave >= 7;
+  let s;
+  if (!running && (P.wave === 0 || P.wave === 1 || P.wave === 6)) s = 0;
+  else if (!hit && !rand) s = 0;
+  else s = shape(P.wave, p, P.width, cycle_s, rnd(c, idx - 1, 1), rnd(c, idx, 1));
+  return clamp(P.offset + P.level * 5 * s, -5, 5);
+}
+
+/* ===== the scope ===== */
+let bpm = 120, running = true, sel = 0, pos = 0, last = performance.now();
+const BARS = 2, BEATS = BARS * 4;
+$("lanes").innerHTML = OUT.map((_, c) => `<button class="lane" data-c="${c}" style="--c:${COL[c]}" aria-pressed="${c === sel}">
+  <span class="n">${c + 1}<i>${JACK[c]}</i></span><canvas height="34"></canvas></button>`).join("");
+const lanes = [...$("lanes").querySelectorAll(".lane")];
+lanes.forEach(l => l.onclick = () => { sel = +l.dataset.c; lanes.forEach(x => x.setAttribute("aria-pressed", x === l)); drawEdit(); });
+
+function drawEdit() {
+  const P = OUT[sel];
+  const opt = (arr, v) => arr.map((t, i) => `<option value="${i}"${i === v ? " selected" : ""}>${t}</option>`).join("");
+  $("edit").style.setProperty("--sel", COL[sel]);
+  $("edit").innerHTML = `
+    <label>Ratio<select data-k="ratio">${opt(RATIOS.map(r => r[2]), P.ratio)}</select></label>
+    <label>Wave<select data-k="wave">${opt(WAVES, P.wave)}</select></label>
+    <label>Steps<select data-k="steps">${opt(Array.from({length:33}, (_, i) => i ? String(i) : "off"), P.steps)}</select></label>
+    <label>Fills<select data-k="fills">${opt(Array.from({length:P.steps + 1}, (_, i) => String(i)), Math.min(P.fills, P.steps))}</select></label>
+    <label>Width<input type="range" data-k="width" min="0" max="1" step=".01" value="${P.width}"></label>
+    <label>Phase<input type="range" data-k="phase" min="0" max="1" step=".01" value="${P.phase}"></label>
+    <label>Chance<input type="range" data-k="chance" min="0" max="1" step=".01" value="${P.chance}"></label>
+    <label>Swing<input type="range" data-k="swing" min=".5" max=".75" step=".005" value="${P.swing}"></label>`;
+  $("edit").querySelectorAll("[data-k]").forEach(el => el.oninput = () => {
+    const k = el.dataset.k, v = +el.value;
+    P[k] = v;
+    if (k === "steps") { if (P.steps && !P.fills) P.fills = Math.ceil(P.steps / 2); if (P.fills > P.steps) P.fills = P.steps; drawEdit(); }
+  });
+}
+drawEdit();
+
+function draw() {
+  const now = performance.now(), dt = (now - last) / 1000; last = now;
+  if (running) pos += dt * bpm / 60;
+  const win = Math.floor(pos / BEATS) * BEATS;   /* a sweeping trace, like a scope */
+  lanes.forEach((l, c) => {
+    const cv = l.querySelector("canvas"), W = cv.clientWidth, H = 34;
+    if (cv.width !== W * 2) cv.width = W * 2;
+    const g = cv.getContext("2d"); g.setTransform(2, 0, 0, 2, 0, 0);
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = "rgba(236,238,244,.05)";
+    for (let b = 0; b <= BEATS; b++) g.fillRect(Math.round(b / BEATS * (W - 1)), 0, 1, H);
+    g.fillStyle = "rgba(236,238,244,.12)"; g.fillRect(0, H / 2, W, 1);
+    g.strokeStyle = COL[c]; g.lineWidth = 1.5; g.beginPath();
+    const head = (pos - win) / BEATS;
+    for (let x = 0; x < W; x++) {
+      const f = x / W;
+      const p = f <= head ? win + f * BEATS : win - BEATS + f * BEATS;
+      const y = H / 2 - volts(c, Math.max(p, 0), bpm, running) / 5 * (H / 2 - 2);
+      x ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+    g.fillStyle = "#eceef4"; g.fillRect(Math.round(head * W), 0, 1, H);
+  });
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+$("bpm").oninput = e => { bpm = +e.target.value; $("bpmv").textContent = bpm; };
+$("run").onclick = () => {
+  running = !running;
+  if (running) pos = 0;            /* start is from the top, as on the module */
+  $("run").textContent = running ? "Running" : "Stopped";
+  $("run").classList.toggle("on", running); $("run").setAttribute("aria-pressed", running);
+};
+let taps = [];
+$("tap").onclick = () => {
+  const t = performance.now() / 1000;
+  if (taps.length && t - taps[taps.length - 1] > 2) taps = [];
+  taps.push(t); if (taps.length > 4) taps.shift();
+  if (taps.length >= 2) {
+    const per = (taps[taps.length - 1] - taps[0]) / (taps.length - 1);
+    bpm = clamp(Math.round(60 / per), 10, 300); $("bpm").value = bpm; $("bpmv").textContent = bpm;
+  }
+};
+
+/* ===== the panel ===== */
+const POS = ["P1 · top left", "P2 · top right", "P3 · middle left", "P4 · middle right", "P5 · bottom left", "P6 · bottom right"];
+const LAYERS = [
+  { label:"Output", c:"#ff3030", hold:"the base layer: the selected output", k:[
+    ["Ratio", .52, "How fast this output runs against the beat: /64, /32, /24, /16, /12, /8, /7, /6, /5, /4, /3, /2, /1.5, x1, x1.5, x2, x3, x4, x5, x6, x7, x8, x12, x16, x24, x32. A white dot marks x1.", "26 steps"],
+    ["Wave", .06, "What each cycle looks like: Gate, Trig, Saw (rising), Ramp (falling), Tri, Sine, Env (a falling envelope), Random (a new level each cycle) and Smooth (random, gliding between levels).", "9 steps"],
+    ["Width", .5, "The gate's length (up to 100%, a tie), the trigger's length (5 to 50 ms), the triangle's skew, or the envelope's decay.", "0–100%"],
+    ["Level", 1, "How tall the output is: 0 to 5 V.", "0–5 V"],
+    ["Offset", .5, "Moves the whole output up or down, −5 to +5 V. The ring lights from noon.", "±5 V"],
+    ["Phase", 0, "Shifts this output later within its own cycle, by up to a whole cycle. Two outputs at the same ratio with different phases make offbeats.", "0–1 cycle"]]},
+  { label:"Pattern · hold B3", c:"#ff9898", hold:"while B3 is held: the selected output's pattern", k:[
+    ["Steps", 0, "The euclidean pattern's length, off or 1–32 cycles of this output. Turning it up from off starts the pattern half full.", "off, 1–32"],
+    ["Fills", 0, "How many of the steps get a hit, spread as evenly as they'll go.", "0–steps"],
+    ["Rotate", 0, "Moves the pattern's starting point by whole steps.", "0–steps−1"],
+    ["Chance", 1, "The odds that each hit plays. The rolls repeat after every reset.", "0–100%"],
+    ["Swing", 0, "Delays every second cycle: straight at the bottom, a triplet shuffle two-thirds up, 75% at the top.", "50–75%"],
+    ["Slew", 0, "Glides between levels, up to about a second.", "0–1 s"]]},
+  { label:"Master · hold B2", c:"#ffb040", hold:"while B2 is held: the clock", k:[
+    ["BPM", .38, "The tempo, 10 to 300 BPM, in whole beats. Ignored while J1 is driving. The ring's last light flashes on each beat.", "10–300"],
+    ["PPQN", .79, "How many pulses on J1 make one beat: 1, 2, 4, 8, 12, 24 or 48. Changing it restarts the count from a downbeat.", "7 steps"],
+    ["J2", .25, "What a pulse on J2 does: Reset (back to the top) or Start/Stop (toggle; starting is from the top).", "2 steps"],
+    ["CV A", .04, "What J7 moves when J7/J8 are CV inputs, on the output selected when you set it. The ring is that output's colour; dim while the jacks are outputs.", "Off + 12 targets"],
+    ["CV B", .04, "The same for J8.", "Off + 12 targets"],
+    null]},
+];
+let layer = 0, knob = 0;
+function ringSvg(color, v, on) {
+  const parts = [], n = 13, r = 34, lit = Math.round(v * 12);
+  for (let i = 0; i < n; i++) {
+    const a = (-225 + i * 270 / (n - 1)) * Math.PI / 180, x = 42 + r * Math.cos(a), y = 42 + r * Math.sin(a);
+    parts.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${on && i <= lit ? color : "#2a2e38"}"/>`);
+  }
+  const a = (-225 + v * 270) * Math.PI / 180;
+  return `<svg viewBox="0 0 84 84" aria-hidden="true">${parts.join("")}<circle cx="42" cy="42" r="22" fill="#24272f" stroke="#3a3f4b"/>
+    <line x1="42" y1="42" x2="${(42 + 18 * Math.cos(a)).toFixed(1)}" y2="${(42 + 18 * Math.sin(a)).toFixed(1)}" stroke="#eceef4" stroke-width="3" stroke-linecap="round"/></svg>`;
+}
+function drawPanel() {
+  $("pageTabs").innerHTML = LAYERS.map((L, i) => `<button style="--c:${L.c}" aria-pressed="${i === layer}" data-l="${i}">${L.label}</button>`).join("");
+  $("pageTabs").querySelectorAll("button").forEach(b => b.onclick = () => { layer = +b.dataset.l; knob = 0; drawPanel(); });
+  const L = LAYERS[layer];
+  const k = i => {
+    const K = L.k[i];
+    if (!K) return `<button class="knob" disabled>${ringSvg(L.c, 0, false)}<span>—</span></button>`;
+    return `<button class="knob" data-k="${i}" aria-pressed="${i === knob}">${ringSvg(L.c, K[1], true)}<span>${K[0]}</span></button>`;
+  };
+  const bc = ["#ff3030", layer === 2 ? "#ffb040" : null, layer === 1 ? "#ff9898" : "#30ff60"];
+  const btn = i => `<div class="btn" style="${bc[i] ? `--bc:${bc[i]}` : ""}">B${i + 1}</div>`;
+  $("face").innerHTML = k(0) + btn(0) + k(1) + k(2) + btn(1) + k(3) + k(4) + btn(2) + k(5);
+  $("face").querySelectorAll(".knob[data-k]").forEach(b => b.onclick = () => { knob = +b.dataset.k; drawPanel(); });
+  const K = L.k[knob];
+  $("help").innerHTML = `<div class="name" style="color:${L.c}">${K[0]}</div>
+    <div class="where">${POS[knob]} · ${L.hold} · ${K[3]}</div><p>${K[2]}</p>`;
+}
+drawPanel();
+$("swatches").innerHTML = COL.map((c, i) => `<span style="background:${c}">${i + 1} · ${JACK[i]}</span>`).join("");
+}
+</script>
+</body>
+</html>
