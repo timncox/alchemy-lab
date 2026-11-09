@@ -220,7 +220,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
   clock with eight clocked outputs for the rest of the rack, are built and tested on a computer and go on
   the module next. The other seven bring classic open-source instruments by
   Mutable Instruments to the Lab. Elements has been played on a module; the rest are built and tested on a
-  computer, with the first listen on the module next. All but Work and Pulse can be downloaded below,
+  computer, with the first listen on the module next. All but Work can be downloaded below,
   played or not.</p>
   <div class="inst" id="inst"></div>
 </section>
@@ -260,7 +260,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       <p class="fine" style="margin-top:14px">Newer builds:</p>
       <div class="dl" id="downloads-new"></div>
       <p class="fine">Tally and Hypjolin have now been played on a module, and since 31 October their downloads
-      remember your settings after a power-off (earlier builds forgot them). Seq, Break, Stencil, Relay and Benjolin are early
+      remember your settings after a power-off (earlier builds forgot them). Seq, Break, Stencil, Relay, Benjolin and Pulse are early
       builds: tested on a computer, not yet on a module. Stencil and Relay also run on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">Release
       notes</a>.</p>
       <p class="fine" style="margin-top:14px">The seven Mutable Instruments ports:</p>
@@ -371,6 +371,7 @@ const MI_REPO = "https://github.com/timncox/mi-alchemy";
 function binUrl(inst) {
   /* Where the file lives, not whether it was heard: Tally, Hypjolin and
      Elements are heard but still ship from the shared pre-releases. */
+  if (inst.bin) return inst.bin;
   if (inst.mi) return MI_REL + `${inst.id}_alchemy.bin`;
   if (inst.early) return NEW_REL + `${inst.id}_alchemy.bin`;
   return `https://github.com/timncox/${inst.id}-alchemy/releases/latest/download/${inst.id}_alchemy.bin`;
@@ -438,7 +439,7 @@ const I = [
     say:"Three stages in a row: a sound source, then two effects, each chosen from twenty-six machines, from filters and delays to three different reverbs. Leave the source off and it treats whatever you plug in. Or record a few seconds into it and play the recording back from the rest of the synth. It started as a module for the Ableton Move, inspired by Elektron's Tonverk.",
     knobs:["A","B","C","D","E","F"], v:[.25,0,0,.5,.75,.25],
     url:"https://timncox.github.io/alchemy-lab/work/" },
-  { id:"pulse", noBin:true, repo:"https://github.com/timncox/belt-alchemy/tree/claude/clock-firmware/pulse", name:"Pulse", c:"#4a7a1a", ring:"#a0ff40", heard:false,
+  { id:"pulse", bin:"https://timncox.github.io/alchemy-lab/pulse/pulse_alchemy.bin", repo:"https://github.com/timncox/belt-alchemy/tree/claude/clock-firmware/pulse", name:"Pulse", c:"#4a7a1a", ring:"#a0ff40", heard:false,
     status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
     what:"A master clock for the rest of the rack.",
     say:"It keeps time, from a tap, a knob or another clock, and sends eight outputs that each run at their own speed against the beat: faster, slower, or in odd numbers like five or seven. Each one can be a steady click, a slow wave for sweeping a filter, or a random voltage, and it can play a rhythm pattern, skip beats by chance, or swing. Two of its jacks can become inputs that move any of those settings.",
@@ -619,7 +620,7 @@ I.filter(x => x.heard && !x.early && !x.mi).forEach(inst => {
 });
 /* The early builds: one pre-release on this repo (binaries; sources in each repo). */
 const dlNew = document.getElementById("downloads-new");
-I.filter(x => x.early).forEach(inst => {
+I.filter(x => x.early || x.bin).forEach(inst => {
   const a = document.createElement("a");
   a.href = binUrl(inst);
   a.style.setProperty("--c", inst.ring);
