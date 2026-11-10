@@ -91,6 +91,15 @@ h3{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;letter-
 .prose{max-width:66ch;display:grid;gap:14px;color:var(--soft)}
 .prose b{color:var(--ink)}
 .three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:26px}
+.jackmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 10px;max-width:620px;margin-top:8px;
+  padding:22px 16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.jackmap .jk{display:grid;justify-items:center;align-content:start;gap:6px;text-align:center}
+.jackmap .hole{width:44px;height:44px;border-radius:50%;background:#07080b;border:3px solid var(--c,var(--dim));
+  box-shadow:0 0 0 5px var(--panel3),0 0 14px -2px var(--c,transparent)}
+.jackmap .jn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);letter-spacing:.04em}
+.jackmap .jf{font-size:13px;color:var(--soft);line-height:1.25}
+.jackmap .jf small{display:block;color:var(--dim);font-size:11.5px}
+@media(max-width:520px){.jackmap{gap:14px 4px;padding:16px 8px}.jackmap .hole{width:34px;height:34px}.jackmap .jf{font-size:11.5px}}
 .phones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:30px;align-items:start}
 .phones figure{margin:0}
 .phones img{display:block;width:100%;height:auto;border-radius:22px;border:1px solid var(--line);background:#000}
@@ -335,6 +344,23 @@ footer p + p{margin-top:8px}
 
 <section id="jacks"><div class="wrap">
   <h2 class="sh">Jacks</h2>
+  <div class="prose">
+    <p>The ten jacks sit in two rows of five at the bottom of the panel, numbered down each column from the left: the
+    odd ones along the top, the even ones under them. The first column is the two inputs; outputs 1 to 8 follow in
+    order, so each column after it is a pair of neighbouring outputs.</p>
+  </div>
+  <div class="jackmap" role="img" aria-label="The jacks as they sit on the panel. Top row, left to right: J1 clock in, J3 output 1, J5 output 3, J7 output 5 or CV A, J9 output 7. Bottom row: J2 reset or start/stop, J4 output 2, J6 output 4, J8 output 6 or CV B, J10 output 8.">
+    <div class="jk" style="--c:var(--ext)"><span class="jn">J1</span><span class="hole"></span><span class="jf">Clock in</span></div>
+    <div class="jk" style="--c:var(--o1)"><span class="jn">J3</span><span class="hole"></span><span class="jf">Out 1</span></div>
+    <div class="jk" style="--c:var(--o3)"><span class="jn">J5</span><span class="hole"></span><span class="jf">Out 3</span></div>
+    <div class="jk" style="--c:var(--o5)"><span class="jn">J7</span><span class="hole"></span><span class="jf">Out 5<small>or CV A</small></span></div>
+    <div class="jk" style="--c:var(--o7)"><span class="jn">J9</span><span class="hole"></span><span class="jf">Out 7</span></div>
+    <div class="jk" style="--c:var(--ext)"><span class="jn">J2</span><span class="hole"></span><span class="jf">Reset<small>or start/stop</small></span></div>
+    <div class="jk" style="--c:var(--o2)"><span class="jn">J4</span><span class="hole"></span><span class="jf">Out 2</span></div>
+    <div class="jk" style="--c:var(--o4)"><span class="jn">J6</span><span class="hole"></span><span class="jf">Out 4</span></div>
+    <div class="jk" style="--c:var(--o6)"><span class="jn">J8</span><span class="hole"></span><span class="jf">Out 6<small>or CV B</small></span></div>
+    <div class="jk" style="--c:var(--o8)"><span class="jn">J10</span><span class="hole"></span><span class="jf">Out 8</span></div>
+  </div>
   <div class="tbl"><table>
     <thead><tr><th>Jack</th><th>What it does</th><th>Notes</th></tr></thead>
     <tbody>
