@@ -71,6 +71,18 @@ void MarkFirmwareThread();
 void Service();
 } // namespace usbdev
 
+/* A USB-MIDI device on the front USB-C (emu_midi.cpp): the script's `midi`
+ * lines Send; a firmware's emulator shim Pops the packets (cable|CIN,
+ * status, d1, d2, byte 0 low) as its USB host would hand them over. The
+ * first Send plugs the device in; Plug(false) pulls it out. */
+namespace midi {
+void     Send(uint8_t status, uint8_t d1, uint8_t d2);
+void     Plug(bool on);
+bool     Plugged();
+bool     Pop(uint32_t* pkt);
+uint32_t Count();   /* packets the firmware has taken */
+} // namespace midi
+
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);
 

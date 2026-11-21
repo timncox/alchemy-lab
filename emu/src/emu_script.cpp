@@ -31,6 +31,11 @@
  *   xl knob <row 1-3> <col> <0-127>  Launch Control XL; xl fader <col> <v>;
  *   xl button <row 1-2> <col> [press|release]
  *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
+ *   midi on <ch> <note> [vel] | off <ch> <note> | cc <ch> <cc> <v> | bend <ch> <v>
+ *   midi start|stop|continue | clock <ticks> [bpm] | raw <st> <d1> <d2> | plug|unplug
+ *                                    a USB-MIDI device on the front USB-C, for a
+ *                                    firmware that hosts one (emu_midi.cpp); clock
+ *                                    sends 24 PPQN ticks in real time (120 BPM)
  *   expect lp <col> <row> <colour> | expect lp top|side <n> <colour>
  *                                    (<colour> a number = that palette index)
  *   expect ring <pot> > | < <n>      lit LEDs on that pot's ring
@@ -244,6 +249,50 @@ int emu_script_run(const char* path)
                 if (!press && !rel) sleep_ms(80);
                 if (!press) emu::ctl::XlButton(r, cl, false);
             }
+        }
+        else if (C == "midi")
+        {
+            /* midi on <ch 1-16> <note> <vel> | off <ch> <note> | cc <ch> <cc> <v> |
+             * bend <ch> <-8192..8191> | start | stop | continue |
+             * clock <ticks> [bpm]  (24 PPQN, waits as it goes; 120 BPM) |
+             * raw <status> <d1> <d2> | plug | unplug */
+            const int ch = (std::atoi(b) - 1) & 15;
+            if (!std::strcmp(a, "on")) emu::midi::Send((uint8_t)(0x90 | ch), (uint8_t)std::atoi(c), (uint8_t)(n > 4 ? std::atoi(d) : 100));
+            else if (!std::strcmp(a, "off")) emu::midi::Send((uint8_t)(0x80 | ch), (uint8_t)std::atoi(c), 0);
+            else if (!std::strcmp(a, "cc")) emu::midi::Send((uint8_t)(0xB0 | ch), (uint8_t)std::atoi(c), (uint8_t)std::atoi(d));
+            else if (!std::strcmp(a, "bend"))
+            {
+                int v = std::atoi(c) + 8192;
+                v = v < 0 ? 0 : v > 16383 ? 16383 : v;
+                emu::midi::Send((uint8_t)(0xE0 | ch), (uint8_t)(v & 0x7F), (uint8_t)(v >> 7));
+            }
+            else if (!std::strcmp(a, "start")) emu::midi::Send(0xFA, 0, 0);
+            else if (!std::strcmp(a, "stop")) emu::midi::Send(0xFC, 0, 0);
+            else if (!std::strcmp(a, "continue")) emu::midi::Send(0xFB, 0, 0);
+            else if (!std::strcmp(a, "clock"))
+            {
+                const int    ticks = std::atoi(b);
+                const double bpm   = n > 3 ? std::atof(c) : 120.0;
+                using Clock = std::chrono::steady_clock;
+                const auto t0  = Clock::now();
+                const double per = 60000.0 / (bpm > 1.0 ? bpm : 1.0) / 24.0;   /* ms */
+                for (int t = 0; t < ticks; t++)
+                {
+                    emu::midi::Send(0xF8, 0, 0);
+                    const auto due = t0 + std::chrono::microseconds((long long)((t + 1) * per * 1000.0));
+                    while (Clock::now() < due)
+                    {
+                        emu::hostlink::Poll();
+                        std::this_thread::sleep_for(std::chrono::microseconds(200));
+                    }
+                }
+            }
+            else if (!std::strcmp(a, "raw"))
+                emu::midi::Send((uint8_t)std::strtol(b, nullptr, 0), (uint8_t)std::strtol(c, nullptr, 0),
+                                (uint8_t)std::strtol(d, nullptr, 0));
+            else if (!std::strcmp(a, "plug")) emu::midi::Plug(true);
+            else if (!std::strcmp(a, "unplug")) emu::midi::Plug(false);
+            else { std::printf("?? line %d: midi %s\n", line_no, a); fails++; }
         }
         else if (C == "pad")
         {
