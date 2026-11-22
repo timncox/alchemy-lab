@@ -200,8 +200,9 @@ footer p + p{margin-top:8px}
       <p>Plug the FM-1, the SMK-37 or any class-compliant USB MIDI keyboard into the Lab. <kbd>B3</kbd> goes
       <b>green</b> and flashes white with each message.</p>
       <p>The Lab puts <b>no power</b> on its USB port (it's built that way; firmware can't change it). The FM-1
-      runs on its battery, so it plugs straight in. A keyboard that needs USB power needs a <b>powered USB hub</b>
-      between them, which also charges it.</p></div>
+      and SMK-37 run on their own power, but their USB only wakes up with 5 V on the cable, so they need a
+      <b>powered USB hub</b> between them and the Lab, which also charges them. Straight in, <kbd>B3</kbd> goes
+      amber, then red with one blink.</p></div>
     <div class="card" style="--c:var(--vb)"><div class="tag">The Lab is the device</div><h3>Into an iPhone, iPad or Mac</h3>
       <p>Plug the Lab into a phone, tablet or computer and it shows up as a MIDI device named <b>TETHER</b>.
       <kbd>B3</kbd> goes <b>cyan</b>. Pick TETHER as the output in Loadout, a DAW or any MIDI app and its notes
@@ -217,7 +218,9 @@ footer p + p{margin-top:8px}
   <div class="lights" aria-label="What B3's light means">
     <div><i class="dim" style="--c:var(--red)"></i><span><b>Dim red</b>: nothing plugged in, or still taking turns.</span></div>
     <div><i style="--c:var(--amber)"></i><span><b>Amber</b>: something answered; setting it up.</span></div>
-    <div><i style="--c:var(--red)"></i><span><b>Red</b>: a USB device it can't use (no MIDI on it).</span></div>
+    <div><i style="--c:var(--red)"></i><span><b>Red</b>: it couldn't set up what's plugged in. Count the dark blinks:
+    <b>1</b> it never answered (most often no power on the cable: use a powered hub), <b>2</b> lost while
+    being set up, <b>3</b> lost while being configured, <b>4</b> no MIDI on it.</span></div>
     <div><i style="--c:var(--green)"></i><span><b>Green</b>: a keyboard's MIDI is coming in.</span></div>
     <div><i style="--c:var(--vb)"></i><span><b>Cyan</b>: an iPhone, iPad or Mac is playing TETHER.</span></div>
     <div><i style="--c:var(--blue)"></i><span><b>Blue</b>: Mac mode (below), for the web tools and file transfer.</span></div>
@@ -244,8 +247,8 @@ footer p + p{margin-top:8px}
       <li>Press <kbd>SCALE</kbd> for the <b>SONG</b> page.</li>
       <li>Tap <kbd>KNOB BANK</kbd> for the lower row: K5 is CLOCK IN, K6 is CLOCK OUT.</li>
       <li>Turn <b>K6</b> all the way to <b>PARTS</b>.</li>
-      <li>Plug the SMK-37's USB-C into a powered hub and the hub into the Lab (or straight into the Lab, if the
-      keyboard stays on with its USB cable out). Wait for <kbd>B3</kbd> to go green, then press <kbd>PLAY</kbd>.</li></ol></div>
+      <li>Plug the SMK-37's USB-C into a powered hub and the hub into the Lab (straight in, its USB gets no power
+      and won't answer). Wait for <kbd>B3</kbd> to go green, then press <kbd>PLAY</kbd>.</li></ol></div>
   </div>
   <div class="tbl"><table>
     <thead><tr><th>Channel</th><th>Part</th><th>On a fresh TETHER</th></tr></thead>
