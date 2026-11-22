@@ -33,6 +33,8 @@
  *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
  *   midi on <ch> <note> [vel] | off <ch> <note> | cc <ch> <cc> <v> | bend <ch> <v>
  *   midi start|stop|continue | clock <ticks> [bpm] | raw <st> <d1> <d2> | plug|unplug
+ *   midi sysex <hex bytes>           a whole SysEx (F0 .. F7) from the far end
+ *   expect sysexout <hex> | print sysexout   the newest SysEx the firmware sent back starts so
  *   midifile <path>                  a timed stream ("<ms> <st> <d1> <d2>", hex) on the
  *                                    audio clock, from 20 ms on (e.g. a keyboard sim's log)
  *   cvlog <path> | cvlog off         J3..J10 a block at a time to a file (frame, 8 volts)
@@ -201,6 +203,27 @@ int emu_script_run(const char* path)
                         ok ? "PASS" : "FAIL", line_no, j + 3, got, c, want);
             if (!ok) fails++;
         }
+        else if ((C == "expect" || C == "print") && !std::strcmp(a, "sysexout"))
+        {
+            /* expect sysexout <hex, no spaces>: the newest SysEx the firmware
+             * sent back (F0 .. F7) starts with these bytes; print sysexout */
+            uint8_t got[512];
+            const int gn = emu::midi::LastOut(got, sizeof got);
+            char hex[1100];
+            int  hk = 0;
+            for (int i = 0; i < gn && hk < (int)sizeof hex - 3; i++) hk += std::snprintf(hex + hk, sizeof hex - (size_t)hk, "%02X", got[i]);
+            hex[hk] = 0;
+            if (C == "print") std::printf("  sysex out (%u so far): %s\n", emu::midi::OutCount(), hk ? hex : "(none)");
+            else
+            {
+                std::string want(b);
+                for (auto& ch : want) ch = (char)std::toupper((unsigned char)ch);
+                const bool ok = n > 2 && std::strncmp(hex, want.c_str(), want.size()) == 0;
+                std::printf("%s line %d: last SysEx out %.40s%s, want it to start %s\n", ok ? "PASS" : "FAIL", line_no,
+                            hk ? hex : "(none)", hk > 40 ? "..." : "", b);
+                if (!ok) fails++;
+            }
+        }
         else if (C == "print" && !std::strcmp(a, "edges"))
         {
             for (int j = 0; j < 8; j++)
@@ -293,6 +316,24 @@ int emu_script_run(const char* path)
             else if (!std::strcmp(a, "raw"))
                 emu::midi::Send((uint8_t)std::strtol(b, nullptr, 0), (uint8_t)std::strtol(c, nullptr, 0),
                                 (uint8_t)std::strtol(d, nullptr, 0));
+            else if (!std::strcmp(a, "sysex"))
+            {
+                /* midi sysex <hex bytes ...>: the rest of the line, F0 .. F7 */
+                uint8_t msg[512];
+                int     k = 0;
+                const char* p = std::strstr(line, "sysex") + 5;
+                char* end;
+                for (;;)
+                {
+                    while (*p == ' ' || *p == '\t') p++;
+                    if (*p == '#' || !*p || *p == '\n') break;
+                    const long v = std::strtol(p, &end, 16);
+                    if (end == p || k >= (int)sizeof msg) break;
+                    msg[k++] = (uint8_t)v;
+                    p = end;
+                }
+                emu::midi::SendSysex(msg, k);
+            }
             else if (!std::strcmp(a, "plug") && n > 2 && !std::strcmp(b, "computer")) emu::midi::PlugComputer(true);
             else if (!std::strcmp(a, "plug")) emu::midi::Plug(true);
             else if (!std::strcmp(a, "unplug")) emu::midi::Plug(false);

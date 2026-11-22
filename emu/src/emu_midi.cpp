@@ -73,6 +73,50 @@ bool Pop(uint32_t* pkt)
 
 uint32_t Count() { return g_count.load(); }
 
+void SendSysex(const uint8_t* msg, int n)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    g_plugged = true;
+    for (int i = 0; i < n; i += 3)
+    {
+        const int left = n - i;
+        uint32_t  p    = left > 3 ? 0x4u : (uint32_t)(0x4 + left);
+        for (int k = 0; k < 3 && k < left; k++) p |= (uint32_t)msg[i + k] << (8 * (k + 1));
+        if (g_q.size() < 4096) g_q.push_back(p);
+    }
+}
+
+static std::vector<uint8_t> g_out_cur, g_out_last;
+static uint32_t             g_out_count = 0;
+
+void Out(uint32_t pkt)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    const uint8_t cin = pkt & 0x0F;
+    const int     nb  = cin == 0x4 || cin == 0x7 ? 3 : cin == 0x6 ? 2 : cin == 0x5 ? 1 : 0;
+    for (int i = 0; i < nb; i++)
+    {
+        const uint8_t b = (uint8_t)(pkt >> (8 * (i + 1)));
+        if (b == 0xF0) g_out_cur.clear();
+        g_out_cur.push_back(b);
+        if (b == 0xF7) { g_out_last = g_out_cur; g_out_cur.clear(); g_out_count++; }
+    }
+}
+
+int LastOut(uint8_t* buf, int cap)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    const int n = (int)g_out_last.size() < cap ? (int)g_out_last.size() : cap;
+    if (n) std::memcpy(buf, g_out_last.data(), (size_t)n);
+    return n;
+}
+
+uint32_t OutCount()
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    return g_out_count;
+}
+
 bool LoadFile(const char* path, uint64_t start_frame)
 {
     FILE* f = std::fopen(path, "r");

@@ -86,6 +86,13 @@ void     PlugComputer(bool on);
 bool     Computer();
 bool     Pop(uint32_t* pkt);
 uint32_t Count();   /* packets the firmware has taken */
+/* SysEx both ways (script `midi sysex`, `expect sysexout`): a whole message
+ * (F0 .. F7) queued as packets; Out() takes the firmware's packets back to
+ * the computer, and Last() is the newest whole SysEx it sent, F0 .. F7. */
+void     SendSysex(const uint8_t* msg, int n);
+void     Out(uint32_t pkt);
+int      LastOut(uint8_t* buf, int cap);
+uint32_t OutCount();   /* whole SysEx messages the firmware has sent */
 /* A timed stream (a keyboard simulator's log, script `midifile`): packets
  * handed over in the audio block whose first frame reaches their time, so
  * the firmware sees them as a host polling the port would. Due() runs from
