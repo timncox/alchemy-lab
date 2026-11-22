@@ -211,13 +211,14 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
 
 <section id="instruments">
   <h2>The instruments</h2>
-  <p class="group-note">The first twelve are my own designs. Mark, Belt, Smack, Tally, a sine wave with
+  <p class="group-note">The first thirteen are my own designs. Mark, Belt, Smack, Tally, a sine wave with
   eight ways to bend it, and Hypjolin, two chaos machines patched into each other, have been played on the
   module. Seq, a sequencer that writes parts for the rest of the synth, Break, which mangles drum breaks
   from the memory card, Stencil, which cuts held sounds into rhythm and can spell words in Morse code,
   Relay, which turns notes from a computer into voltages, Work, a sampler and effects chain with
-  twenty-six machines, Benjolin, Hypjolin's noise box on its own in three pages, and Pulse, a master
-  clock with eight clocked outputs for the rest of the rack, are built and tested on a computer and go on
+  twenty-six machines, Benjolin, Hypjolin's noise box on its own in three pages, Pulse, a master
+  clock with eight clocked outputs for the rest of the rack, and TETHER, which turns USB MIDI from a keyboard
+  or a phone into voltages, are built and tested on a computer and go on
   the module next. The other seven bring classic open-source instruments by
   Mutable Instruments to the Lab. Elements has been played on a module; the rest are built and tested on a
   computer, with the first listen on the module next. All but Work can be downloaded below,
@@ -260,7 +261,7 @@ code { font: 500 .88em var(--mono); background: var(--wall-2); padding: .1em .35
       <p class="fine" style="margin-top:14px">Newer builds:</p>
       <div class="dl" id="downloads-new"></div>
       <p class="fine">Tally and Hypjolin have now been played on a module, and since 31 October their downloads
-      remember your settings after a power-off (earlier builds forgot them). Seq, Break, Stencil, Relay, Benjolin and Pulse are early
+      remember your settings after a power-off (earlier builds forgot them). Seq, Break, Stencil, Relay, Benjolin, Pulse and TETHER are early
       builds: tested on a computer, not yet on a module. Stencil and Relay also run on the Daisy Patch. <a href="https://github.com/timncox/alchemy-lab/releases/tag/firmware-2026-10-16">Release
       notes</a>.</p>
       <p class="fine" style="margin-top:14px">The seven Mutable Instruments ports:</p>
@@ -445,6 +446,12 @@ const I = [
     say:"It keeps time, from a tap, a knob or another clock, and sends eight outputs that each run at their own speed against the beat: faster, slower, or in odd numbers like five or seven. Each one can be a steady click, a slow wave for sweeping a filter, or a random voltage, and it can play a rhythm pattern, skip beats by chance, or swing. Two of its jacks can become inputs that move any of those settings.",
     knobs:["Ratio","Wave","Width","Level","Offset","Phase"], v:[.52,.06,.5,1,.5,0],
     url:"https://timncox.github.io/alchemy-lab/pulse/" },
+  { id:"tether", bin:"https://timncox.github.io/alchemy-lab/tether/tether_alchemy.bin", repo:"https://github.com/timncox/belt-alchemy/tree/claude/tether-midi-cv/tether", name:"TETHER", c:"#8a4a10", ring:"#20d0ff", heard:false,
+    status:"Built · first run on the module next", now:"Built and tested on a computer; on the module next.",
+    what:"USB MIDI in, voltages out.",
+    say:"Plug a MIDI keyboard into it, or plug it into an iPhone, iPad or Mac, and the notes come out as voltages for the rest of the synth: two pitches with their gates, a clock, a reset and drum triggers. It was made for PROTECTOR on the M-Vave keyboards, which sends each part on its own channel, so the bass, lead, kick and snare each land on their own jacks.",
+    knobs:["Part","Gate","Glide","Octave","Transpose","Notes"], v:[.3,0,.15,.5,.5,0],
+    url:"https://timncox.github.io/alchemy-lab/tether/" },
   { id:"clouds", mi:true, repo:MI_REPO, name:"Clouds", c:"#2f7fc1", ring:"#40c0ff", heard:false,
     what:"Turns sound into clouds.",
     say:"It records what you feed it and plays it back as thousands of tiny grains, so you can freeze a moment, smear it, stretch it or pitch it.",

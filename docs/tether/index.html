@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Operation manual for TETHER on the Hermetic Modular Alchemy Lab: USB MIDI from a keyboard, iPhone, iPad or Mac turned into two pitch CVs, gates, clocks, resets and drum triggers. Made for PROTECTOR's PARTS setting.">
+<title>TETHER for Alchemy Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+  TETHER for Alchemy Lab — operation manual.
+
+  The family's dark world (Mark, Smack, Belt, Pulse ...): one deliberate dark
+  theme. Voice A and B are the firmware's own colours (tether_alchemy.cpp
+  kVoiceCol), the eight parts PROTECTOR's (kPartCol), and the B3 swatches
+  the USB lights as the firmware draws them.
+  Source: belt-alchemy tether/ (branch claude/tether-midi-cv).
+*/
+:root{
+  color-scheme:dark;
+  --bg:#0b0c10; --panel:#12141a; --panel2:#191c24; --panel3:#222632;
+  --ink:#eceef4; --dim:#8f94a3; --soft:#c7cbd6;
+  --line:rgba(236,238,244,.12); --line2:rgba(236,238,244,.06);
+  --va:#ff8010; --vb:#20d0ff; --master:#ffb040; --clk:#e8ecf4;
+  --p1:#ff3030; --p2:#ff9010; --p3:#f0e020; --p4:#40ff40; --p5:#20e0e0; --p6:#3070ff; --p7:#a040ff; --p8:#ff40c0;
+  --green:#30e060; --amber:#ffa020; --red:#ff4040; --blue:#4070ff;
+  --disp:"Bricolage Grotesque","Archivo Black",Impact,"Helvetica Neue",sans-serif;
+  --body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;position:relative}
+a{color:#7fd6ff;text-decoration:none;border-bottom:1px solid rgba(48,192,255,.4)}
+a:hover{border-bottom-color:#7fd6ff}
+a:focus-visible,button:focus-visible{outline:2px solid var(--vb);outline-offset:3px}
+code,kbd{font-family:var(--mono);font-size:.82em;background:var(--panel2);border:1px solid var(--line);border-radius:3px;padding:.08em .4em}
+pre{font-family:var(--mono);font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0;color:var(--ink)}
+b{font-weight:600}
+p{margin:0}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:rgba(11,12,16,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:16px;height:52px;overflow-x:auto;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav .logo{font-family:var(--disp);font-weight:800;font-size:19px;color:var(--ink);border:none;flex:none}
+nav .logo em{font-style:normal;background:linear-gradient(90deg,var(--va),var(--vb));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav a.s{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--dim);border:none;flex:none;text-transform:uppercase}
+nav a.s:hover{color:var(--ink)}
+
+header{padding-block:56px 44px;border-bottom:1px solid var(--line)}
+.hero{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:center}
+.hero > *{min-width:0}
+@media(max-width:900px){.hero{grid-template-columns:1fr}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--master);margin-bottom:16px}
+h1.title{font-family:var(--disp);font-weight:800;font-size:clamp(58px,11vw,140px);line-height:.86;letter-spacing:-.035em;margin:0}
+h1.title span:nth-child(-n+3){color:var(--va)} h1.title span:nth-child(n+4){color:var(--vb)}
+h1.title em{font-style:normal;display:block;font-size:.25em;font-weight:500;letter-spacing:.01em;color:var(--dim);margin-top:.55em;text-wrap:balance}
+.lede{font-size:19px;line-height:1.5;color:var(--soft);margin-top:24px;max-width:58ch}
+.lede b{color:var(--ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.facts span{font-family:var(--mono);font-size:11px;letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--soft)}
+
+/* the routing picture */
+.route{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
+.route .head{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.chips button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;background:var(--panel2);color:var(--soft);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:8px 6px;cursor:pointer;text-align:left;line-height:1.2}
+.chips button i{display:block;font-style:normal;color:var(--dim);font-size:9.5px;margin-top:2px}
+.chips button[aria-pressed="true"]{background:var(--panel3);color:var(--ink);border-color:var(--c)}
+.route .say{min-height:3.2em;color:var(--soft);font-size:14.5px;line-height:1.45}
+.route .say b{color:var(--ink)}
+.cap{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.04em}
+
+section{padding-block:64px;border-bottom:1px solid var(--line)}
+h2.sh{font-family:var(--disp);font-weight:800;font-size:clamp(30px,4.6vw,46px);letter-spacing:-.02em;line-height:1;margin:0 0 22px;text-wrap:balance}
+h3{font-family:var(--disp);font-weight:800;font-size:21px;margin:0 0 8px;letter-spacing:-.01em}
+.prose{max-width:66ch;display:grid;gap:14px;color:var(--soft)}
+.prose b{color:var(--ink)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:26px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:26px}
+@media(max-width:860px){.two,.three{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c,var(--line));border-radius:12px;padding:20px}
+.card p{color:var(--soft);font-size:15px}
+.card p + p{margin-top:10px}
+.card ol{margin:8px 0 0;padding-left:20px;color:var(--soft);font-size:15px;display:grid;gap:6px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+/* lights */
+.lights{display:grid;gap:10px;margin-top:22px;max-width:640px}
+.lights div{display:grid;grid-template-columns:26px 1fr;gap:12px;align-items:center;color:var(--soft)}
+.lights i{width:22px;height:22px;border-radius:50%;background:var(--c);box-shadow:0 0 12px -1px var(--c);border:2px solid rgba(255,255,255,.15)}
+.lights i.dim{opacity:.35;box-shadow:none}
+.lights b{color:var(--ink)}
+
+/* jacks */
+.jackmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px 10px;max-width:620px;margin-top:8px;
+  padding:22px 16px 18px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.jackmap .jk{display:grid;justify-items:center;align-content:start;gap:6px;text-align:center}
+.jackmap .hole{width:44px;height:44px;border-radius:50%;background:#07080b;border:3px solid var(--c,var(--dim));
+  box-shadow:0 0 0 5px var(--panel3),0 0 14px -2px var(--c,transparent);transition:box-shadow .2s,transform .2s}
+.jackmap .jk.lit .hole{box-shadow:0 0 0 5px var(--panel3),0 0 26px 4px var(--c);transform:scale(1.08)}
+.jackmap .jk.off{opacity:.38}
+.jackmap .jn{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);letter-spacing:.04em}
+.jackmap .jf{font-size:13px;color:var(--soft);line-height:1.25}
+.jackmap .jf small{display:block;color:var(--dim);font-size:11.5px}
+@media(max-width:520px){.jackmap{gap:14px 4px;padding:16px 8px}.jackmap .hole{width:34px;height:34px}.jackmap .jf{font-size:11.5px}}
+
+/* panel */
+.pagetabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pagetabs button{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--panel);color:var(--soft);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:8px 13px;cursor:pointer}
+.pagetabs button[aria-pressed="true"]{background:var(--panel3);color:var(--ink);border-color:var(--c)}
+.panelgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:26px;align-items:start}
+@media(max-width:820px){.panelgrid{grid-template-columns:1fr}}
+.face{background:#16181d;border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px;justify-items:center;max-width:340px;margin-inline:auto;width:100%}
+.knob{display:grid;justify-items:center;gap:6px;cursor:pointer;background:none;border:none;color:inherit;padding:0;font:inherit;width:100%}
+.knob svg{width:74px;height:74px;max-width:100%}
+.knob span{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--soft);text-align:center;min-height:2.4em}
+.knob[aria-pressed="true"] span{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.help{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;min-height:200px}
+.help .name{font-family:var(--disp);font-weight:800;font-size:26px;margin-bottom:2px}
+.help .where{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin-bottom:12px}
+.help p{color:var(--soft)}
+.help p + p{margin-top:10px}
+.btns{display:grid;gap:10px;margin-top:22px}
+.btns div{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:start;color:var(--soft);font-size:15px}
+.btns kbd{text-align:center}
+
+/* tables */
+.tbl{overflow-x:auto;margin-top:22px;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:14.5px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);vertical-align:top}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:500;background:var(--panel)}
+td{color:var(--soft)}
+td b{color:var(--ink)}
+td .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:8px;vertical-align:baseline}
+
+.steps{counter-reset:s;display:grid;gap:12px;margin-top:22px;max-width:70ch;padding:0;list-style:none}
+.steps li{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;color:var(--soft)}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;font-weight:600;color:var(--bg);background:var(--master);border-radius:50%;width:26px;height:26px;display:grid;place-items:center;margin-top:1px}
+.steps b{color:var(--ink)}
+.note{border-left:3px solid var(--amber);background:var(--panel);border-radius:0 10px 10px 0;padding:14px 16px;color:var(--soft);max-width:70ch;margin-top:20px}
+.note b{color:var(--ink)}
+
+.status{display:grid;gap:10px;margin-top:22px;max-width:760px}
+.status div{display:grid;grid-template-columns:22px 1fr;gap:10px;color:var(--soft)}
+.status .y{color:var(--green)} .status .n{color:var(--amber)}
+footer{padding-block:40px 60px;color:var(--dim);font-size:14px}
+footer p + p{margin-top:8px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top"><em>tether</em></a>
+  <a class="s" href="#plug">Plugging in</a>
+  <a class="s" href="#protector">PROTECTOR</a>
+  <a class="s" href="#panel">Panel</a>
+  <a class="s" href="#jacks">Jacks</a>
+  <a class="s" href="#tune">Tuning</a>
+  <a class="s" href="#install">Install</a>
+  <a class="s" href="#status">Status</a>
+  <a class="s" href="https://timncox.github.io/alchemy-lab/">Alchemy Lab ↗</a>
+</div></nav>
+
+<header id="top"><div class="wrap hero">
+  <div>
+    <div class="eyebrow">Firmware for the Hermetic Modular Alchemy Lab</div>
+    <h1 class="title"><span>t</span><span>e</span><span>t</span><span>h</span><span>e</span><span>r</span><em>USB MIDI in, voltages out</em></h1>
+    <p class="lede"><b>TETHER</b> turns the notes, clock and starts from a USB MIDI keyboard, or from an iPhone,
+    iPad or Mac, into the voltages a modular understands: two pitch CVs with their gates, a clock, a reset, and
+    drum triggers. It was made for <b>PROTECTOR</b> on the M-Vave FM-1 and SMK-37, whose PARTS setting sends every
+    part on its own channel, but any class-compliant MIDI keyboard or app can drive it.</p>
+    <div class="facts">
+      <span>2 voices · 1 V/oct</span><span>6 jacks with a job each</span><span>clock · reset · run</span>
+      <span>keyboard in or computer out</span><span>no hub for the FM-1</span>
+    </div>
+  </div>
+  <div class="route" aria-label="Where each of PROTECTOR's parts comes out">
+    <div class="head">PROTECTOR's parts, and where TETHER puts them (as a fresh module starts)</div>
+    <div class="chips" id="chips"></div>
+    <div class="say" id="say" aria-live="polite"></div>
+    <div class="jackmap" id="heroJacks" style="max-width:none;margin:0;padding:16px 8px 12px"></div>
+    <div class="cap">Tap a part. Any jack from J3 to J8 can be given another job on the JACKS layer.</div>
+  </div>
+</div></header>
+
+<section id="plug"><div class="wrap">
+  <h2 class="sh">Plugging in</h2>
+  <div class="prose">
+    <p>Everything goes through the Lab's front <b>USB-C</b>, and since v0.2.0 it works both ways round. TETHER finds
+    out by itself which way it's plugged in.</p>
+  </div>
+  <div class="two">
+    <div class="card" style="--c:var(--green)"><div class="tag">The Lab is the host</div><h3>A keyboard, straight in</h3>
+      <p>Plug the FM-1, the SMK-37 or any class-compliant USB MIDI keyboard into the Lab. <kbd>B3</kbd> goes
+      <b>green</b> and flashes white with each message.</p>
+      <p>The Lab puts <b>no power</b> on its USB port (it's built that way; firmware can't change it). The FM-1
+      runs on its battery, so it plugs straight in. A keyboard that needs USB power needs a <b>powered USB hub</b>
+      between them, which also charges it.</p></div>
+    <div class="card" style="--c:var(--vb)"><div class="tag">The Lab is the device</div><h3>Into an iPhone, iPad or Mac</h3>
+      <p>Plug the Lab into a phone, tablet or computer and it shows up as a MIDI device named <b>TETHER</b>.
+      <kbd>B3</kbd> goes <b>cyan</b>. Pick TETHER as the output in Loadout, a DAW or any MIDI app and its notes
+      drive the jacks, just as a keyboard's would.</p>
+      <p>With a USB hub on the iPhone, the FM-1 and the Lab can both hang off it: route the FM-1 to TETHER in an app.</p></div>
+  </div>
+  <div class="prose" style="margin-top:22px">
+    <p><b>How it decides.</b> The Lab has one port and nothing in the hardware says what's on the other end, so
+    until something answers, the port takes turns: a host for 1.5 seconds, then a device for 2.5. Whatever is
+    plugged in is found within about <b>four seconds</b>, and the port stays that way until it's unplugged.
+    Unplugging lets go of any held notes.</p>
+  </div>
+  <div class="lights" aria-label="What B3's light means">
+    <div><i class="dim" style="--c:var(--red)"></i><span><b>Dim red</b>: nothing plugged in, or still taking turns.</span></div>
+    <div><i style="--c:var(--amber)"></i><span><b>Amber</b>: something answered; setting it up.</span></div>
+    <div><i style="--c:var(--red)"></i><span><b>Red</b>: a USB device it can't use (no MIDI on it).</span></div>
+    <div><i style="--c:var(--green)"></i><span><b>Green</b>: a keyboard's MIDI is coming in.</span></div>
+    <div><i style="--c:var(--vb)"></i><span><b>Cyan</b>: an iPhone, iPad or Mac is playing TETHER.</span></div>
+    <div><i style="--c:var(--blue)"></i><span><b>Blue</b>: Mac mode (below), for the web tools and file transfer.</span></div>
+  </div>
+  <div class="note"><b>Mac mode.</b> Hold <kbd>B1</kbd> while powering up and the port stays the Mac tools'
+  device instead (HostLink, the web control page, file transfer). It isn't remembered: the next power-up is
+  back to MIDI. While TETHER is playing MIDI the Mac tools can't reach it.</div>
+</div></section>
+
+<section id="protector"><div class="wrap">
+  <h2 class="sh">With PROTECTOR</h2>
+  <div class="prose">
+    <p>PROTECTOR 0.4.6 and later has a <b>PARTS</b> setting for CLOCK OUT. It sends the clock, Start and Stop, every
+    part's notes over USB, each on its own channel, and the section (A to D) as CC 85 on channel 16. It's off until you
+    turn it on, and it adds nothing while it's off.</p>
+  </div>
+  <div class="two">
+    <div class="card" style="--c:var(--p5)"><div class="tag">M-Vave FM-1</div><h3>CLOCK OUT to PARTS</h3><ol>
+      <li>Press <kbd>SEQ</kbd> until the screen shows the <b>SONG</b> page (PATTERN, STEPS, then SONG).</li>
+      <li>Tap <kbd>SEL</kbd> for the bottom row: CLOCK IN, CLOCK OUT, LEVEL, LOOP.</li>
+      <li>Turn the second knob, <b>CLOCK OUT</b>, all the way to <b>PARTS</b>.</li>
+      <li>Plug the FM-1 into the Lab and press <kbd>PLAY</kbd>.</li></ol></div>
+    <div class="card" style="--c:var(--p7)"><div class="tag">M-Vave SMK-37</div><h3>CLOCK OUT to PARTS</h3><ol>
+      <li>Press <kbd>SCALE</kbd> for the <b>SONG</b> page.</li>
+      <li>Tap <kbd>KNOB BANK</kbd> for the lower row: K5 is CLOCK IN, K6 is CLOCK OUT.</li>
+      <li>Turn <b>K6</b> all the way to <b>PARTS</b>.</li>
+      <li>Plug the SMK-37 into a powered hub, the hub into the Lab, and press <kbd>PLAY</kbd>.</li></ol></div>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Channel</th><th>Part</th><th>On a fresh TETHER</th></tr></thead>
+    <tbody id="partRows"></tbody></table></div>
+  <div class="prose" style="margin-top:18px">
+    <p>A note can leave PROTECTOR up to 6 ms before you hear it from the keyboard, so the jacks and the keyboard's
+    own sound line up closely. A <b>SLIDE</b> step's next note starts before the last one ends, which TETHER plays
+    as a glide when GLIDE is up and NOTES is LEGATO. Muted parts send nothing new.</p>
+  </div>
+</div></section>
+
+<section id="panel"><div class="wrap">
+  <h2 class="sh">The panel</h2>
+  <div class="prose"><p>Six knobs on three layers. With no button held, they set up the <b>voice</b> that
+  <kbd>B1</kbd> picks (B1 lit amber for voice A, cyan for B). Hold <kbd>B2</kbd> for MASTER, hold <kbd>B3</kbd> for
+  JACKS. Pick a layer, then a knob.</p></div>
+  <div style="height:22px"></div>
+  <div class="pagetabs" id="pageTabs" role="group" aria-label="Layers"></div>
+  <div class="panelgrid">
+    <div>
+      <div class="face" id="face"></div>
+      <div class="btns">
+        <div><kbd>B1</kbd><span><b>Tap</b>: the other voice. Its light is that voice's colour.</span></div>
+        <div><kbd>B2</kbd><span><b>Tap</b>: all notes off. <b>Hold</b>: the MASTER layer. Its light flashes white on
+        each beat of the incoming clock, and stays dim amber with no clock.</span></div>
+        <div><kbd>B3</kbd><span><b>Tap</b>: a 300 ms test note on the selected voice. <b>Hold</b>: the JACKS layer.
+        Its light is the USB port (see <a href="#plug">Plugging in</a>).</span></div>
+        <div><kbd>B2+B1</kbd><span>Calibration (see <a href="#tune">Tuning</a>).</span></div>
+        <div><kbd>B2+B3</kbd><span>Held for two seconds: Settings, with the firmware picker on its Firmware page.</span></div>
+      </div>
+    </div>
+    <div class="help" id="help" aria-live="polite"></div>
+  </div>
+  <div class="prose" style="margin-top:22px">
+    <p><b>Knobs catch.</b> After you change voice or layer, a knob does nothing until you turn it to where its ring
+    shows; nothing jumps. Every change saves itself five seconds after you stop turning, and comes back at the next
+    power-up.</p>
+  </div>
+</div></section>
+
+<section id="jacks"><div class="wrap">
+  <h2 class="sh">Jacks</h2>
+  <div class="prose">
+    <p>The ten jacks sit in two rows of five, numbered down each column from the left: odd ones along the top, even
+    ones under them. J9 and J10 are always the two pitch CVs. J3 to J8 each have a job you can change on the JACKS
+    layer; these are the jobs on a fresh module. J1 and J2 aren't used.</p>
+  </div>
+  <div class="jackmap" id="jackMap"></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Job</th><th>What comes out</th></tr></thead>
+    <tbody>
+      <tr><td><b>GATE A / B</b></td><td>The voice's gate, high while a note is held. With GATE set to TRIG, a short trigger instead.</td></tr>
+      <tr><td><b>CLK 24 · 16 · 8 · 4</b></td><td>A trigger on every MIDI clock tick (24 a beat), every sixteenth, eighth or quarter note.</td></tr>
+      <tr><td><b>BAR</b></td><td>A trigger on the first beat of each bar.</td></tr>
+      <tr><td><b>RESET</b></td><td>A trigger on Start (and on a section change, if RESET ON says so).</td></tr>
+      <tr><td><b>RUN</b></td><td>High from Start until Stop.</td></tr>
+      <tr><td><b>SECTION</b></td><td>PROTECTOR's section as a voltage: 0, 1, 2 or 3 V for A, B, C, D.</td></tr>
+      <tr><td><b>ACC A / B</b></td><td>A gate only on accented notes (velocity at or above ACCENT).</td></tr>
+      <tr><td><b>VEL A / B</b></td><td>The voice's last velocity as a voltage, 0 to 8 V.</td></tr>
+      <tr><td><b>TRIG 1 – 8</b></td><td>A trigger for each note on that part's channel (1 KICK … 8 FX).</td></tr>
+      <tr><td><b>PITCH A / B</b> (J9, J10)</td><td>1 V per octave, 0 V at middle C, with glide, bend, octave and transpose.</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section id="tune"><div class="wrap">
+  <h2 class="sh">Tuning the pitch outputs</h2>
+  <div class="prose">
+    <p>Every module's outputs are a little different, so each voice has its own calibration. You need a tuner and
+    the oscillator you'll play.</p>
+  </div>
+  <ol class="steps">
+    <li><span>Patch <b>J9</b> (or J10) into the oscillator's 1 V/oct input and the oscillator into a tuner. Select
+    that voice with <kbd>B1</kbd>.</span></li>
+    <li><span>Hold <kbd>B2</kbd> and tap <kbd>B1</kbd>: both pitch jacks send <b>1 V</b>, with both gates up. Still
+    holding B2, turn the top-left knob, <b>CAL OFFSET</b>, until the tuner reads the note you expect.</span></li>
+    <li><span>Tap <kbd>B1</kbd> again (B2 still held): <b>3 V</b>, two octaves higher. Turn the top-right knob,
+    <b>CAL SCALE</b>, until it reads exactly two octaves above.</span></li>
+    <li><span>Repeat the two until both land. A third tap of B1 turns the test voltage off; letting go of
+    <kbd>B2</kbd> ends calibration. It saves itself like everything else.</span></li>
+  </ol>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2 class="sh">Install, and going back to Belt</h2>
+  <div class="prose">
+    <p>TETHER is a second firmware that lives on the card beside Belt. Put the file in the card's
+    <code>alchemy</code> folder, then switch to it from the Firmware page.</p>
+    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.2.0, 238 KB). Its SHA-256 is
+    <code style="word-break:break-all">c397625391a3b73b1c2bd7bfb5dab3d3d9154b4ed9568ea5a91b1097dbda0c4c</code>.</p>
+  </div>
+  <div class="three">
+    <div class="card" style="--c:var(--master)"><div class="tag">Simplest</div><h3>A card reader</h3>
+      <p>Take the microSD card out of the Lab, put it in a card reader, and copy <code>tether_alchemy.bin</code> into
+      its <code>alchemy</code> folder.</p>
+      <p>Plugging the Lab itself into the Mac won't do this: a running firmware shows up as a USB device, not as a
+      disk, so the card never appears in Finder.</p></div>
+    <div class="card" style="--c:var(--vb)"><div class="tag">Card stays in</div><h3>Over USB, from the Mac</h3>
+      <p>Power the Lab up holding <kbd>B1</kbd> (Mac mode; B3 blue), plug it into the Mac, and from the Belt repo run:</p>
+      <pre>node tools/hostlink-fs.mjs put tether_alchemy.bin /alchemy/tether_alchemy.bin --overwrite</pre>
+      <p>The firmware writes the file to the card for you and checks it. It needs Mac mode: while TETHER is playing
+      MIDI the Mac can't reach it this way.</p></div>
+    <div class="card" style="--c:var(--va)"><div class="tag">Without the card</div><h3>The web programmer</h3>
+      <p>Hold <kbd>B3</kbd> while powering up for update mode and flash the file with Hermetic's
+      <a href="https://hermeticmodular.com/program">web programmer</a> in Chrome or Edge. That replaces the firmware
+      that's running, so Belt then comes back the same way.</p></div>
+  </div>
+  <h3 style="margin-top:40px">Switching to TETHER</h3>
+  <ol class="steps">
+    <li><span>Hold <kbd>B2</kbd> and <kbd>B3</kbd> for two seconds: Settings.</span></li>
+    <li><span>Tap <kbd>B1</kbd> to step to the <b>Firmware</b> page.</span></li>
+    <li><span>Turn the <b>top-left</b> knob to pick <code>tether_alchemy.bin</code>.</span></li>
+    <li><span>Turn the <b>top-right</b> knob all the way down, then all the way up. TETHER starts.</span></li>
+  </ol>
+  <h3 style="margin-top:40px">Going back to Belt</h3>
+  <div class="prose">
+    <p>The same four steps, picking <code>belt_alchemy.bin</code> instead. Settings works the same in every
+    firmware of this family. TETHER and Belt each keep their settings in their own preset slot (TETHER 10, Belt 14),
+    so switching between them loses neither.</p>
+  </div>
+</div></section>
+
+<section id="status"><div class="wrap">
+  <h2 class="sh">Status</h2>
+  <div class="status">
+    <div><span class="y">✓</span><span>Builds for the module (v0.2.0, about 238 KB).</span></div>
+    <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 109 tests on a computer: notes, priorities, glide,
+    bend, the clock divisions, start, stop, reset, sections, accents, velocities, triggers and calibration.</span></div>
+    <div><span class="y">✓</span><span>Runs in the <a href="https://timncox.github.io/alchemy-lab/emulator/">Alchemy Lab emulator</a>
+    with MIDI fed in: five test scripts covering boot, notes, the clock, every knob and button, and a computer
+    plugged in and then a keyboard.</span></div>
+    <div><span class="y">✓</span><span>End to end with PROTECTOR: the FM-1's and SMK-37's own simulators playing into
+    TETHER in the emulator at 90, 120 and 174 BPM, with every pitch, gate, trigger, reset and section checked.</span></div>
+    <div><span class="y">✓</span><span>Opens the FM-1's MIDI as PROTECTOR describes it, checked against the FM-1's real
+    USB description (v0.2.0; v0.1.0 missed it when the FM-1 was plugged straight in).</span></div>
+    <div><span class="n">○</span><span>Not yet tried on a module: the port switching between host and device, and an
+    iPhone or Mac seeing TETHER over the Lab's own USB-C.</span></div>
+    <div><span class="n">○</span><span>If a computer sends the port to sleep while idle, the Lab goes back to taking
+    turns and finds it again within about four seconds of waking; untried.</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <p>TETHER for Alchemy Lab · by <a href="https://timncox.github.io/alchemy-lab/">Tim Cox</a> ·
+  source in <a href="https://github.com/timncox/belt-alchemy">belt-alchemy</a>.</p>
+  <p>The Alchemy Lab and its software kit are by <a href="https://hermeticmodular.com/modules/alchemy-lab">Hermetic Modular</a>.
+  M-Vave makes the FM-1 and SMK-37; PROTECTOR is a separate firmware for them.</p>
+</div></footer>
+
+<script>
+(() => {
+"use strict";
+const PARTS = [
+  {n:"KICK", c:"--p1", jacks:["J7"], say:"<b>KICK</b>, channel 1: a trigger on <b>J7</b> (TRIG 1) for every kick."},
+  {n:"SNARE", c:"--p2", jacks:["J8"], say:"<b>SNARE</b>, channel 2: a trigger on <b>J8</b> (TRIG 2) for every snare."},
+  {n:"HATS", c:"--p3", jacks:[], say:"<b>HATS</b>, channel 3: no jack on a fresh module. Give one TRIG 3 on the JACKS layer."},
+  {n:"PERC", c:"--p4", jacks:[], say:"<b>PERC</b>, channel 4: no jack on a fresh module. Give one TRIG 4 on the JACKS layer."},
+  {n:"BASS", c:"--p5", jacks:["J9","J3"], say:"<b>BASS</b>, channel 5: voice A. Its pitch on <b>J9</b>, its gate on <b>J3</b>."},
+  {n:"LEAD", c:"--p6", jacks:["J10","J4"], say:"<b>LEAD</b>, channel 6: voice B. Its pitch on <b>J10</b>, its gate on <b>J4</b>."},
+  {n:"PAD", c:"--p7", jacks:[], say:"<b>PAD</b>, channel 7: a chord, so no pitch jack. Point a voice's PART at 7 to follow its top or bottom note."},
+  {n:"CLOCK", c:"--clk", sub:"start · stop", jacks:["J5","J6"], say:"The <b>clock</b>: a trigger every sixteenth on <b>J5</b>, and a reset trigger on <b>J6</b> at each Start."},
+];
+const JACKS = [
+  ["J1","Not used",null,"--dim"],["J3","Gate A","BASS","--va"],["J5","Clock","16ths","--clk"],["J7","Trig 1","KICK","--p1"],["J9","Pitch A","1 V/oct","--va"],
+  ["J2","Not used",null,"--dim"],["J4","Gate B","LEAD","--vb"],["J6","Reset","on Start","--clk"],["J8","Trig 2","SNARE","--p2"],["J10","Pitch B","1 V/oct","--vb"],
+];
+function jackHtml(j){
+  const off = j[2]===null ? " off" : "";
+  return `<div class="jk${off}" data-j="${j[0]}" style="--c:var(${j[3]})"><span class="jn">${j[0]}</span><span class="hole"></span><span class="jf">${j[1]}${j[2]?`<small>${j[2]}</small>`:""}</span></div>`;
+}
+const heroJ = document.getElementById("heroJacks"), mapJ = document.getElementById("jackMap");
+heroJ.innerHTML = JACKS.map(jackHtml).join("");
+mapJ.innerHTML = JACKS.map(jackHtml).join("");
+mapJ.setAttribute("role","img");
+mapJ.setAttribute("aria-label","The jacks on the panel. Top row: J1 not used, J3 gate A, J5 clock, J7 trigger 1, J9 pitch A. Bottom row: J2 not used, J4 gate B, J6 reset, J8 trigger 2, J10 pitch B.");
+
+const chips = document.getElementById("chips"), say = document.getElementById("say");
+function pick(i){
+  [...chips.children].forEach((b,k)=>b.setAttribute("aria-pressed", k===i ? "true" : "false"));
+  say.innerHTML = PARTS[i].say;
+  heroJ.querySelectorAll(".jk").forEach(el => el.classList.toggle("lit", PARTS[i].jacks.includes(el.dataset.j)));
+}
+PARTS.forEach((p,i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.style.setProperty("--c", `var(${p.c})`);
+  b.innerHTML = `${p.n}<i>${p.sub || "channel " + (i+1)}</i>`;
+  b.addEventListener("click", () => pick(i));
+  chips.appendChild(b);
+});
+pick(4);
+
+const rows = document.getElementById("partRows");
+const FRESH = ["TRIG 1 on J7","TRIG 2 on J8","free (give a jack TRIG 3)","free (give a jack TRIG 4)","voice A: pitch J9, gate J3","voice B: pitch J10, gate J4","free (a voice's PART can follow it)","free (give a jack TRIG 8)"];
+rows.innerHTML = PARTS.slice(0,7).concat([{n:"FX",c:"--p8"}]).map((p,i) =>
+  `<tr><td><b>${i+1}</b></td><td><span class="sw" style="--c:var(${p.c})"></span>${p.n}</td><td>${FRESH[i]}</td></tr>`).join("") +
+  `<tr><td><b>16</b></td><td>Section, CC 85</td><td>RESET on a section change (if RESET ON says so), and the SECTION job</td></tr>`;
+
+/* the panel: three layers, six knobs (top-left, top-right, middle-left, middle-right, bottom-left, bottom-right) */
+const LAYERS = [
+  {id:"voice", name:"Voice", c:"--va", where:"No button held · for the voice B1 picks", knobs:[
+    ["PART","Which MIDI channel this voice plays: 1 to 16, or ALL. Voice A starts on 5 (BASS), voice B on 6 (LEAD)."],
+    ["GATE","What its gate jack does: GATE (high while held), TRIG (a short trigger per note), ACC GATE (8 V on an accent, 5 V otherwise) or VEL GATE (height follows velocity)."],
+    ["GLIDE","How long the pitch takes to slide to a new note, from off to one second."],
+    ["OCTAVE","Shifts the pitch CV by whole octaves, −4 to +4."],
+    ["TRANSPOSE","Shifts it by semitones, −12 to +12."],
+    ["NOTES","Which note wins when several are held. LEGATO: the newest, and a slide keeps the gate up. RETRIG: the newest, with a fresh gate each time. LOW and HIGH: the lowest or highest held."]]},
+  {id:"master", name:"Master", c:"--master", where:"Hold B2", knobs:[
+    ["CAL OFFSET","Tunes the selected voice's pitch output up or down. See Tuning."],
+    ["CAL SCALE","Stretches the selected voice's octaves so they're exactly 1 V apart. See Tuning."],
+    ["TRIG LENGTH","How long every trigger lasts, 1 to 50 ms."],
+    ["ACCENT","The velocity, 64 to 127, at or above which a note counts as accented."],
+    ["BEND","Pitch bend range, 0 to 12 semitones."],
+    ["RESET ON","When the RESET job fires: on Start only, or on Start and every section change."]]},
+  {id:"jacks", name:"Jacks", c:"--vb", where:"Hold B3 · one knob per jack", knobs:[
+    ["J3","Gives J3 a job. Fresh: GATE A."],["J4","Gives J4 a job. Fresh: GATE B."],
+    ["J5","Gives J5 a job. Fresh: CLK 16."],["J6","Gives J6 a job. Fresh: RESET."],
+    ["J7","Gives J7 a job. Fresh: TRIG 1 (KICK)."],["J8","Gives J8 a job. Fresh: TRIG 2 (SNARE)."]]},
+];
+const JOBS = "The jobs: GATE A or B, CLK 24, CLK 16, CLK 8, CLK 4, BAR, RESET, RUN, SECTION, ACC A or B, VEL A or B, and TRIG 1 to 8. The ring takes the job's colour.";
+const POS = ["top-left","top-right","middle-left","middle-right","bottom-left","bottom-right"];
+const tabs = document.getElementById("pageTabs"), face = document.getElementById("face"), help = document.getElementById("help");
+let L = 0, K = 0;
+function knobSvg(c, v){
+  const a0 = -225, a1 = 45, a = a0 + (a1-a0)*v, r = 30, cx = 37, cy = 37;
+  const pt = d => [cx + r*Math.cos(d*Math.PI/180), cy + r*Math.sin(d*Math.PI/180)];
+  const [x0,y0] = pt(a0), [x1,y1] = pt(a), large = (a-a0) > 180 ? 1 : 0;
+  const [px,py] = [cx + 20*Math.cos(a*Math.PI/180), cy + 20*Math.sin(a*Math.PI/180)];
+  return `<svg viewBox="0 0 74 74" aria-hidden="true"><circle cx="37" cy="37" r="30" fill="none" stroke="#2a2e3a" stroke-width="5"/>
+    <path d="M${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1}" fill="none" stroke="var(${c})" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="37" cy="37" r="17" fill="#0e1015" stroke="#3a3f4c"/><line x1="37" y1="37" x2="${px}" y2="${py}" stroke="#eceef4" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+}
+const VALS = [.33,.1,.15,.5,.5,0];
+function render(){
+  [...tabs.children].forEach((b,i)=>b.setAttribute("aria-pressed", i===L ? "true" : "false"));
+  const lay = LAYERS[L];
+  face.innerHTML = "";
+  lay.knobs.forEach((k,i) => {
+    const b = document.createElement("button");
+    b.className = "knob"; b.type = "button"; b.setAttribute("aria-pressed", i===K ? "true" : "false");
+    b.innerHTML = knobSvg(lay.c, VALS[i]) + `<span>${k[0]}</span>`;
+    b.addEventListener("click", () => { K = i; render(); });
+    face.appendChild(b);
+  });
+  const k = lay.knobs[K];
+  help.innerHTML = `<div class="name">${k[0]}</div><div class="where">${lay.where} · ${POS[K]} knob</div><p>${k[1]}</p>` +
+    (lay.id === "jacks" ? `<p>${JOBS}</p>` : "");
+}
+LAYERS.forEach((lay,i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.style.setProperty("--c", `var(${lay.c})`); b.textContent = lay.name;
+  b.addEventListener("click", () => { L = i; K = 0; render(); });
+  tabs.appendChild(b);
+});
+render();
+})();
+</script>
+</body>
+</html>
