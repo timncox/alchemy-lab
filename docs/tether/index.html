@@ -371,9 +371,9 @@ footer p + p{margin-top:8px}
   <div class="prose">
     <p>TETHER is a second firmware that lives on the card beside Belt. Put the file in the card's
     <code>alchemy</code> folder, then switch to it from the Firmware page.</p>
-    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.3.0, 245 KB). Its SHA-256 is
-    <code style="word-break:break-all">3e46cb90ff682732c2d8e139599906da0ce21f2bb8ad70acc808932ece559da7</code>.</p>
-    <p><b>Coming from 0.1 or 0.2:</b> TETHER 0.3.0 keeps its settings in a new form, so it starts from its fresh
+    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.3.3, 250 KB). Its SHA-256 is
+    <code style="word-break:break-all">389eb299d5edff71da2ca4a405cf263432c73a261452f87a66d26c4f211bbc9e</code>.</p>
+    <p><b>Coming from 0.1 or 0.2:</b> TETHER 0.3 keeps its settings in a new form, so it starts from its fresh
     settings (layout BAND); set the calibration and the screen's brightness again.</p>
   </div>
   <div class="three">
@@ -410,7 +410,9 @@ footer p + p{margin-top:8px}
 <section id="status"><div class="wrap">
   <h2 class="sh">Status</h2>
   <div class="status">
-    <div><span class="y">✓</span><span>Builds for the module (v0.3.0, about 245 KB).</span></div>
+    <div><span class="y">✓</span><span>Builds for the module (v0.3.3, about 250 KB).</span></div>
+    <div><span class="y">✓</span><span>On a module: the FM-1 through a powered hub into TETHER 0.3.3 works. Straight in it
+    can't, because the FM-1's USB needs 5 V on the cable and the Lab's port gives none.</span></div>
     <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 196 tests on a computer: notes, glide, bend, the
     envelopes, both layouts, drum gates with velocity, J1's clock and J2's reset and start/stop, MIDI clock winning,
     the settings and their SysEx.</span></div>
@@ -423,8 +425,7 @@ footer p + p{margin-top:8px}
     <div><span class="n">○</span><span>Not yet tried on a module: J1 and J2 with a real clock (the inputs are
     AC-coupled, so the edge level is a best guess), the drum levels on real drum modules, and Loadout setting it
     over a real iPhone.</span></div>
-    <div><span class="n">○</span><span>From 0.2.0: the port switching between host and device, and an iPhone or Mac
-    seeing TETHER over the Lab's own USB-C, untried on a module.</span></div>
+    <div><span class="n">○</span><span>An iPhone or Mac playing TETHER over the Lab's own USB-C, untried on a module.</span></div>
   </div>
 </div></section>
 
