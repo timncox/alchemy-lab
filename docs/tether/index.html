@@ -171,12 +171,13 @@ footer p + p{margin-top:8px}
     <div class="eyebrow">Firmware for the Hermetic Modular Alchemy Lab</div>
     <h1 class="title"><span>t</span><span>e</span><span>t</span><span>h</span><span>e</span><span>r</span><em>USB MIDI in, voltages out</em></h1>
     <p class="lede"><b>TETHER</b> turns the notes, clock and starts from a USB MIDI keyboard, or from an iPhone,
-    iPad or Mac, into the voltages a modular understands: two pitch CVs with their gates, a clock, a reset, and
-    drum triggers. It was made for <b>PROTECTOR</b> on the M-Vave FM-1 and SMK-37, whose PARTS setting sends every
+    iPad or Mac, into the voltages a modular understands: pitch and gate for a bass and a lead, gates for kick,
+    snare and hats whose height follows velocity, and a clock. With no MIDI clock coming in, J1 and J2 take a clock
+    and a reset from the rack. It was made for <b>PROTECTOR</b> on the M-Vave FM-1 and SMK-37, whose PARTS setting sends every
     part on its own channel, but any class-compliant MIDI keyboard or app can drive it.</p>
     <div class="facts">
-      <span>2 voices · 1 V/oct</span><span>6 jacks with a job each</span><span>clock · reset · run</span>
-      <span>keyboard in or computer out</span><span>no hub for the FM-1</span>
+      <span>3 voices · 1 V/oct</span><span>8 jacks with a job each</span><span>drum gates follow velocity</span>
+      <span>clock and reset in</span><span>keyboard in or computer out</span><span>set it from Loadout</span>
     </div>
   </div>
   <div class="route" aria-label="Where each of PROTECTOR's parts comes out">
@@ -184,7 +185,7 @@ footer p + p{margin-top:8px}
     <div class="chips" id="chips"></div>
     <div class="say" id="say" aria-live="polite"></div>
     <div class="jackmap" id="heroJacks" style="max-width:none;margin:0;padding:16px 8px 12px"></div>
-    <div class="cap">Tap a part. Any jack from J3 to J8 can be given another job on the JACKS layer.</div>
+    <div class="cap">Tap a part. Any jack from J3 to J10 can be given another job on the JACKS layer, or from Loadout.</div>
   </div>
 </div></header>
 
@@ -257,20 +258,21 @@ footer p + p{margin-top:8px}
 
 <section id="panel"><div class="wrap">
   <h2 class="sh">The panel</h2>
-  <div class="prose"><p>Six knobs on three layers. With no button held, they set up the <b>voice</b> that
-  <kbd>B1</kbd> picks (B1 lit amber for voice A, cyan for B). Hold <kbd>B2</kbd> for MASTER, hold <kbd>B3</kbd> for
-  JACKS. Pick a layer, then a knob.</p></div>
+  <div class="prose"><p>Six knobs on five layers. With no button held, they set up the <b>voice</b> that
+  <kbd>B1</kbd> picks (B1 lit amber for voice A, cyan for B, purple for C). Hold <kbd>B1</kbd> for MORE (that
+  voice's envelope, and J1 and J2), <kbd>B2</kbd> for MASTER, <kbd>B3</kbd> for JACKS; tap B1 while holding B3 for
+  the second JACKS page. Pick a layer, then a knob.</p></div>
   <div style="height:22px"></div>
   <div class="pagetabs" id="pageTabs" role="group" aria-label="Layers"></div>
   <div class="panelgrid">
     <div>
       <div class="face" id="face"></div>
       <div class="btns">
-        <div><kbd>B1</kbd><span><b>Tap</b>: the other voice. Its light is that voice's colour.</span></div>
+        <div><kbd>B1</kbd><span><b>Tap</b>: the next voice, A, B or C. Its light is that voice's colour. <b>Hold</b>: the MORE layer.</span></div>
         <div><kbd>B2</kbd><span><b>Tap</b>: all notes off. <b>Hold</b>: the MASTER layer. Its light flashes white on
         each beat of the incoming clock, and stays dim amber with no clock.</span></div>
-        <div><kbd>B3</kbd><span><b>Tap</b>: a 300 ms test note on the selected voice. <b>Hold</b>: the JACKS layer.
-        Its light is the USB port (see <a href="#plug">Plugging in</a>).</span></div>
+        <div><kbd>B3</kbd><span><b>Tap</b>: a 300 ms test note on the selected voice. <b>Hold</b>: the JACKS layer
+        (tap <kbd>B1</kbd> while holding it for page 2). Its light is the USB port (see <a href="#plug">Plugging in</a>).</span></div>
         <div><kbd>B2+B1</kbd><span>Calibration (see <a href="#tune">Tuning</a>).</span></div>
         <div><kbd>B2+B3</kbd><span>Held for two seconds: Settings, with the firmware picker on its Firmware page.</span></div>
       </div>
@@ -288,24 +290,56 @@ footer p + p{margin-top:8px}
   <h2 class="sh">Jacks</h2>
   <div class="prose">
     <p>The ten jacks sit in two rows of five, numbered down each column from the left: odd ones along the top, even
-    ones under them. J9 and J10 are always the two pitch CVs. J3 to J8 each have a job you can change on the JACKS
-    layer; these are the jobs on a fresh module. J1 and J2 aren't used.</p>
+    ones under them. J3 to J10 each have a job you can change on the JACKS layer or from Loadout; these are the jobs
+    on a fresh module (layout BAND). J1 and J2 are inputs: the Lab's hardware can't make them outputs.</p>
   </div>
   <div class="jackmap" id="jackMap"></div>
   <div class="tbl"><table>
     <thead><tr><th>Job</th><th>What comes out</th></tr></thead>
     <tbody>
-      <tr><td><b>GATE A / B</b></td><td>The voice's gate, high while a note is held. With GATE set to TRIG, a short trigger instead.</td></tr>
+      <tr><td><b>PITCH A / B / C</b></td><td>1 V per octave, 0 V at middle C, with glide, bend, octave and transpose. J9 and J10 are the most exact (24-bit); J3 to J8 step about 3 cents.</td></tr>
+      <tr><td><b>GATE A / B / C</b></td><td>The voice's gate, 5 V while a note is held. With GATE set to TRIG, a short trigger instead.</td></tr>
+      <tr><td><b>ENV A / B / C</b></td><td>The voice's envelope, 0 to 5 V, set on the MORE layer.</td></tr>
       <tr><td><b>CLK 24 · 16 · 8 · 4</b></td><td>A trigger on every MIDI clock tick (24 a beat), every sixteenth, eighth or quarter note.</td></tr>
       <tr><td><b>BAR</b></td><td>A trigger on the first beat of each bar.</td></tr>
       <tr><td><b>RESET</b></td><td>A trigger on Start (and on a section change, if RESET ON says so).</td></tr>
       <tr><td><b>RUN</b></td><td>High from Start until Stop.</td></tr>
       <tr><td><b>SECTION</b></td><td>PROTECTOR's section as a voltage: 0, 1, 2 or 3 V for A, B, C, D.</td></tr>
-      <tr><td><b>ACC A / B</b></td><td>A gate only on accented notes (velocity at or above ACCENT).</td></tr>
-      <tr><td><b>VEL A / B</b></td><td>The voice's last velocity as a voltage, 0 to 8 V.</td></tr>
-      <tr><td><b>TRIG 1 – 8</b></td><td>A trigger for each note on that part's channel (1 KICK … 8 FX).</td></tr>
-      <tr><td><b>PITCH A / B</b> (J9, J10)</td><td>1 V per octave, 0 V at middle C, with glide, bend, octave and transpose.</td></tr>
+      <tr><td><b>ACC A / B / C</b></td><td>A gate only on accented notes (velocity at or above ACCENT).</td></tr>
+      <tr><td><b>VEL A / B / C</b></td><td>The voice's last velocity as a voltage, 0 to 5 V.</td></tr>
+      <tr><td><b>TRIG 1 – 8</b></td><td>That part's drum (1 KICK … 8 FX): a gate as long as each note, its height from velocity if MODE says so. See Drums, below.</td></tr>
     </tbody></table></div>
+</div></section>
+
+<section id="drums"><div class="wrap">
+  <h2 class="sh">Drums, J1 and J2</h2>
+  <div class="prose">
+    <p><b>Drum gates.</b> Each drum's jack goes up when its note starts and down when it ends, at least TRIG LENGTH,
+    so a module whose sound follows the gate's length hears how long each hit was held. Entity Ultra Perc's manual
+    suggests just that. Set a drum's MODE to TRIG for a fixed-length trigger instead.</p>
+    <p><b>Velocity.</b> With VEL on (fresh for KICK, SNARE and HATS), a hit at velocity 127 gives 5 V and the softest
+    gives FLOOR, 2.5 V to start, so even a soft hit still clears a trigger input that fires at about 2.5 V. Every
+    jack on the Lab tops out at about 5 V, so none reaches the 8 to 10 V that some drum modules want for their
+    loudest. Metalloid plays its normal level at 5 V and quieter below it, so its hits get softer with velocity but
+    never louder than normal.</p>
+    <p><b>Two hits in a row.</b> When a hit starts as the last one ends, or while it's still up, the jack drops for
+    3 ms first, so the module hears two hits, not one long one. That hit comes out up to 3 ms late.</p>
+    <p><b>Timing.</b> J7 and J8 change within a millisecond of the note. J3 to J6 change about once a millisecond,
+    so a drum there (the hats on J5) can come up to 1 ms after the kick and snare.</p>
+    <p><b>J1 and J2.</b> With no MIDI clock coming in, J1 takes a clock (a pulse above about 1 V; 4 a beat to start,
+    set on MORE) and J2 a reset or a start/stop. The first pulse on J1 starts the playing, and three of its pulses'
+    worth of nothing stops it. MIDI clock always wins: while it's coming in, J1 and J2 are ignored.</p>
+  </div>
+</div></section>
+
+<section id="loadout"><div class="wrap">
+  <h2 class="sh">From Loadout</h2>
+  <div class="prose">
+    <p>Plug the Lab into an iPhone or iPad (B3 cyan), open Loadout, and go to <b>PRESETS</b> &gt; <b>TETHER</b>. It
+    reads what each jack does, each drum's mode and softest level, the three voices' channels and envelopes, J1's
+    clock and J2, and lets you change them there. Nothing changes on the Lab until you tap <b>Send</b>; calibration
+    stays as set on the Lab. It needs TETHER 0.3.0 or newer and a Loadout build with the TETHER screen.</p>
+  </div>
 </div></section>
 
 <section id="tune"><div class="wrap">
@@ -331,8 +365,10 @@ footer p + p{margin-top:8px}
   <div class="prose">
     <p>TETHER is a second firmware that lives on the card beside Belt. Put the file in the card's
     <code>alchemy</code> folder, then switch to it from the Firmware page.</p>
-    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.2.0, 238 KB). Its SHA-256 is
-    <code style="word-break:break-all">c397625391a3b73b1c2bd7bfb5dab3d3d9154b4ed9568ea5a91b1097dbda0c4c</code>.</p>
+    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.3.0, 245 KB). Its SHA-256 is
+    <code style="word-break:break-all">9c6ca36f7831ae7421e93724162ca4e1307df933debeed89f28754518b109595</code>.</p>
+    <p><b>Coming from 0.1 or 0.2:</b> TETHER 0.3.0 keeps its settings in a new form, so it starts from its fresh
+    settings (layout BAND); set the calibration and the screen's brightness again.</p>
   </div>
   <div class="three">
     <div class="card" style="--c:var(--master)"><div class="tag">Simplest</div><h3>A card reader</h3>
@@ -368,20 +404,21 @@ footer p + p{margin-top:8px}
 <section id="status"><div class="wrap">
   <h2 class="sh">Status</h2>
   <div class="status">
-    <div><span class="y">✓</span><span>Builds for the module (v0.2.0, about 238 KB).</span></div>
-    <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 109 tests on a computer: notes, priorities, glide,
-    bend, the clock divisions, start, stop, reset, sections, accents, velocities, triggers and calibration.</span></div>
+    <div><span class="y">✓</span><span>Builds for the module (v0.3.0, about 245 KB).</span></div>
+    <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 196 tests on a computer: notes, glide, bend, the
+    envelopes, both layouts, drum gates with velocity, J1's clock and J2's reset and start/stop, MIDI clock winning,
+    the settings and their SysEx.</span></div>
     <div><span class="y">✓</span><span>Runs in the <a href="https://timncox.github.io/alchemy-lab/emulator/">Alchemy Lab emulator</a>
-    with MIDI fed in: five test scripts covering boot, notes, the clock, every knob and button, and a computer
-    plugged in and then a keyboard.</span></div>
+    with MIDI fed in: eight test scripts covering boot, layout BAND, notes, the clock, a clock and reset on J1 and J2,
+    every knob and button, settings over SysEx, and a computer plugged in and then a keyboard.</span></div>
     <div><span class="y">✓</span><span>End to end with PROTECTOR: the FM-1's and SMK-37's own simulators playing into
-    TETHER in the emulator at 90, 120 and 174 BPM, with every pitch, gate, trigger, reset and section checked.</span></div>
-    <div><span class="y">✓</span><span>Opens the FM-1's MIDI as PROTECTOR describes it, checked against the FM-1's real
-    USB description (v0.2.0; v0.1.0 missed it when the FM-1 was plugged straight in).</span></div>
-    <div><span class="n">○</span><span>Not yet tried on a module: the port switching between host and device, and an
-    iPhone or Mac seeing TETHER over the Lab's own USB-C.</span></div>
-    <div><span class="n">○</span><span>If a computer sends the port to sleep while idle, the Lab goes back to taking
-    turns and finds it again within about four seconds of waking; untried.</span></div>
+    TETHER in the emulator at 120 BPM, in both layouts, with every pitch, gate, drum, clock and reset checked
+    (0.2.0 was also checked at 90 and 174 BPM).</span></div>
+    <div><span class="n">○</span><span>Not yet tried on a module: J1 and J2 with a real clock (the inputs are
+    AC-coupled, so the edge level is a best guess), the drum levels on real drum modules, and Loadout setting it
+    over a real iPhone.</span></div>
+    <div><span class="n">○</span><span>From 0.2.0: the port switching between host and device, and an iPhone or Mac
+    seeing TETHER over the Lab's own USB-C, untried on a module.</span></div>
   </div>
 </div></section>
 
@@ -396,18 +433,18 @@ footer p + p{margin-top:8px}
 (() => {
 "use strict";
 const PARTS = [
-  {n:"KICK", c:"--p1", jacks:["J7"], say:"<b>KICK</b>, channel 1: a trigger on <b>J7</b> (TRIG 1) for every kick."},
-  {n:"SNARE", c:"--p2", jacks:["J8"], say:"<b>SNARE</b>, channel 2: a trigger on <b>J8</b> (TRIG 2) for every snare."},
-  {n:"HATS", c:"--p3", jacks:[], say:"<b>HATS</b>, channel 3: no jack on a fresh module. Give one TRIG 3 on the JACKS layer."},
+  {n:"KICK", c:"--p1", jacks:["J7"], say:"<b>KICK</b>, channel 1: a gate on <b>J7</b> (TRIG 1) as long as each kick note, as high as it was hit hard."},
+  {n:"SNARE", c:"--p2", jacks:["J8"], say:"<b>SNARE</b>, channel 2: a gate on <b>J8</b> (TRIG 2), its height from velocity."},
+  {n:"HATS", c:"--p3", jacks:["J5"], say:"<b>HATS</b>, channel 3: a gate on <b>J5</b> (TRIG 3), its height from velocity."},
   {n:"PERC", c:"--p4", jacks:[], say:"<b>PERC</b>, channel 4: no jack on a fresh module. Give one TRIG 4 on the JACKS layer."},
   {n:"BASS", c:"--p5", jacks:["J9","J3"], say:"<b>BASS</b>, channel 5: voice A. Its pitch on <b>J9</b>, its gate on <b>J3</b>."},
   {n:"LEAD", c:"--p6", jacks:["J10","J4"], say:"<b>LEAD</b>, channel 6: voice B. Its pitch on <b>J10</b>, its gate on <b>J4</b>."},
-  {n:"PAD", c:"--p7", jacks:[], say:"<b>PAD</b>, channel 7: a chord, so no pitch jack. Point a voice's PART at 7 to follow its top or bottom note."},
-  {n:"CLOCK", c:"--clk", sub:"start · stop", jacks:["J5","J6"], say:"The <b>clock</b>: a trigger every sixteenth on <b>J5</b>, and a reset trigger on <b>J6</b> at each Start."},
+  {n:"PAD", c:"--p7", jacks:[], say:"<b>PAD</b>, channel 7: voice C follows its lowest note. No jack on a fresh module: give one PITCH C, GATE C or ENV C."},
+  {n:"CLOCK", c:"--clk", sub:"start · stop", jacks:["J6"], say:"The <b>clock</b>: a pulse every sixteenth on <b>J6</b> while it plays. Layout CLOCK puts a reset on J6 instead and the 16ths on J5."},
 ];
 const JACKS = [
-  ["J1","Not used",null,"--dim"],["J3","Gate A","BASS","--va"],["J5","Clock","16ths","--clk"],["J7","Trig 1","KICK","--p1"],["J9","Pitch A","1 V/oct","--va"],
-  ["J2","Not used",null,"--dim"],["J4","Gate B","LEAD","--vb"],["J6","Reset","on Start","--clk"],["J8","Trig 2","SNARE","--p2"],["J10","Pitch B","1 V/oct","--vb"],
+  ["J1","Clock in","no MIDI clock","--dim"],["J3","Gate A","BASS","--va"],["J5","Trig 3","HATS","--p3"],["J7","Trig 1","KICK","--p1"],["J9","Pitch A","BASS","--va"],
+  ["J2","Reset in","or start/stop","--dim"],["J4","Gate B","LEAD","--vb"],["J6","Clock","16ths","--clk"],["J8","Trig 2","SNARE","--p2"],["J10","Pitch B","LEAD","--vb"],
 ];
 function jackHtml(j){
   const off = j[2]===null ? " off" : "";
@@ -417,7 +454,7 @@ const heroJ = document.getElementById("heroJacks"), mapJ = document.getElementBy
 heroJ.innerHTML = JACKS.map(jackHtml).join("");
 mapJ.innerHTML = JACKS.map(jackHtml).join("");
 mapJ.setAttribute("role","img");
-mapJ.setAttribute("aria-label","The jacks on the panel. Top row: J1 not used, J3 gate A, J5 clock, J7 trigger 1, J9 pitch A. Bottom row: J2 not used, J4 gate B, J6 reset, J8 trigger 2, J10 pitch B.");
+mapJ.setAttribute("aria-label","The jacks on the panel, layout BAND. Top row: J1 clock in, J3 bass gate, J5 hats, J7 kick, J9 bass pitch. Bottom row: J2 reset in, J4 lead gate, J6 16ths clock out, J8 snare, J10 lead pitch.");
 
 const chips = document.getElementById("chips"), say = document.getElementById("say");
 function pick(i){
@@ -435,7 +472,7 @@ PARTS.forEach((p,i) => {
 pick(4);
 
 const rows = document.getElementById("partRows");
-const FRESH = ["TRIG 1 on J7","TRIG 2 on J8","free (give a jack TRIG 3)","free (give a jack TRIG 4)","voice A: pitch J9, gate J3","voice B: pitch J10, gate J4","free (a voice's PART can follow it)","free (give a jack TRIG 8)"];
+const FRESH = ["TRIG 1, a gate on J7","TRIG 2, a gate on J8","TRIG 3, a gate on J5","free (give a jack TRIG 4)","voice A: pitch J9, gate J3","voice B: pitch J10, gate J4","voice C (give a jack PITCH C)","free (give a jack TRIG 8)"];
 rows.innerHTML = PARTS.slice(0,7).concat([{n:"FX",c:"--p8"}]).map((p,i) =>
   `<tr><td><b>${i+1}</b></td><td><span class="sw" style="--c:var(${p.c})"></span>${p.n}</td><td>${FRESH[i]}</td></tr>`).join("") +
   `<tr><td><b>16</b></td><td>Section, CC 85</td><td>RESET on a section change (if RESET ON says so), and the SECTION job</td></tr>`;
@@ -443,12 +480,19 @@ rows.innerHTML = PARTS.slice(0,7).concat([{n:"FX",c:"--p8"}]).map((p,i) =>
 /* the panel: three layers, six knobs (top-left, top-right, middle-left, middle-right, bottom-left, bottom-right) */
 const LAYERS = [
   {id:"voice", name:"Voice", c:"--va", where:"No button held · for the voice B1 picks", knobs:[
-    ["PART","Which MIDI channel this voice plays: 1 to 16, or ALL. Voice A starts on 5 (BASS), voice B on 6 (LEAD)."],
-    ["GATE","What its gate jack does: GATE (high while held), TRIG (a short trigger per note), ACC GATE (8 V on an accent, 5 V otherwise) or VEL GATE (height follows velocity)."],
+    ["PART","Which MIDI channel this voice plays: 1 to 16, or ALL. Voice A starts on 5 (BASS), B on 6 (LEAD), C on 7 (PAD)."],
+    ["GATE","What its gate jack does: GATE (high while held), TRIG (a short trigger per note), ACC GATE (5 V on an accent, 3.5 V otherwise) or VEL GATE (1 to 5 V, by velocity)."],
     ["GLIDE","How long the pitch takes to slide to a new note, from off to one second."],
     ["OCTAVE","Shifts the pitch CV by whole octaves, −4 to +4."],
     ["TRANSPOSE","Shifts it by semitones, −12 to +12."],
     ["NOTES","Which note wins when several are held. LEGATO: the newest, and a slide keeps the gate up. RETRIG: the newest, with a fresh gate each time. LOW and HIGH: the lowest or highest held."]]},
+  {id:"more", name:"More", c:"--p7", where:"Hold B1 · for the voice B1 picks", knobs:[
+    ["ATTACK","How long the voice's envelope takes to rise to 5 V, 1 ms to 4 s. The envelope comes out on a jack set to ENV A, B or C."],
+    ["DECAY","How long it then takes to fall to SUSTAIN, 1 ms to 4 s."],
+    ["SUSTAIN","The level it holds while the note is held, 0 to 5 V."],
+    ["RELEASE","How long it takes to fall to 0 V after the note ends, 1 ms to 4 s."],
+    ["J1 CLOCK","How many pulses a beat J1's clock sends: 1, 2, 4, 8, 12, 24 or 48. Starts at 4, a pulse every sixteenth."],
+    ["J2","What a pulse on J2 does: RESET (back to the top of the bar) or START/STOP."]]},
   {id:"master", name:"Master", c:"--master", where:"Hold B2", knobs:[
     ["CAL OFFSET","Tunes the selected voice's pitch output up or down. See Tuning."],
     ["CAL SCALE","Stretches the selected voice's octaves so they're exactly 1 V apart. See Tuning."],
@@ -457,11 +501,17 @@ const LAYERS = [
     ["BEND","Pitch bend range, 0 to 12 semitones."],
     ["RESET ON","When the RESET job fires: on Start only, or on Start and every section change."]]},
   {id:"jacks", name:"Jacks", c:"--vb", where:"Hold B3 · one knob per jack", knobs:[
-    ["J3","Gives J3 a job. Fresh: GATE A."],["J4","Gives J4 a job. Fresh: GATE B."],
-    ["J5","Gives J5 a job. Fresh: CLK 16."],["J6","Gives J6 a job. Fresh: RESET."],
+    ["J3","Gives J3 a job. Fresh: GATE A (bass)."],["J4","Gives J4 a job. Fresh: GATE B (lead)."],
+    ["J5","Gives J5 a job. Fresh: TRIG 3 (HATS)."],["J6","Gives J6 a job. Fresh: CLK 16."],
     ["J7","Gives J7 a job. Fresh: TRIG 1 (KICK)."],["J8","Gives J8 a job. Fresh: TRIG 2 (SNARE)."]]},
+  {id:"jacks2", name:"Jacks 2", c:"--vb", where:"Hold B3, tap B1", knobs:[
+    ["J9","Gives J9 a job. Fresh: PITCH A (bass)."],["J10","Gives J10 a job. Fresh: PITCH B (lead)."],
+    ["LAYOUT","All eight jacks at once: BAND (fresh) or CLOCK (TETHER 0.2's: J5 16ths, J6 reset). Once a jack is changed by hand it reads CUSTOM."],
+    ["DRUM","Which drum, TRIG 1 to 8, the next two knobs set. The ring takes its part's colour."],
+    ["MODE","For that drum: GATE (as long as the note), GATE + VEL (its height from velocity), TRIG (TRIG LENGTH, whatever the note) or TRIG + VEL. Fresh: GATE + VEL for KICK, SNARE and HATS, GATE for the rest."],
+    ["FLOOR","With VEL: the height of the softest hit, 0 to 5 V (the hardest is 5 V). Fresh: 2.5 V."]]},
 ];
-const JOBS = "The jobs: GATE A or B, CLK 24, CLK 16, CLK 8, CLK 4, BAR, RESET, RUN, SECTION, ACC A or B, VEL A or B, and TRIG 1 to 8. The ring takes the job's colour.";
+const JOBS = "The jobs: PITCH, GATE, ENV, ACC and VEL for voices A, B and C, CLK 24, CLK 16, CLK 8, CLK 4, BAR, RESET, RUN, SECTION, and TRIG 1 to 8. The ring takes the job's colour.";
 const POS = ["top-left","top-right","middle-left","middle-right","bottom-left","bottom-right"];
 const tabs = document.getElementById("pageTabs"), face = document.getElementById("face"), help = document.getElementById("help");
 let L = 0, K = 0;
@@ -488,7 +538,7 @@ function render(){
   });
   const k = lay.knobs[K];
   help.innerHTML = `<div class="name">${k[0]}</div><div class="where">${lay.where} · ${POS[K]} knob</div><p>${k[1]}</p>` +
-    (lay.id === "jacks" ? `<p>${JOBS}</p>` : "");
+    (lay.id === "jacks" || (lay.id === "jacks2" && K < 2) ? `<p>${JOBS}</p>` : "");
 }
 LAYERS.forEach((lay,i) => {
   const b = document.createElement("button");
