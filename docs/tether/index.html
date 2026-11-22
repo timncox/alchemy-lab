@@ -244,7 +244,8 @@ footer p + p{margin-top:8px}
       <li>Press <kbd>SCALE</kbd> for the <b>SONG</b> page.</li>
       <li>Tap <kbd>KNOB BANK</kbd> for the lower row: K5 is CLOCK IN, K6 is CLOCK OUT.</li>
       <li>Turn <b>K6</b> all the way to <b>PARTS</b>.</li>
-      <li>Plug the SMK-37 into a powered hub, the hub into the Lab, and press <kbd>PLAY</kbd>.</li></ol></div>
+      <li>Plug the SMK-37's USB-C into a powered hub and the hub into the Lab (or straight into the Lab, if the
+      keyboard stays on with its USB cable out). Wait for <kbd>B3</kbd> to go green, then press <kbd>PLAY</kbd>.</li></ol></div>
   </div>
   <div class="tbl"><table>
     <thead><tr><th>Channel</th><th>Part</th><th>On a fresh TETHER</th></tr></thead>
@@ -325,7 +326,9 @@ footer p + p{margin-top:8px}
     <p><b>Two hits in a row.</b> When a hit starts as the last one ends, or while it's still up, the jack drops for
     3 ms first, so the module hears two hits, not one long one. That hit comes out up to 3 ms late.</p>
     <p><b>Timing.</b> J7 and J8 change within a millisecond of the note. J3 to J6 change about once a millisecond,
-    so a drum there (the hats on J5) can come up to 1 ms after the kick and snare.</p>
+    so a drum there (the hats on J5) can come up to 1 ms after the kick and snare. Those four also pause for a few
+    milliseconds while the screen is drawn; no hit or clock pulse is lost in a pause, though one can come a few
+    milliseconds late, and each low and each hit on them lasts at least 3 ms.</p>
     <p><b>J1 and J2.</b> With no MIDI clock coming in, J1 takes a clock (a pulse above about 1 V; 4 a beat to start,
     set on MORE) and J2 a reset or a start/stop. The first pulse on J1 starts the playing, and three of its pulses'
     worth of nothing stops it. MIDI clock always wins: while it's coming in, J1 and J2 are ignored.</p>
@@ -366,7 +369,7 @@ footer p + p{margin-top:8px}
     <p>TETHER is a second firmware that lives on the card beside Belt. Put the file in the card's
     <code>alchemy</code> folder, then switch to it from the Firmware page.</p>
     <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.3.0, 245 KB). Its SHA-256 is
-    <code style="word-break:break-all">9c6ca36f7831ae7421e93724162ca4e1307df933debeed89f28754518b109595</code>.</p>
+    <code style="word-break:break-all">3e46cb90ff682732c2d8e139599906da0ce21f2bb8ad70acc808932ece559da7</code>.</p>
     <p><b>Coming from 0.1 or 0.2:</b> TETHER 0.3.0 keeps its settings in a new form, so it starts from its fresh
     settings (layout BAND); set the calibration and the screen's brightness again.</p>
   </div>
