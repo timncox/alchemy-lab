@@ -22,6 +22,7 @@ namespace
 std::mutex            g_mu;
 std::deque<uint32_t>  g_q;
 std::atomic<bool>     g_plugged{false};
+std::atomic<bool>     g_computer{false};   /* the far end is a computer (the firmware is its device) */
 std::atomic<uint32_t> g_count{0};
 struct Timed { uint64_t frame; uint8_t st, d1, d2; };
 std::vector<Timed>    g_timed;   /* sorted by frame */
@@ -43,9 +44,20 @@ void Send(uint8_t status, uint8_t d1, uint8_t d2)
 void Plug(bool on)
 {
     std::lock_guard<std::mutex> lk(g_mu);
-    g_plugged = on;
+    g_plugged  = on;
+    g_computer = false;
     if (!on) g_q.clear();
 }
+
+void PlugComputer(bool on)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    g_plugged  = on;
+    g_computer = on;
+    if (!on) g_q.clear();
+}
+
+bool Computer() { return g_computer.load(); }
 
 bool Plugged() { return g_plugged.load(); }
 

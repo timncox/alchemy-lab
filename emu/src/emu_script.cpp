@@ -258,7 +258,7 @@ int emu_script_run(const char* path)
             /* midi on <ch 1-16> <note> <vel> | off <ch> <note> | cc <ch> <cc> <v> |
              * bend <ch> <-8192..8191> | start | stop | continue |
              * clock <ticks> [bpm]  (24 PPQN, waits as it goes; 120 BPM) |
-             * raw <status> <d1> <d2> | plug | unplug */
+             * raw <status> <d1> <d2> | plug [computer] | unplug */
             const int ch = (std::atoi(b) - 1) & 15;
             if (!std::strcmp(a, "on")) emu::midi::Send((uint8_t)(0x90 | ch), (uint8_t)std::atoi(c), (uint8_t)(n > 4 ? std::atoi(d) : 100));
             else if (!std::strcmp(a, "off")) emu::midi::Send((uint8_t)(0x80 | ch), (uint8_t)std::atoi(c), 0);
@@ -293,6 +293,7 @@ int emu_script_run(const char* path)
             else if (!std::strcmp(a, "raw"))
                 emu::midi::Send((uint8_t)std::strtol(b, nullptr, 0), (uint8_t)std::strtol(c, nullptr, 0),
                                 (uint8_t)std::strtol(d, nullptr, 0));
+            else if (!std::strcmp(a, "plug") && n > 2 && !std::strcmp(b, "computer")) emu::midi::PlugComputer(true);
             else if (!std::strcmp(a, "plug")) emu::midi::Plug(true);
             else if (!std::strcmp(a, "unplug")) emu::midi::Plug(false);
             else { std::printf("?? line %d: midi %s\n", line_no, a); fails++; }

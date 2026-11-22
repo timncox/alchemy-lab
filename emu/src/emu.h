@@ -79,6 +79,11 @@ namespace midi {
 void     Send(uint8_t status, uint8_t d1, uint8_t d2);
 void     Plug(bool on);
 bool     Plugged();
+/* The far end is a computer, an iPhone or an iPad (script `midi plug
+ * computer`): for a firmware whose port can be a USB device too; `midi plug`
+ * is a keyboard (the firmware is the host). Messages arrive the same way. */
+void     PlugComputer(bool on);
+bool     Computer();
 bool     Pop(uint32_t* pkt);
 uint32_t Count();   /* packets the firmware has taken */
 /* A timed stream (a keyboard simulator's log, script `midifile`): packets
