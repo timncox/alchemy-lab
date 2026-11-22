@@ -33,6 +33,9 @@
  *   pad <a|b|x|y|lb|rb|lt|rt|up|down|left|right|l3|r3> [tap|press|release]
  *   midi on <ch> <note> [vel] | off <ch> <note> | cc <ch> <cc> <v> | bend <ch> <v>
  *   midi start|stop|continue | clock <ticks> [bpm] | raw <st> <d1> <d2> | plug|unplug
+ *   midifile <path>                  a timed stream ("<ms> <st> <d1> <d2>", hex) on the
+ *                                    audio clock, from 20 ms on (e.g. a keyboard sim's log)
+ *   cvlog <path> | cvlog off         J3..J10 a block at a time to a file (frame, 8 volts)
  *                                    a USB-MIDI device on the front USB-C, for a
  *                                    firmware that hosts one (emu_midi.cpp); clock
  *                                    sends 24 PPQN ticks in real time (120 BPM)
@@ -293,6 +296,22 @@ int emu_script_run(const char* path)
             else if (!std::strcmp(a, "plug")) emu::midi::Plug(true);
             else if (!std::strcmp(a, "unplug")) emu::midi::Plug(false);
             else { std::printf("?? line %d: midi %s\n", line_no, a); fails++; }
+        }
+        else if (C == "midifile")
+        {
+            /* midifile <path>: a timed MIDI stream, "<ms> <status> <d1> <d2>" (hex) a
+             * line, played from 20 ms from now on the audio clock; the script goes on
+             * at once (wait for it to finish). */
+            const uint64_t at = emu::BlockFrames() + 960;
+            if (!emu::midi::LoadFile(a, at))
+            { std::printf("?? line %d: midifile %s: cannot read\n", line_no, a); fails++; }
+            else std::printf("midifile from frame %llu (%zu packets)\n", (unsigned long long)at, emu::midi::Pending());
+        }
+        else if (C == "cvlog")
+        {
+            /* cvlog <path> | cvlog off: J3..J10 once a block to a file */
+            if (!std::strcmp(a, "off")) emu::cvlog::Close();
+            else if (!emu::cvlog::Open(a)) { std::printf("?? line %d: cvlog %s\n", line_no, a); fails++; }
         }
         else if (C == "pad")
         {

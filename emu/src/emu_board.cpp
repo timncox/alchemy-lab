@@ -195,6 +195,10 @@ void FillCard(const std::string& host_dir)
     std::fprintf(stderr, "[emu] card: %d file(s) from %s\n", n, host_dir.c_str());
 }
 
+/* script `cvlog`: what a jack the firmware drives puts out (0 V if an input) */
+namespace cvlog {
+float OutVolts(int idx) { return g_panel.cv_is_out[idx].load() ? g_panel.cv_out[idx].load() : 0.0f; }
+} // namespace cvlog
 } // namespace emu
 
 void daisy::QSPIHandle::Persist()

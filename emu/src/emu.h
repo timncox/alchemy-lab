@@ -81,7 +81,23 @@ void     Plug(bool on);
 bool     Plugged();
 bool     Pop(uint32_t* pkt);
 uint32_t Count();   /* packets the firmware has taken */
+/* A timed stream (a keyboard simulator's log, script `midifile`): packets
+ * handed over in the audio block whose first frame reaches their time, so
+ * the firmware sees them as a host polling the port would. Due() runs from
+ * Render before each block; frame = frames rendered so far (48 kHz). */
+bool     LoadFile(const char* path, uint64_t start_frame);
+void     Due(uint64_t frame);
+size_t   Pending();
 } // namespace midi
+/* What J3..J10 put out, once a block, to a file (script `cvlog`): one line
+ * a block, the frame then the eight volts. Block() runs from Render after
+ * the firmware's callback. */
+namespace cvlog {
+bool Open(const char* path);
+void Close();
+void Block(uint64_t frame);
+} // namespace cvlog
+uint64_t BlockFrames();   /* frames rendered in whole blocks so far */
 
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);

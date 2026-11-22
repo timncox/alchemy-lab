@@ -179,6 +179,9 @@ float PulseSample(int jack)
     return 0.0f;
 }
 
+static std::atomic<uint64_t> g_block_frames{0};
+uint64_t BlockFrames() { return g_block_frames.load(); }
+
 /* Feed `frames` stereo frames through the firmware, `out` interleaved. */
 void Render(float* out, size_t frames)
 {
@@ -206,6 +209,7 @@ void Render(float* out, size_t frames)
                 ir[i] = s + PulseSample(1);
                 in_pk = std::max(in_pk, std::fabs(s));
             }
+            midi::Due(g_block_frames);
             if (cb)
             {
                 const float* ins[2] = {il.data(), ir.data()};
@@ -214,6 +218,8 @@ void Render(float* out, size_t frames)
             }
             else
                 for (size_t i = 0; i < bs; i++) { ol[i] = 0.f; orr[i] = 0.f; }
+            cvlog::Block(g_block_frames);
+            g_block_frames += bs;
             have = bs;
             at = 0;
         }
