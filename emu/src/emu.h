@@ -106,6 +106,26 @@ bool     LoadFile(const char* path, uint64_t start_frame);
 void     Due(uint64_t frame);
 size_t   Pending();
 } // namespace midi
+/* USB audio on the front USB-C (emu_usbaudio.cpp), for a firmware whose port
+ * is a USB audio device too: the far end (script `midi plug computer`)
+ * streams a sine to it (script `usbaudio out`) and listens back (`usbaudio
+ * in`, `expect usbin`). The firmware's shim keeps the host's 1 ms packet
+ * clock: OutFrames gives the host's next frames, InFrames takes what an IN
+ * packet carried; 16-bit stereo interleaved, L first, 44.1 kHz. */
+namespace usbaudio {
+void     Out(double hz, int chans, float level, double ppm);   /* chans 1 L, 2 R, 3 both */
+void     OutOff();
+bool     OutOn();
+double   OutPpm();     /* the host's clock against the Lab's */
+void     OutFrames(int16_t* lr, int frames);
+void     In(bool on);
+bool     InOn();
+void     InFrames(const int16_t* lr, int frames);
+float    InTone(float hz);   /* amplitude at hz in the last 8192 frames heard */
+float    InRms();
+uint32_t InCount();          /* frames heard so far */
+uint32_t OutCount();         /* frames sent so far */
+} // namespace usbaudio
 /* What J3..J10 put out, once a block, to a file (script `cvlog`): one line
  * a block, the frame then the eight volts. Block() runs from Render after
  * the firmware's callback. */
