@@ -88,11 +88,22 @@ void SendSysex(const uint8_t* msg, int n)
 
 static std::vector<uint8_t> g_out_cur, g_out_last;
 static uint32_t             g_out_count = 0;
+static int                  g_cc_last[128];
+static uint32_t             g_cc_n[128];
+static bool                 g_cc_init = false;
 
 void Out(uint32_t pkt)
 {
     std::lock_guard<std::mutex> lk(g_mu);
     const uint8_t cin = pkt & 0x0F;
+    if (!g_cc_init) { for (int i = 0; i < 128; i++) g_cc_last[i] = -1; g_cc_init = true; }
+    if (cin == 0x0B && ((pkt >> 8) & 0xF0u) == 0xB0u)
+    {
+        const int cc = (int)((pkt >> 16) & 0x7Fu);
+        g_cc_last[cc] = (int)((pkt >> 24) & 0x7Fu);
+        g_cc_n[cc]++;
+        return;
+    }
     const int     nb  = cin == 0x4 || cin == 0x7 ? 3 : cin == 0x6 ? 2 : cin == 0x5 ? 1 : 0;
     for (int i = 0; i < nb; i++)
     {
@@ -109,6 +120,18 @@ int LastOut(uint8_t* buf, int cap)
     const int n = (int)g_out_last.size() < cap ? (int)g_out_last.size() : cap;
     if (n) std::memcpy(buf, g_out_last.data(), (size_t)n);
     return n;
+}
+
+int CcOut(int cc)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    return g_cc_init && cc >= 0 && cc < 128 ? g_cc_last[cc] : -1;
+}
+
+uint32_t CcCount(int cc)
+{
+    std::lock_guard<std::mutex> lk(g_mu);
+    return cc >= 0 && cc < 128 ? g_cc_n[cc] : 0;
 }
 
 uint32_t OutCount()

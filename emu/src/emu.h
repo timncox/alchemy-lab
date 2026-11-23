@@ -93,6 +93,11 @@ void     SendSysex(const uint8_t* msg, int n);
 void     Out(uint32_t pkt);
 int      LastOut(uint8_t* buf, int cap);
 uint32_t OutCount();   /* whole SysEx messages the firmware has sent */
+/* Control changes the firmware sent back (any channel; script `expect ccout`,
+ * `expect cccount`, `print ccout`): the newest value of a CC, -1 if none yet,
+ * and how many of it so far. */
+int      CcOut(int cc);
+uint32_t CcCount(int cc);
 /* A timed stream (a keyboard simulator's log, script `midifile`): packets
  * handed over in the audio block whose first frame reaches their time, so
  * the firmware sees them as a host polling the port would. Due() runs from

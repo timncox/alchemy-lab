@@ -35,6 +35,8 @@
  *   midi start|stop|continue | clock <ticks> [bpm] | raw <st> <d1> <d2> | plug|unplug
  *   midi sysex <hex bytes>           a whole SysEx (F0 .. F7) from the far end
  *   expect sysexout <hex> | print sysexout   the newest SysEx the firmware sent back starts so
+ *   expect ccout <cc> > | < | = <v>  the newest value of a control change the firmware sent
+ *   expect cccount <cc> > | < | = <n>  how many of that CC it sent since mark; print ccout
  *   midifile <path>                  a timed stream ("<ms> <st> <d1> <d2>", hex) on the
  *                                    audio clock, from 20 ms on (e.g. a keyboard sim's log)
  *   cvlog <path> | cvlog off         J3..J10 a block at a time to a file (frame, 8 volts)
@@ -74,6 +76,7 @@ namespace {
 
 std::atomic<bool> g_run{true};
 uint32_t          g_edge_mark[8];
+uint32_t          g_cc_mark[128];
 
 void driver()
 {
@@ -192,6 +195,26 @@ int emu_script_run(const char* path)
         {
             emu::TakeOutRms();
             for (int j = 0; j < 8; j++) g_edge_mark[j] = emu::Edges(j);
+            for (int c = 0; c < 128; c++) g_cc_mark[c] = emu::midi::CcCount(c);
+        }
+        else if (C == "expect" && (!std::strcmp(a, "ccout") || !std::strcmp(a, "cccount")))
+        {
+            /* expect ccout <cc> > | < | = <v> / expect cccount <cc> > | < | = <n> */
+            const int  cc    = std::atoi(b) & 0x7F;
+            const bool count = !std::strcmp(a, "cccount");
+            const long got   = count ? (long)(emu::midi::CcCount(cc) - g_cc_mark[cc]) : (long)emu::midi::CcOut(cc);
+            const long want  = std::atol(d);
+            const bool ok = !std::strcmp(c, ">") ? got > want : !std::strcmp(c, "<") ? got < want : got == want;
+            std::printf("%s line %d: CC %d %s %ld, want %s %ld\n", ok ? "PASS" : "FAIL", line_no, cc,
+                        count ? "sent since mark" : "last value out", got, c, want);
+            if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "ccout"))
+        {
+            for (int c = 0; c < 128; c++)
+                if (emu::midi::CcCount(c))
+                    std::printf("  CC %d: %d (%u sent, %u since mark)\n", c, emu::midi::CcOut(c), emu::midi::CcCount(c),
+                                emu::midi::CcCount(c) - g_cc_mark[c]);
         }
         else if (C == "expect" && !std::strcmp(a, "edges"))
         {
