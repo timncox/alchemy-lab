@@ -160,6 +160,8 @@ footer p + p{margin-top:8px}
   <a class="s" href="#protector">PROTECTOR</a>
   <a class="s" href="#panel">Panel</a>
   <a class="s" href="#jacks">Jacks</a>
+  <a class="s" href="#cvin">CV in</a>
+  <a class="s" href="#audio">Audio</a>
   <a class="s" href="#tune">Tuning</a>
   <a class="s" href="#install">Install</a>
   <a class="s" href="#status">Status</a>
@@ -175,9 +177,13 @@ footer p + p{margin-top:8px}
     snare and hats whose height follows velocity, and a clock. With no MIDI clock coming in, J1 and J2 take a clock
     and a reset from the rack. It was made for <b>PROTECTOR</b> on the M-Vave FM-1 and SMK-37, whose PARTS setting sends every
     part on its own channel, but any class-compliant MIDI keyboard or app can drive it.</p>
+    <p class="lede">Since <b>0.5.0</b> it also works the other way: voltages into the Lab steer PROTECTOR's
+    effects, and the FM-1's sound comes out of the Lab over the same USB cable, with the Lab's J1 and J2 going back
+    into the FM-1. The FM-1 plugs <b>straight in, with no hub</b>.</p>
     <div class="facts">
       <span>3 voices · 1 V/oct</span><span>8 jacks with a job each</span><span>drum gates follow velocity</span>
       <span>clock and reset in</span><span>keyboard in or computer out</span><span>set it from Loadout</span>
+      <span>CV in to PROTECTOR's effects</span><span>FM-1 audio both ways over USB</span>
     </div>
   </div>
   <div class="route" aria-label="Where each of PROTECTOR's parts comes out">
@@ -199,15 +205,17 @@ footer p + p{margin-top:8px}
     <div class="card" style="--c:var(--green)"><div class="tag">The Lab is the host</div><h3>A keyboard, straight in</h3>
       <p>Plug the FM-1, the SMK-37 or any class-compliant USB MIDI keyboard into the Lab. <kbd>B3</kbd> goes
       <b>green</b> and flashes white with each message.</p>
-      <p>The Lab puts <b>no power</b> on its USB port (it's built that way; firmware can't change it). The FM-1
-      and SMK-37 run on their own power, but their USB only wakes up with 5 V on the cable, so they need a
-      <b>powered USB hub</b> between them and the Lab, which also charges them. Straight in, <kbd>B3</kbd> goes
-      amber, then red with one blink.</p></div>
+      <p>The Lab puts <b>no power</b> on its USB port (it's built that way; firmware can't change it), and a
+      keyboard's USB usually only wakes up with 5 V on the cable. So most keyboards, the SMK-37 included, need a
+      <b>powered USB hub</b> between them and the Lab. Straight in, <kbd>B3</kbd> goes amber, then red with one blink.</p>
+      <p>The <b>FM-1</b> doesn't: with CLOCK OUT on <b>LAB</b> it runs the USB link itself and plugs straight in.
+      See <a href="#lab">FM-1 straight in</a>.</p></div>
     <div class="card" style="--c:var(--vb)"><div class="tag">The Lab is the device</div><h3>Into an iPhone, iPad or Mac</h3>
       <p>Plug the Lab into a phone, tablet or computer and it shows up as a MIDI device named <b>TETHER</b>.
       <kbd>B3</kbd> goes <b>cyan</b>. Pick TETHER as the output in Loadout, a DAW or any MIDI app and its notes
       drive the jacks, just as a keyboard's would.</p>
-      <p>With a USB hub on the iPhone, the FM-1 and the Lab can both hang off it: route the FM-1 to TETHER in an app.</p></div>
+      <p>With a USB hub on the iPhone, the FM-1 and the Lab can both hang off it: route the FM-1 to TETHER in an app.</p>
+      <p>When the FM-1 runs the link (LAB), the Lab is its device in the same way, so <kbd>B3</kbd> is cyan then too.</p></div>
   </div>
   <div class="prose" style="margin-top:22px">
     <p><b>How it decides.</b> The Lab has one port and nothing in the hardware says what's on the other end, so
@@ -219,10 +227,10 @@ footer p + p{margin-top:8px}
     <div><i class="dim" style="--c:var(--red)"></i><span><b>Dim red</b>: nothing plugged in, or still taking turns.</span></div>
     <div><i style="--c:var(--amber)"></i><span><b>Amber</b>: something answered; setting it up.</span></div>
     <div><i style="--c:var(--red)"></i><span><b>Red</b>: it couldn't set up what's plugged in. Count the dark blinks:
-    <b>1</b> it never answered (most often no power on the cable: use a powered hub), <b>2</b> lost while
+    <b>1</b> it never answered (most often no power on the cable: use a powered hub, or LAB on the FM-1), <b>2</b> lost while
     being set up, <b>3</b> lost while being configured, <b>4</b> no MIDI on it.</span></div>
     <div><i style="--c:var(--green)"></i><span><b>Green</b>: a keyboard's MIDI is coming in.</span></div>
-    <div><i style="--c:var(--vb)"></i><span><b>Cyan</b>: an iPhone, iPad or Mac is playing TETHER.</span></div>
+    <div><i style="--c:var(--vb)"></i><span><b>Cyan</b>: an iPhone, iPad, Mac, or the FM-1 on LAB, is playing TETHER.</span></div>
     <div><i style="--c:var(--blue)"></i><span><b>Blue</b>: Mac mode (below), for the web tools and file transfer.</span></div>
   </div>
   <div class="note"><b>Mac mode.</b> Hold <kbd>B1</kbd> while powering up and the port stays the Mac tools'
@@ -258,6 +266,33 @@ footer p + p{margin-top:8px}
     own sound line up closely. A <b>SLIDE</b> step's next note starts before the last one ends, which TETHER plays
     as a glide when GLIDE is up and NOTES is LEGATO. Muted parts send nothing new.</p>
   </div>
+  <h3 id="lab" style="margin-top:40px">FM-1 straight in: CLOCK OUT on LAB</h3>
+  <div class="prose">
+    <p>The FM-1 can run the USB link itself, the way a computer would, so it plugs straight into the Lab with
+    <b>no hub</b>. It needs <b>PROTECTOR DIRECT TEST 0.4.8.4</b>, which Loadout installs from its firmware list, and
+    TETHER 0.5.0 for the audio. LAB sends everything PARTS does, plus the audio both ways and the CV in below.</p>
+  </div>
+  <ol class="steps">
+    <li><span>Press <kbd>SEQ</kbd> until the screen shows the <b>SONG</b> page, and tap <kbd>SEL</kbd> for the bottom row.</span></li>
+    <li><span>Turn the second knob, <b>CLOCK OUT</b>, one step past PARTS to <b>LAB</b>.</span></li>
+    <li><span>Plug the FM-1's USB-C straight into the Lab's front USB-C. No hub.</span></li>
+    <li><span>Watch the top of the FM-1's screen: <b>LAB FOUND · PARTS + AUDIO</b>, then about 1.5 s later
+    <b>LAB AUDIO · OUT ON IN ON</b>. <kbd>B3</kbd> on the Lab goes cyan. Press <kbd>PLAY</kbd>.</span></li>
+  </ol>
+  <div class="tbl"><table>
+    <thead><tr><th>FM-1 popup</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><b>USB HOST ON · LOOKING FOR LAB</b></td><td>LAB was just turned on.</td></tr>
+      <tr><td><b>LAB FOUND · PARTS + AUDIO</b></td><td>Found TETHER 0.5.0: parts, CV in and audio.</td></tr>
+      <tr><td><b>LAB FOUND · PARTS GO TO IT</b></td><td>Found an older TETHER: parts only, no audio.</td></tr>
+      <tr><td><b>LAB AUDIO · OUT ON IN ON</b></td><td>Sound is flowing both ways. WAIT means set up but nothing yet; NO means that way isn't set up.</td></tr>
+      <tr><td><b>LOOKING FOR LAB · TRIES n</b></td><td>Every 3 s while the Lab hasn't answered. NO LAB ON LINE: nothing seen on the cable yet.</td></tr>
+      <tr><td><b>LAB LOST · LOOKING AGAIN</b></td><td>Unplugged, or the Lab restarted.</td></tr>
+    </tbody></table></div>
+  <div class="note"><b>Popups are brief.</b> Each shows for about a second across the top of whatever page you're on,
+  then the screen goes back to normal. Once it's connected nothing more shows; to see them again, unplug and replug.
+  <b>LAB is never kept:</b> after a power-up CLOCK OUT reads PARTS, and the FM-1 works with the phone and Loadout as
+  usual. While LAB is on, the phone can't reach the FM-1 over USB. The SMK-37 has no LAB yet: use PARTS and a hub.</div>
 </div></section>
 
 <section id="panel"><div class="wrap">
@@ -312,7 +347,73 @@ footer p + p{margin-top:8px}
       <tr><td><b>ACC A / B / C</b></td><td>A gate only on accented notes (velocity at or above ACCENT).</td></tr>
       <tr><td><b>VEL A / B / C</b></td><td>The voice's last velocity as a voltage, 0 to 5 V.</td></tr>
       <tr><td><b>TRIG 1 – 8</b></td><td>That part's drum (1 KICK … 8 FX): a gate as long as each note, its height from velocity if MODE says so. See Drums, below.</td></tr>
+      <tr><td><b>IN FILTER … IN MORPH</b></td><td>J3 to J8 only: the jack becomes an input that steers one of PROTECTOR's effects. See <a href="#cvin">CV in</a>.</td></tr>
+      <tr><td><b>AUDIO L / R</b></td><td>J9 and J10 only: the FM-1's sound (or a computer's) over USB, ±5 V at full volume. See <a href="#audio">Audio</a>.</td></tr>
     </tbody></table></div>
+  <h3 style="margin-top:40px">Layouts</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Layout</th><th>J3</th><th>J4</th><th>J5</th><th>J6</th><th>J7</th><th>J8</th><th>J9</th><th>J10</th></tr></thead>
+    <tbody>
+      <tr><td><b>BAND</b> (fresh)</td><td>Gate A</td><td>Gate B</td><td>Hats</td><td>Clk 16</td><td>Kick</td><td>Snare</td><td>Pitch A</td><td>Pitch B</td></tr>
+      <tr><td><b>CLOCK</b></td><td>Gate A</td><td>Gate B</td><td>Clk 16</td><td>Reset</td><td>Kick</td><td>Snare</td><td>Pitch A</td><td>Pitch B</td></tr>
+      <tr><td><b>CV IN</b></td><td>Gate A</td><td>Gate B</td><td>In Filter</td><td>In Delay</td><td>Kick</td><td>Snare</td><td>Pitch A</td><td>Pitch B</td></tr>
+      <tr><td><b>AUDIO</b></td><td>Gate A</td><td>Gate B</td><td>In Filter</td><td>In Delay</td><td>Kick</td><td>Snare</td><td>Audio L</td><td>Audio R</td></tr>
+    </tbody></table></div>
+  <h3 style="margin-top:40px">Picking a layout</h3>
+  <div class="prose"><p>The lights are the <b>rings around the knobs</b>, not the jacks: on the JACKS layers each
+  knob's ring shows its jack's job in that job's colour.</p></div>
+  <ol class="steps">
+    <li><span>Hold <kbd>B3</kbd>, and keep holding it the whole time: letting go leaves the page.</span></li>
+    <li><span>Tap <kbd>B1</kbd> once for page 2. The <b>top-left</b> knob is J9, the <b>top-right</b> knob J10,
+    and the <b>middle-left</b> knob the layout.</span></li>
+    <li><span>The middle-left ring shows five dim spots, BAND, CLOCK, CV IN, AUDIO and CUSTOM, with one lit. AUDIO is
+    the fourth, at about 2 o'clock. If another is lit, turn that knob all the way left, then up to about 2 o'clock.</span></li>
+    <li><span>With AUDIO, the top-left and top-right rings are <b>pink</b>: J9 and J10 are the audio. Inputs on J3 to
+    J8 show <b>teal</b>. Let go of <kbd>B3</kbd>.</span></li>
+  </ol>
+</div></section>
+
+<section id="cvin"><div class="wrap">
+  <h2 class="sh">CV in</h2>
+  <div class="prose">
+    <p>J3 to J8 can each be given an <b>input</b> job: IN FILTER, IN REVERB, IN DELAY, IN ECHO, IN GLITCH, IN PUMP,
+    IN RUMBLE, IN DRIVE, IN COMB, IN PHASER, IN FLANGER, IN CRUSH, IN SCENE or IN MORPH (teal on the ring). The jack
+    then reads a voltage and plays PROTECTOR's effects pad with it, over USB, to the FM-1 on LAB or to a computer.
+    PROTECTOR needs no change. Layouts CV IN and AUDIO put IN FILTER on J5 and IN DELAY on J6.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Input</th><th>What the voltage does</th></tr></thead>
+    <tbody>
+      <tr><td><b>IN FILTER</b></td><td>0 V is the middle (filter off), −5 V closes it, +5 V opens it.</td></tr>
+      <tr><td><b>Every other one</b></td><td>0 V is none, +5 V is all the way.</td></tr>
+      <tr><td><b>Nothing plugged in</b></td><td>A jack sends nothing until it first reads more than 0.2 V, so an empty one leaves PROTECTOR's own knob alone.</td></tr>
+      <tr><td><b>Back to an output</b></td><td>Every effect goes back to its knob (and the phone's pad).</td></tr>
+    </tbody></table></div>
+</div></section>
+
+<section id="audio"><div class="wrap">
+  <h2 class="sh">Audio over USB</h2>
+  <div class="prose">
+    <p>From 0.5.0 the Lab is a USB audio interface as well as the TETHER MIDI device, over the same cable. With the
+    FM-1 on LAB:</p>
+  </div>
+  <div class="two">
+    <div class="card" style="--c:var(--p8)"><div class="tag">FM-1 to the Lab</div><h3>J9 and J10</h3>
+      <p>With J9 and J10 on <b>AUDIO L</b> and <b>AUDIO R</b> (layout AUDIO), the FM-1's sound comes out of them at
+      Eurorack level: <b>±5 V</b> at full volume, 10 V peak to peak. It's the FM-1's whole stereo mix, after its
+      effects, and the FM-1's volume knob sets how loud it is. Patch them straight into a mixer or a module; no gain
+      stage needed. With nothing streaming they're silent.</p></div>
+    <div class="card" style="--c:var(--vb)"><div class="tag">The Lab to the FM-1</div><h3>J1 and J2</h3>
+      <p>Whatever goes into <b>J1</b> (left) and <b>J2</b> (right) plays out of the FM-1, mixed in after PROTECTOR's
+      effects. They take Eurorack-level audio; start a hot source a little down, as they clip near ±5 V. J1 and J2 keep
+      their clock and reset jobs too (ignored while MIDI clock comes in).</p></div>
+  </div>
+  <div class="note"><b>Picking by hand.</b> Choosing the AUDIO layout sets J9 to AUDIO L and J10 to AUDIO R. To set
+  one jack yourself, its knob on page 2 goes all the way right for <b>AUDIO R</b>, a hair back from the end for
+  <b>AUDIO L</b>; both show pink and look the same on the ring, so pick the layout unless you need something odd,
+  like J9 on AUDIO L with J10 still on PITCH B. There's no mono mix of left and right. What comes in on J1 and J2
+  doesn't go back out of J9 and J10. A computer or iPhone sees the Lab as
+  a class-compliant audio interface too (44.1 kHz, 16-bit stereo), but that hasn't been tried yet.</div>
 </div></section>
 
 <section id="drums"><div class="wrap">
@@ -371,8 +472,10 @@ footer p + p{margin-top:8px}
   <div class="prose">
     <p>TETHER is a second firmware that lives on the card beside Belt. Put the file in the card's
     <code>alchemy</code> folder, then switch to it from the Firmware page.</p>
-    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.3.3, 250 KB). Its SHA-256 is
-    <code style="word-break:break-all">389eb299d5edff71da2ca4a405cf263432c73a261452f87a66d26c4f211bbc9e</code>.</p>
+    <p><a href="tether_alchemy.bin"><b>Download tether_alchemy.bin</b></a> (v0.5.0, 256 KB). Its SHA-256 is
+    <code style="word-break:break-all">6ad60b35f0d3eb94ae7d1cdb8f77b70e64494d76ba00e02a3b0ed4cc9a596de2</code>.</p>
+    <p><b>Coming from 0.3 or 0.4:</b> your settings and calibration carry over; pick the AUDIO or CV IN layout to
+    use the new jacks.</p>
     <p><b>Coming from 0.1 or 0.2:</b> TETHER 0.3 keeps its settings in a new form, so it starts from its fresh
     settings (layout BAND); set the calibration and the screen's brightness again.</p>
   </div>
@@ -410,14 +513,16 @@ footer p + p{margin-top:8px}
 <section id="status"><div class="wrap">
   <h2 class="sh">Status</h2>
   <div class="status">
-    <div><span class="y">✓</span><span>Builds for the module (v0.3.3, about 250 KB).</span></div>
-    <div><span class="y">✓</span><span>On a module: the FM-1 through a powered hub into TETHER 0.3.3 works. Straight in it
-    can't, because the FM-1's USB needs 5 V on the cable and the Lab's port gives none.</span></div>
-    <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 196 tests on a computer: notes, glide, bend, the
-    envelopes, both layouts, drum gates with velocity, J1's clock and J2's reset and start/stop, MIDI clock winning,
+    <div><span class="y">✓</span><span>Builds for the module (v0.5.0, about 256 KB).</span></div>
+    <div><span class="y">✓</span><span>On a module: the FM-1 straight into the Lab with no hub, CLOCK OUT on LAB
+    (PROTECTOR DIRECT TEST 0.4.8.4) and TETHER 0.5.0. Parts play, the FM-1's sound comes out of J9 and J10, and J1 and
+    J2 play out of the FM-1.</span></div>
+    <div><span class="y">✓</span><span>On a module: the FM-1 and SMK-37 through a powered hub on PARTS (TETHER 0.3.3).</span></div>
+    <div><span class="y">✓</span><span>The MIDI-to-CV engine passes 237 tests on a computer: notes, glide, bend, the
+    envelopes, every layout, the CV inputs, drum gates with velocity, J1's clock and J2's reset and start/stop, MIDI clock winning,
     the settings and their SysEx.</span></div>
     <div><span class="y">✓</span><span>Runs in the <a href="https://timncox.github.io/alchemy-lab/emulator/">Alchemy Lab emulator</a>
-    with MIDI fed in: eight test scripts covering boot, layout BAND, notes, the clock, a clock and reset on J1 and J2,
+    with MIDI fed in: ten test scripts covering boot, layout BAND, notes, the clock, a clock and reset on J1 and J2,
     every knob and button, settings over SysEx, and a computer plugged in and then a keyboard.</span></div>
     <div><span class="y">✓</span><span>End to end with PROTECTOR: the FM-1's and SMK-37's own simulators playing into
     TETHER in the emulator at 120 BPM, in both layouts, with every pitch, gate, drum, clock and reset checked
@@ -425,7 +530,13 @@ footer p + p{margin-top:8px}
     <div><span class="n">○</span><span>Not yet tried on a module: J1 and J2 with a real clock (the inputs are
     AC-coupled, so the edge level is a best guess), the drum levels on real drum modules, and Loadout setting it
     over a real iPhone.</span></div>
-    <div><span class="n">○</span><span>An iPhone or Mac playing TETHER over the Lab's own USB-C, untried on a module.</span></div>
+    <div><span class="y">✓</span><span>0.5.0's USB audio: 99 tests on a computer (descriptors byte by byte, both
+    resamplers, clock drift) and a USB audio script in the emulator; every emulator script passes (10 scripts, 189
+    checks).</span></div>
+    <div><span class="n">○</span><span>CV in steering the FM-1's effects: passes in the emulator and PROTECTOR's
+    simulator, not yet tried on a module.</span></div>
+    <div><span class="n">○</span><span>An iPhone or Mac playing TETHER, or using it as an audio interface, over the
+    Lab's own USB-C: untried on a module.</span></div>
   </div>
 </div></section>
 
@@ -512,13 +623,13 @@ const LAYERS = [
     ["J5","Gives J5 a job. Fresh: TRIG 3 (HATS)."],["J6","Gives J6 a job. Fresh: CLK 16."],
     ["J7","Gives J7 a job. Fresh: TRIG 1 (KICK)."],["J8","Gives J8 a job. Fresh: TRIG 2 (SNARE)."]]},
   {id:"jacks2", name:"Jacks 2", c:"--vb", where:"Hold B3, tap B1", knobs:[
-    ["J9","Gives J9 a job. Fresh: PITCH A (bass)."],["J10","Gives J10 a job. Fresh: PITCH B (lead)."],
-    ["LAYOUT","All eight jacks at once: BAND (fresh) or CLOCK (TETHER 0.2's: J5 16ths, J6 reset). Once a jack is changed by hand it reads CUSTOM."],
+    ["J9","Gives J9 a job. Fresh: PITCH A (bass). AUDIO L (pink) plays the left of the FM-1's sound over USB."],["J10","Gives J10 a job. Fresh: PITCH B (lead). AUDIO R (pink) plays the right."],
+    ["LAYOUT","All eight jacks at once, five spots on the ring: BAND (fresh), CLOCK (TETHER 0.2's: J5 16ths, J6 reset), CV IN (J5 IN FILTER, J6 IN DELAY), AUDIO (CV IN plus J9 and J10 as the FM-1's audio; about 2 o'clock) and CUSTOM. Once a jack is changed by hand it reads CUSTOM."],
     ["DRUM","Which drum, TRIG 1 to 8, the next two knobs set. The ring takes its part's colour."],
     ["MODE","For that drum: GATE (as long as the note), GATE + VEL (its height from velocity), TRIG (TRIG LENGTH, whatever the note) or TRIG + VEL. Fresh: GATE + VEL for KICK, SNARE and HATS, GATE for the rest."],
     ["FLOOR","With VEL: the height of the softest hit, 0 to 5 V (the hardest is 5 V). Fresh: 2.5 V."]]},
 ];
-const JOBS = "The jobs: PITCH, GATE, ENV, ACC and VEL for voices A, B and C, CLK 24, CLK 16, CLK 8, CLK 4, BAR, RESET, RUN, SECTION, and TRIG 1 to 8. The ring takes the job's colour.";
+const JOBS = "The jobs: PITCH, GATE, ENV, ACC and VEL for voices A, B and C, CLK 24, CLK 16, CLK 8, CLK 4, BAR, RESET, RUN, SECTION, and TRIG 1 to 8; on J3 to J8 also the inputs IN FILTER to IN MORPH (teal), and on J9 and J10 AUDIO L and R (pink). The ring takes the job's colour.";
 const POS = ["top-left","top-right","middle-left","middle-right","bottom-left","bottom-right"];
 const tabs = document.getElementById("pageTabs"), face = document.getElementById("face"), help = document.getElementById("help");
 let L = 0, K = 0;
