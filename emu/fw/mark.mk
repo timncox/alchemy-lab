@@ -12,3 +12,11 @@ EMU_LABELS     := TRACK 1|TRACK 2|TRACK 3|TRACK 4|TRACK 5|TRACK SEL
 EMU_LABELS_ALT := QUANTIZE|REC ->|DUB|PLAY|TEMPO|MASTER
 FW_MAIN_FLAGS := -include include/fw/mark_prefix.h
 EMUFLAGS_mark_core_alchemy := -include include/fw/mark_core_prefix.h
+
+# Phone mode (folder-picker + phone kit builds): the phone block compiles
+# against the emulator's stand-ins for the USB device and the picker.
+ifneq ($(wildcard $(FW_ROOT)/src/phone_kit.h),)
+FW_CXX   += $(FW_ROOT)/src/midi_usb_transport.cpp $(FW_ROOT)/src/phone_ext.cpp
+FW_INCS  += -Iinclude/fw/usbd
+FW_STUBS += src/stubs_phone.cpp
+endif
