@@ -41,6 +41,7 @@ FW_NAME_marbles  := Marbles
 FW_NAME_meld     := Meld
 FW_NAME_plaits   := Plaits
 FW_NAME_warps    := Warps
+FW_NAME_beads    := Beads
 FW_NAME := $(FW_NAME_$(FW))
 
 L_clouds   := POSITION|SIZE|PITCH|DENSITY|TEXTURE|BLEND
@@ -74,4 +75,9 @@ $(BUILD)/card/mi/elements.smp: $(BUILD)/elements.smp
 	@mkdir -p $(dir $@)
 	cp $< $@
 all: $(BUILD)/card/mi/elements.smp
+endif
+
+# Beads: the vendored engine prints from its TEST paths without <cstdio>.
+ifeq ($(FW),beads)
+FW_INCS += -include cstdio
 endif

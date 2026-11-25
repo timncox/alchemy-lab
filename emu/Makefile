@@ -8,7 +8,7 @@
 # the Alchemy SDK framework is compiled as-is. Only the board, libDaisy's
 # surface and the USB-host / picker modules are replaced (include/, src/).
 
-FWS := belt mark smack seq clouds elements marbles meld plaits warps
+FWS := belt mark smack seq clouds elements marbles meld plaits warps beads
 # built on request only (not by all-fw / test): Belt from its iPhone branch,
 # with the Phone USB modes the --hostlink server serves (fw/belt-phone.mk)
 EXTRA_FWS := belt-phone
@@ -36,7 +36,7 @@ else
 BUILD       := build/$(FW)$(if $(SAN),-$(SAN))
 endif
 
-ifneq ($(filter $(FW),clouds elements marbles meld plaits warps),)
+ifneq ($(filter $(FW),clouds elements marbles meld plaits warps beads),)
 include fw/mi.mk
 else
 include fw/$(FW).mk
