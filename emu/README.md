@@ -87,7 +87,11 @@ output stays finite; snapshot in `build/<fw>/smoke.bmp`) plus its own:
 | plaits | drones from boot (Auto), strike decays, a J3 trigger plays |
 
 Script language: top of `src/emu_script.cpp` (`pot`, `press`/`hold`/`tap`,
-`cv`, `sing`, `clock`/`pulse` (5 ms pulses on J1 / J2), `lp`, `xl`, `pad`, `expect edges` (rising edges an output made since `mark`), `expect led|lp|xl|ring|ringchanged|pan|
+`cv`, `sing`, `clock`/`pulse` (5 ms pulses on J1 / J2), `lp`, `xl`, `pad`,
+`midi` (a USB-MIDI device on the front USB-C for a firmware that hosts one:
+notes, CCs, bends, start / stop, clock in real time; the firmware's own
+`EMU_EXTRA_SRC` shim takes the packets with `emu::midi::Pop`, see TETHER's
+`emu/tether_emu_midi.cpp` in belt-alchemy), `expect edges` (rising edges an output made since `mark`), `expect led|lp|xl|ring|ringchanged|pan|
 lpmoves|lpstill|rms|tone|cv|cvrange|screen|booted|alive|finite`, `snapshot`).
 `make FW=mark SAN=thread` builds a ThreadSanitizer variant (build/mark-thread/). A `#!args --usb launchpad` line gives a
 script its command-line options.

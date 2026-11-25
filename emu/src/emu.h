@@ -71,6 +71,46 @@ void MarkFirmwareThread();
 void Service();
 } // namespace usbdev
 
+/* A USB-MIDI device on the front USB-C (emu_midi.cpp): the script's `midi`
+ * lines Send; a firmware's emulator shim Pops the packets (cable|CIN,
+ * status, d1, d2, byte 0 low) as its USB host would hand them over. The
+ * first Send plugs the device in; Plug(false) pulls it out. */
+namespace midi {
+void     Send(uint8_t status, uint8_t d1, uint8_t d2);
+void     Plug(bool on);
+bool     Plugged();
+/* The far end is a computer, an iPhone or an iPad (script `midi plug
+ * computer`): for a firmware whose port can be a USB device too; `midi plug`
+ * is a keyboard (the firmware is the host). Messages arrive the same way. */
+void     PlugComputer(bool on);
+bool     Computer();
+bool     Pop(uint32_t* pkt);
+uint32_t Count();   /* packets the firmware has taken */
+/* SysEx both ways (script `midi sysex`, `expect sysexout`): a whole message
+ * (F0 .. F7) queued as packets; Out() takes the firmware's packets back to
+ * the computer, and Last() is the newest whole SysEx it sent, F0 .. F7. */
+void     SendSysex(const uint8_t* msg, int n);
+void     Out(uint32_t pkt);
+int      LastOut(uint8_t* buf, int cap);
+uint32_t OutCount();   /* whole SysEx messages the firmware has sent */
+/* A timed stream (a keyboard simulator's log, script `midifile`): packets
+ * handed over in the audio block whose first frame reaches their time, so
+ * the firmware sees them as a host polling the port would. Due() runs from
+ * Render before each block; frame = frames rendered so far (48 kHz). */
+bool     LoadFile(const char* path, uint64_t start_frame);
+void     Due(uint64_t frame);
+size_t   Pending();
+} // namespace midi
+/* What J3..J10 put out, once a block, to a file (script `cvlog`): one line
+ * a block, the frame then the eight volts. Block() runs from Render after
+ * the firmware's callback. */
+namespace cvlog {
+bool Open(const char* path);
+void Close();
+void Block(uint64_t frame);
+} // namespace cvlog
+uint64_t BlockFrames();   /* frames rendered in whole blocks so far */
+
 void LpRgb(uint8_t idx, uint8_t* r, uint8_t* g, uint8_t* b);   /* emu_palette.cpp */
 void XlRgb(uint8_t col, uint8_t* r, uint8_t* g, uint8_t* b);
 
