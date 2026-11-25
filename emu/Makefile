@@ -10,8 +10,9 @@
 
 FWS := belt mark smack seq clouds elements marbles meld plaits warps beads
 # built on request only (not by all-fw / test): Belt from its iPhone branch,
-# with the Phone USB modes the --hostlink server serves (fw/belt-phone.mk)
-EXTRA_FWS := belt-phone
+# with the Phone USB modes the --hostlink server serves (fw/belt-phone.mk);
+# Relay (fw/relay.mk), whose MIDI input the emulator has not got
+EXTRA_FWS := belt-phone relay
 ifneq ($(filter test-custom,$(MAKECMDGOALS)),)
 FW := custom
 endif
