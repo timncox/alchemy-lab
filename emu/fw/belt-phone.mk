@@ -30,3 +30,11 @@ FW_CFLAGS := -ffast-math -fno-finite-math-only
 FW_STUBS  := src/stubs_usbhost.cpp src/stubs_phone.cpp src/emu_ctl_split.cpp
 EMU_LABELS     := KEY|SCALE|RETUNE|AMOUNT|HARMONY|FORMANT
 EMU_LABELS_ALT := VOICE 1|VOICE 2|VOICE 3|VOICE 4|DOUBLER|SPREAD
+
+# The combined Belt (claude/belt-combined: chords and the rear MIDI jack on
+# the phone line) brings its chord source and the step sequencer; the rear
+# MIDI jack is a stand-in with nothing plugged in.
+ifneq ($(wildcard $(FW_ROOT)/src/chord_src.c),)
+FW_C   += $(FW_ROOT)/src/chord_src.c $(FW_ROOT)/src/vendor/seq.c
+FW_STUBS += src/stubs_rear_midi.cpp
+endif
