@@ -35,6 +35,14 @@
  *   midi start|stop|continue | clock <ticks> [bpm] | raw <st> <d1> <d2> | plug|unplug
  *   midi sysex <hex bytes>           a whole SysEx (F0 .. F7) from the far end
  *   expect sysexout <hex> | print sysexout   the newest SysEx the firmware sent back starts so
+ *   expect ccout <cc> > | < | = <v>  the newest value of a control change the firmware sent
+ *   expect cccount <cc> > | < | = <n>  how many of that CC it sent since mark; print ccout
+ *   usbaudio out <hz> [left|right|both] [level] [ppm] | usbaudio out off
+ *                                    the far end (midi plug computer) streams a sine as
+ *                                    USB audio to a firmware that is a USB audio device
+ *   usbaudio in on|off               the far end listens to the firmware's USB audio
+ *   expect usbin <hz> > | < <x>      amplitude at hz in the last 8192 frames it heard
+ *   expect usbin rms > | < <x>       and their level; print usbin [hz]
  *   midifile <path>                  a timed stream ("<ms> <st> <d1> <d2>", hex) on the
  *                                    audio clock, from 20 ms on (e.g. a keyboard sim's log)
  *   cvlog <path> | cvlog off         J3..J10 a block at a time to a file (frame, 8 volts)
@@ -74,6 +82,7 @@ namespace {
 
 std::atomic<bool> g_run{true};
 uint32_t          g_edge_mark[8];
+uint32_t          g_cc_mark[128];
 
 void driver()
 {
@@ -192,6 +201,26 @@ int emu_script_run(const char* path)
         {
             emu::TakeOutRms();
             for (int j = 0; j < 8; j++) g_edge_mark[j] = emu::Edges(j);
+            for (int c = 0; c < 128; c++) g_cc_mark[c] = emu::midi::CcCount(c);
+        }
+        else if (C == "expect" && (!std::strcmp(a, "ccout") || !std::strcmp(a, "cccount")))
+        {
+            /* expect ccout <cc> > | < | = <v> / expect cccount <cc> > | < | = <n> */
+            const int  cc    = std::atoi(b) & 0x7F;
+            const bool count = !std::strcmp(a, "cccount");
+            const long got   = count ? (long)(emu::midi::CcCount(cc) - g_cc_mark[cc]) : (long)emu::midi::CcOut(cc);
+            const long want  = std::atol(d);
+            const bool ok = !std::strcmp(c, ">") ? got > want : !std::strcmp(c, "<") ? got < want : got == want;
+            std::printf("%s line %d: CC %d %s %ld, want %s %ld\n", ok ? "PASS" : "FAIL", line_no, cc,
+                        count ? "sent since mark" : "last value out", got, c, want);
+            if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "ccout"))
+        {
+            for (int c = 0; c < 128; c++)
+                if (emu::midi::CcCount(c))
+                    std::printf("  CC %d: %d (%u sent, %u since mark)\n", c, emu::midi::CcOut(c), emu::midi::CcCount(c),
+                                emu::midi::CcCount(c) - g_cc_mark[c]);
         }
         else if (C == "expect" && !std::strcmp(a, "edges"))
         {
@@ -275,6 +304,37 @@ int emu_script_run(const char* path)
                 if (!press && !rel) sleep_ms(80);
                 if (!press) emu::ctl::XlButton(r, cl, false);
             }
+        }
+        else if (C == "usbaudio")
+        {
+            /* usbaudio out <hz> [left|right|both] [level] [ppm] | out off | in on|off */
+            if (!std::strcmp(a, "out") && !std::strcmp(b, "off")) emu::usbaudio::OutOff();
+            else if (!std::strcmp(a, "out"))
+            {
+                const int chans = !std::strcmp(c, "left") ? 1 : !std::strcmp(c, "right") ? 2 : 3;
+                const float level = n > 4 ? (float)std::atof(d) : 0.5f;
+                const double ppm = n > 5 ? std::atof(e) : 0.0;
+                emu::usbaudio::Out(std::atof(b), chans, level, ppm);
+            }
+            else if (!std::strcmp(a, "in")) emu::usbaudio::In(!std::strcmp(b, "on"));
+            else { std::printf("FAIL line %d: usbaudio %s?\n", line_no, a); fails++; }
+        }
+        else if (C == "expect" && !std::strcmp(a, "usbin"))
+        {
+            /* expect usbin <hz> > | < <x> / expect usbin rms > | < <x> */
+            const bool rms = !std::strcmp(b, "rms");
+            const float v = rms ? emu::usbaudio::InRms() : emu::usbaudio::InTone((float)std::atof(b));
+            const float want = (float)std::atof(d);
+            const bool ok = !std::strcmp(c, ">") ? v > want : v < want;
+            std::printf("%s line %d: USB audio in, %s%s at %.4f %s %.4f (%u frames heard)\n", ok ? "PASS" : "FAIL", line_no,
+                        rms ? "rms" : b, rms ? "" : " Hz", v, c, want, (unsigned)emu::usbaudio::InCount());
+            if (!ok) fails++;
+        }
+        else if (C == "print" && !std::strcmp(a, "usbin"))
+        {
+            std::printf("  usb audio in: %u frames heard, rms %.4f", (unsigned)emu::usbaudio::InCount(), emu::usbaudio::InRms());
+            if (*b) std::printf(", %.1f Hz at %.4f", std::atof(b), emu::usbaudio::InTone((float)std::atof(b)));
+            std::printf("; %u frames sent\n", (unsigned)emu::usbaudio::OutCount());
         }
         else if (C == "midi")
         {

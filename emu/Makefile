@@ -106,7 +106,7 @@ SDK_V2 := $(filter $(addprefix hardware/alchemy-lab/v2/src/,alchemy_lab_v2_layou
 SDK_SRC := $(filter-out $(SDK_REPLACED),$(SDK_FRAMEWORK)) $(SDK_V2) $(SDK_RAMDISK)
 SDK_ANIMS := $(wildcard $(ALCHEMY_DIR)/framework/src/led/anims/*.cpp)
 
-EMU_CXX := src/emu_board.cpp src/emu_midi.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
+EMU_CXX := src/emu_board.cpp src/emu_midi.cpp src/emu_usbaudio.cpp src/emu_stubs.cpp src/presets_emu.cpp src/emu_main.cpp \
            src/emu_ui.cpp src/emu_script.cpp src/emu_font.cpp src/emu_hostfs.cpp src/emu_palette.cpp src/emu_ui_ctl.cpp \
            src/emu_hostlink.cpp $(EMU_RAMDISK) $(FW_STUBS)
 
