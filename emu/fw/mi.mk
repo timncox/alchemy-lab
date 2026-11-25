@@ -27,6 +27,14 @@ FW_DEFS   := -DTEST -DMI_VERSION=\"emu\" -DMI_GIT_HASH=\"$(shell git -C $(FW_ROO
 FW_CC_FLAGS := $(FW_CC_OPT)
 FW_STUBS  :=
 
+# Phone mode (folder-picker + phone kit builds): the phone block compiles
+# against the emulator's stand-ins for the USB device and the picker.
+ifneq ($(wildcard $(FW_ROOT)/src/common/phone_kit.h),)
+FW_CXX  += $(FW_ROOT)/src/common/usb_shared.cpp $(FW_ROOT)/src/common/midi_usb_transport.cpp \
+           $(FW_ROOT)/src/common/phone_ext.cpp $(CURDIR)/src/stubs_phone.cpp
+FW_INCS += -I$(CURDIR)/include/fw/usbd
+endif
+
 FW_NAME_clouds   := Clouds
 FW_NAME_elements := Elements
 FW_NAME_marbles  := Marbles
