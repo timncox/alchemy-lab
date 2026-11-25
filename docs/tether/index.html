@@ -179,11 +179,14 @@ footer p + p{margin-top:8px}
     part on its own channel, but any class-compliant MIDI keyboard or app can drive it.</p>
     <p class="lede">Since <b>0.5.0</b> it also works the other way: voltages into the Lab steer PROTECTOR's
     effects, and the FM-1's sound comes out of the Lab over the same USB cable, with the Lab's J1 and J2 going back
-    into the FM-1. The FM-1 plugs <b>straight in, with no hub</b>.</p>
+    into the FM-1. On the keyboard's <b>LAB IN</b> page, J1 and J2 go through PROTECTOR's effects, their own reverb
+    and delay, or a VOX part's talk box. The FM-1 plugs <b>straight in, with no hub</b>, and the SMK-37 has a test
+    build that does too.</p>
     <div class="facts">
       <span>3 voices · 1 V/oct</span><span>8 jacks with a job each</span><span>drum gates follow velocity</span>
       <span>clock and reset in</span><span>keyboard in or computer out</span><span>set it from Loadout</span>
       <span>CV in to PROTECTOR's effects</span><span>FM-1 audio both ways over USB</span>
+      <span>J1 and J2 through PROTECTOR's effects</span><span>talk box</span>
     </div>
   </div>
   <div class="route" aria-label="Where each of PROTECTOR's parts comes out">
@@ -269,8 +272,8 @@ footer p + p{margin-top:8px}
   <h3 id="lab" style="margin-top:40px">FM-1 straight in: CLOCK OUT on LAB</h3>
   <div class="prose">
     <p>The FM-1 can run the USB link itself, the way a computer would, so it plugs straight into the Lab with
-    <b>no hub</b>. It needs <b>PROTECTOR DIRECT TEST 0.4.8.4</b>, which Loadout installs from its firmware list, and
-    TETHER 0.5.0 for the audio. LAB sends everything PARTS does, plus the audio both ways and the CV in below.</p>
+    <b>no hub</b>. It needs the <b>PROTECTOR DIRECT TEST</b> card in Loadout's firmware list (0.4.8.4 or later; Loadout
+    installs it) and TETHER 0.5.0 for the audio. LAB sends everything PARTS does, plus the audio both ways and the CV in below.</p>
   </div>
   <ol class="steps">
     <li><span>Press <kbd>SEQ</kbd> until the screen shows the <b>SONG</b> page, and tap <kbd>SEL</kbd> for the bottom row.</span></li>
@@ -292,7 +295,22 @@ footer p + p{margin-top:8px}
   <div class="note"><b>Popups are brief.</b> Each shows for about a second across the top of whatever page you're on,
   then the screen goes back to normal. Once it's connected nothing more shows; to see them again, unplug and replug.
   <b>LAB is never kept:</b> after a power-up CLOCK OUT reads PARTS, and the FM-1 works with the phone and Loadout as
-  usual. While LAB is on, the phone can't reach the FM-1 over USB. The SMK-37 has no LAB yet: use PARTS and a hub.</div>
+  usual. While LAB is on, the phone can't reach the FM-1 over USB. For the SMK-37, see the next part.</div>
+  <h3 id="smklab" style="margin-top:40px">SMK-37 straight in: the LAB TEST</h3>
+  <div class="prose">
+    <p>Loadout's <b>PROTECTOR SMK-37 LAB TEST</b> card (0.4.9.2) gives the SMK-37 the same LAB setting: parts, audio
+    both ways and the LAB IN page. It runs on its battery, so it plugs straight in with <b>no hub</b>. It's a test
+    and hasn't been tried on a module yet. PROTECTOR SMK-37 0.4.9 stays on its own card to go back to.</p>
+  </div>
+  <ol class="steps">
+    <li><span>Install <b>PROTECTOR SMK-37 LAB TEST</b> from Loadout's firmware list.</span></li>
+    <li><span>Press <kbd>SCALE</kbd> for the <b>SONG</b> page and tap <kbd>KNOB BANK</kbd> for the lower row.</span></li>
+    <li><span>Turn <b>K6</b> (CLOCK OUT) all the way up, past PARTS, to <b>LAB</b>.</span></li>
+    <li><span>Plug the SMK-37's USB-C straight into the Lab's front USB-C, and press <kbd>PLAY</kbd>. The screen shows
+    the same messages as the FM-1's. <b>MASTER</b> sets how loud the Lab gets its sound.</span></li>
+  </ol>
+  <div class="note"><b>One keyboard at a time.</b> The Lab's front USB-C takes the FM-1 or the SMK-37, not both. LAB is
+  never kept on the SMK-37 either: after a power-up K6 reads PARTS.</div>
 </div></section>
 
 <section id="panel"><div class="wrap">
@@ -404,16 +422,36 @@ footer p + p{margin-top:8px}
       effects, and the FM-1's volume knob sets how loud it is. Patch them straight into a mixer or a module; no gain
       stage needed. With nothing streaming they're silent.</p></div>
     <div class="card" style="--c:var(--vb)"><div class="tag">The Lab to the FM-1</div><h3>J1 and J2</h3>
-      <p>Whatever goes into <b>J1</b> (left) and <b>J2</b> (right) plays out of the FM-1, mixed in after PROTECTOR's
-      effects. They take Eurorack-level audio; start a hot source a little down, as they clip near ±5 V. J1 and J2 keep
+      <p>Whatever goes into <b>J1</b> (left) and <b>J2</b> (right) goes into PROTECTOR's sound, set on the keyboard's
+      <a href="#labin">LAB IN</a> page. They take Eurorack-level audio; start a hot source a little down, as they clip near ±5 V. J1 and J2 keep
       their clock and reset jobs too (ignored while MIDI clock comes in).</p></div>
   </div>
   <div class="note"><b>Picking by hand.</b> Choosing the AUDIO layout sets J9 to AUDIO L and J10 to AUDIO R. To set
   one jack yourself, its knob on page 2 goes all the way right for <b>AUDIO R</b>, a hair back from the end for
   <b>AUDIO L</b>; both show pink and look the same on the ring, so pick the layout unless you need something odd,
-  like J9 on AUDIO L with J10 still on PITCH B. There's no mono mix of left and right. What comes in on J1 and J2
-  doesn't go back out of J9 and J10. A computer or iPhone sees the Lab as
+  like J9 on AUDIO L with J10 still on PITCH B. There's no mono mix of left and right. A computer or iPhone sees the Lab as
   a class-compliant audio interface too (44.1 kHz, 16-bit stereo), but that hasn't been tried yet.</div>
+  <div class="note"><b>Don't loop it.</b> J1 and J2 go into the keyboard's mix, and the mix comes back out of J9 and
+  J10. Patching J9 or J10 into J1 or J2 feeds back.</div>
+  <h3 id="labin" style="margin-top:40px">The LAB IN page</h3>
+  <div class="prose">
+    <p>On the keyboard, with CLOCK OUT on LAB, the <b>LAB IN</b> page sets what J1 and J2 do. On the FM-1, press
+    <kbd>SEQ</kbd> once more after SONG; the top row is on the four knobs and <kbd>SEL</kbd> gives the lower row. On the
+    SMK-37 LAB TEST, it's the next <kbd>SEQ</kbd> stop after SONG: the top row is K5 to K8 and <kbd>KNOB BANK</kbd>
+    gives the lower row. These aren't kept: every power-up starts at IN LEVEL full and the rest off.</p>
+  </div>
+  <div class="tbl"><table>
+    <thead><tr><th>Knob</th><th>FM-1</th><th>SMK-37</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><b>IN LEVEL</b></td><td>1st</td><td>K5</td><td>How loud J1 and J2 go into the mix, and so through the effects. Starts full.</td></tr>
+      <tr><td><b>IN REVERB</b></td><td>2nd</td><td>K6</td><td>J1 and J2's own reverb send.</td></tr>
+      <tr><td><b>IN DELAY</b></td><td>3rd</td><td>K7</td><td>J1 and J2's own delay send.</td></tr>
+      <tr><td><b>TALK BOX</b></td><td>4th</td><td>K8</td><td>A VOX part sings with the Lab's sound in place of its own buzz.</td></tr>
+      <tr><td><b>FILTER · DRIVE · CRUSH · PUMP</b></td><td>lower row</td><td>lower row</td><td>The effects the mix goes through, the same ones as on the FX pages.</td></tr>
+    </tbody></table></div>
+  <div class="prose" style="margin-top:18px">
+    <p>Loadout's <b>VISUALS</b> follow the sound coming in on J1 and J2 too, even with IN LEVEL down.</p>
+  </div>
 </div></section>
 
 <section id="drums"><div class="wrap">
@@ -533,6 +571,10 @@ footer p + p{margin-top:8px}
     <div><span class="y">✓</span><span>0.5.0's USB audio: 99 tests on a computer (descriptors byte by byte, both
     resamplers, clock drift) and a USB audio script in the emulator; every emulator script passes (10 scripts, 189
     checks).</span></div>
+    <div><span class="n">○</span><span>The LAB IN page (J1 and J2 through the effects, their reverb and delay, the
+    talk box): passes in PROTECTOR's simulator, not yet confirmed on a module.</span></div>
+    <div><span class="n">○</span><span>The SMK-37 straight in on LAB (LAB TEST 0.4.9.2): builds and passes in its
+    simulator, not yet tried on a module.</span></div>
     <div><span class="n">○</span><span>CV in steering the FM-1's effects: passes in the emulator and PROTECTOR's
     simulator, not yet tried on a module.</span></div>
     <div><span class="n">○</span><span>An iPhone or Mac playing TETHER, or using it as an audio interface, over the
