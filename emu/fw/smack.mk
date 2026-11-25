@@ -11,3 +11,11 @@ FW_DEFS   := -DSMACK_VERSION=\"emu\" -DSMACK_GIT_HASH=\"$(shell git -C $(FW_ROOT
 FW_STUBS  := src/stubs_usbhost.cpp src/emu_ctl.cpp src/stubs_screen.cpp
 EMU_LABELS     := FX|ORDER|LENGTH|SLICE|BLEND|DJ FILTER
 EMU_LABELS_ALT := SEED|PITCH RANGE|CLOCK RATIO|PUNCH FX|MODE|TEMPO
+
+# Phone mode (folder-picker + phone kit builds): the phone block compiles
+# against the emulator's stand-ins for the USB device and the picker.
+ifneq ($(wildcard $(FW_ROOT)/src/phone_kit.h),)
+FW_CXX   += $(FW_ROOT)/src/midi_usb_transport.cpp $(FW_ROOT)/src/phone_ext.cpp
+FW_INCS  += -Iinclude/fw/usbd
+FW_STUBS += src/stubs_phone.cpp
+endif
